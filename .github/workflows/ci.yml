@@ -50,9 +50,10 @@ jobs:
       - name: Test + JaCoCo (${{ matrix.module }})
         run: |
           mvn -B -f ${{ matrix.module }}/pom.xml \
-            org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent \
-            test \
-            org.jacoco:jacoco-maven-plugin:0.8.12:report
+            verify
+
+      # TCG 铁律: 覆盖率红线门禁 —— platform-common 的 jacoco:check(verify 阶段, LINE >= 70%,
+      # excludes 见 pom)不通过即红, 零测试同样红; 其余模块暂仅产出报告不设门禁
 
       - name: Upload JaCoCo report
         if: always()

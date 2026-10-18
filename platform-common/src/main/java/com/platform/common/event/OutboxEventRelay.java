@@ -47,7 +47,8 @@ public class OutboxEventRelay {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxEventRelay.class);
     private static final int BATCH = 100;
-    private static final int MAX_ATTEMPTS = 8;
+    /** 死信阈值: 超过即标记死信并告警日志(包内可见供测试对齐) */
+    static final int MAX_ATTEMPTS = 8;
 
     private final JdbcTemplate jdbc;
     private final PulsarDomainEventPublisher publisher;
@@ -109,7 +110,8 @@ public class OutboxEventRelay {
         }
     }
 
-    private record OutboxRow(UUID id, String topic, String eventType, String tenantId,
-                             String aggregateId, String payload, String messageId, int attempts) {
+    /** 供测试构造的包内可见行记录 */
+    record OutboxRow(UUID id, String topic, String eventType, String tenantId,
+                     String aggregateId, String payload, String messageId, int attempts) {
     }
 }
