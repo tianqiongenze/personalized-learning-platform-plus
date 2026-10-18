@@ -23,9 +23,9 @@
 
 errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 errored, 但 28 条 reports 全量交付) → AmendWorkflow(校验员 ask 加固) → **dwfrun-04e636bc completed**, artifact `audit-report`(primary, 103118 字节)已发布。
 
-## 进行中 / 待办
+## 进行中 / 待办 → 已全部完成(2026-10-19)
 
-- **P2-A** web-student 5 页占位补全(Courses/LearningPath/Resources/Profile/Review), GraphQL 契约已核实(courses/learningPaths/assignments/reviewPlan/masteryProfile/recommendations)。
-- **P2-B** KT 评测闭环: BKT 主线 + 离线 AUC 评测(train_all.py 修 UnboundLocalError + 防泄漏评测口径)。
-- **P2-C** 学分互认规则引擎。
+- **P2-A**(7016bf5) web-student 5 页补全, vite build RC=0。
+- **P2-B**(2b4f849) KT 评测去泄漏 + BKT 评测; 诚实数字 DKT AUC 0.4713 / BKT 0.5127(合成数据下≈随机, 替代虚高 0.7708; 提升需扩数据/轮次, DEFERRED)。
+- **P2-C**(f7a732c) 学分互认规则引擎(tenant-service), 119 测全绿。DEFERRED: 网关路由核实/多规则优先级策略/apply 领域事件 outbox/集成测试。
 - 遗留(低优先): k8s ConfigMap 明文占位口令(JWT_SECRET/GRAFANA_PASSWORD/MINIO)→ external-secrets.yaml Vault 方案待评估; outbox 生产者侧业务事务内 save() 调用点补齐; relay 已投递行清理/死信 DLQ。
