@@ -21,8 +21,9 @@ struct SearchQuery {
     query: String,
     #[serde(rename = "topK", default = "default_top_k")]
     top_k: usize,
+    /// 预留通道选择(当前召回统一委托 ai-service 单一向量库), 仅为协议兼容保留
     #[serde(default)]
-    collections: Vec<String>,
+    _collections: Vec<String>,
 }
 
 fn default_top_k() -> usize { 10 }
@@ -36,7 +37,9 @@ struct SearchResult {
 
 #[derive(Deserialize)]
 struct RerankRequest {
-    query: String,
+    /// 预留: 未来按 query 做条件重排; 当前重排仅依赖各通道命中与文本多样性
+    #[serde(default)]
+    _query: Option<String>,
     #[serde(rename = "topK", default = "default_top_k")]
     top_k: usize,
     /// 多路召回: key=通道名(向量/关键词/图谱), value=该通道结果
@@ -56,6 +59,69 @@ struct RerankResponse {
 }
 
 static REQ_COUNTER: AtomicU64 = AtomicU64::new(0);
+static DELEGATE_OK: AtomicU64 = AtomicU64::new(0);
+static DELEGATE_FAIL: AtomicU64 = AtomicU64::new(0);
+static DELEGATE_EMPTY: AtomicU64 = AtomicU64::new(0);
+
+/// 向量召回委托目标(ai-service, Spring AI VectorStore/Milvus 连接持有方)。
+/// 部署注入, 缺省指向集群内 ai-service; 未配置或不可达时降级为空集并在 /metrics 暴露失败计数。
+fn delegate_url() -> String {
+    std::env::var("SEARCH_DELEGATE_URL")
+        .unwrap_or_else(|_| "http://ai-service.platform:8085".into())
+}
+
+async fn fetch_candidates(query: &str, top_k: usize) -> Vec<Hit> {
+    let url = format!("{}/internal/vector-search", delegate_url().trim_end_matches('/'));
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_millis(2000))
+        .timeout(std::time::Duration::from_secs(10))
+        .build();
+    let client = match client {
+        Ok(c) => c,
+        Err(_) => {
+            DELEGATE_FAIL.fetch_add(1, Ordering::Relaxed);
+            return vec![];
+        }
+    };
+    let resp = client
+        .post(&url)
+        .json(&serde_json::json!({ "query": query, "topK": top_k }))
+        .send()
+        .await;
+    match resp {
+        Ok(r) if r.status().is_success() => match r.json::<Vec<Hit>>().await {
+            Ok(hits) => {
+                if hits.is_empty() {
+                    DELEGATE_EMPTY.fetch_add(1, Ordering::Relaxed);
+                } else {
+                    DELEGATE_OK.fetch_add(1, Ordering::Relaxed);
+                }
+                hits
+            }
+            Err(_) => {
+                DELEGATE_FAIL.fetch_add(1, Ordering::Relaxed);
+                vec![]
+            }
+        },
+        _ => {
+            DELEGATE_FAIL.fetch_add(1, Ordering::Relaxed);
+            vec![]
+        }
+    }
+}
+
+async fn metrics() -> String {
+    format!(
+        "reranker_requests_total {}\n\
+         reranker_delegate_ok_total {}\n\
+         reranker_delegate_empty_total {}\n\
+         reranker_delegate_fail_total {}\n",
+        REQ_COUNTER.load(Ordering::Relaxed),
+        DELEGATE_OK.load(Ordering::Relaxed),
+        DELEGATE_EMPTY.load(Ordering::Relaxed),
+        DELEGATE_FAIL.load(Ordering::Relaxed),
+    )
+}
 
 #[tokio::main]
 async fn main() {
@@ -70,22 +136,17 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn metrics() -> String {
-    format!("reranker_requests_total {}\n", REQ_COUNTER.load(Ordering::Relaxed))
-}
-
-/// 兼容 agent-service 的内部检索入口: 先调 Milvus(由 ai-service 代理), 再重排。
-/// 部署上 vector search 走 ai-service, 此处只做重排兜底(查询词为空时返回空)。
+/// 兼容 agent-service 的内部检索入口: 真实召回委托 ai-service /internal/vector-search
+/// (Spring AI VectorStore/Milvus 连接持有方), 本服务负责超时控制与失败降级(空集+计数)。
+/// 空查询快路径不外发请求。
 async fn internal_search(Json(q): Json<SearchQuery>) -> Json<SearchResult> {
     let t0 = std::time::Instant::now();
     REQ_COUNTER.fetch_add(1, Ordering::Relaxed);
-    // 空查询快路径
     if q.query.trim().is_empty() {
         return Json(SearchResult { results: vec![], reranker: "passthrough".into(), elapsed_us: t0.elapsed().as_micros() as u64 });
     }
-    // 真实向量召回由 ai-service(Milvus SDK 持有方)完成; 本服务在此场景下透传重排:
-    // channels 未提供时 passthrough。完整链路: ai-service -> /rerank/{collection}。
-    Json(SearchResult { results: vec![], reranker: "delegated".into(), elapsed_us: t0.elapsed().as_micros() as u64 })
+    let hits = fetch_candidates(&q.query, q.top_k.max(1)).await;
+    Json(SearchResult { results: hits, reranker: "delegate-ai-service".into(), elapsed_us: t0.elapsed().as_micros() as u64 })
 }
 
 /// 核心重排: RRF 多路融合 + MMR 多样性
@@ -112,7 +173,7 @@ async fn rerank(Path(collection): Path<String>, Json(req): Json<RerankRequest>) 
 
     // ---- MMR: λ*rel - (1-λ)*max_sim ----
     // 相似度用词面 Jaccard 近似(避免引入 embedding 模型依赖; 词表来自 text 4-gram)
-    let mut scored: Vec<(f64, Hit)> = rrf.into_values().map(|(s, h)| (s, h)).collect();
+    let mut scored: Vec<(f64, Hit)> = rrf.into_values().collect();
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
 
     let mut selected: Vec<Hit> = Vec::with_capacity(req.top_k);
