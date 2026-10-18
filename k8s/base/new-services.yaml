@@ -49,8 +49,12 @@ spec:
       annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8096"}
     spec:
       serviceAccountName: ops-service
+      terminationGracePeriodSeconds: 30
       containers:
         - name: ops
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/ops-service:1.0.0
           envFrom:
             - configMapRef: {name: platform-plus-config}
@@ -82,8 +86,12 @@ spec:
       labels: {app: ai-service}
       annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8085"}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: ai
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/ai-service:1.0.0
           envFrom:
             - configMapRef: {name: platform-plus-config}
@@ -117,8 +125,12 @@ spec:
       labels: {app: agent-service}
       annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8090"}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: agent
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/agent-service:1.0.0
           env:
             - {name: LLM_BASE_URL, value: "http://llm-service.infra.svc.cluster.local:8000/v1"}
@@ -154,8 +166,12 @@ spec:
       labels: {app: vector-reranker}
       annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8090", prometheus.io/path: /metrics}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: reranker
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/vector-reranker:1.0.0
           ports: [{containerPort: 8090}]
           resources:
@@ -185,8 +201,12 @@ spec:
     metadata:
       labels: {app: realtime-gateway}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: gateway
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/realtime-gateway:1.0.0
           env:
             - {name: AGENT_SERVICE_URL, value: "http://agent-service.qianrenqianmian:8090"}
@@ -218,8 +238,12 @@ spec:
     metadata:
       labels: {app: ops-web}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: web
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/ops-web:1.0.0
           ports: [{containerPort: 80}]
 ---
@@ -247,8 +271,12 @@ spec:
       labels: {app: kt-service}
       annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8086"}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: kt
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/kt-service:1.0.0
           ports: [{containerPort: 8086}]
           resources:
@@ -277,8 +305,12 @@ spec:
   template:
     metadata: {labels: {app: web-student}}
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: web
+          lifecycle:
+            preStop:
+              exec: {command: ["sh", "-c", "sleep 5"]}
           image: platform/web-student:1.0.0
           ports: [{containerPort: 8080}]
           readinessProbe: {httpGet: {path: /, port: 8080}, initialDelaySeconds: 5}

@@ -17,8 +17,12 @@ spec:
         prometheus.io/port: "8083"
         prometheus.io/path: "/api/v1/actuator/prometheus"
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
       - name: course-service
+        lifecycle:
+          preStop:
+            exec: {command: ["sh", "-c", "sleep 5"]}   # 等 endpoint 摘除传播, 再收 SIGTERM 排空在途请求
         image: platform/course-service:2.0.0
         imagePullPolicy: IfNotPresent
         ports:
