@@ -34,13 +34,17 @@ def encode_sequence(seq: dict, n_skills: int, difficulty_levels: int = 5) -> tor
 
 
 def target_matrix(seq: dict, n_skills: int) -> torch.Tensor:
-    """t+1 时刻各 KP 的真实对错(供下一时刻预测监督)"""
+    """t+1 时刻各 KP 的真实对错(监督 y[t] = 下一时刻作答, 消除 t 时刻答案泄漏)。
+
+    修复前: y[t] 填 t 时刻自己的答案, 而 x[t] 已含该答案 —— 模型只需复读输入即可拟合。
+    修复后: y[t] 填 t+1 时刻答案; 最后一时刻无下一题, 恒为 -1(mask 掉)。
+    """
     T = len(seq["answers"])
     y = np.full((T, n_skills), -1.0, dtype=np.float32)
-    for t, (kps, ans) in enumerate(zip(seq["kps"], seq["answers"])):
-        for kp in kps:
+    for t in range(T - 1):
+        for kp in seq["kps"][t + 1]:
             if kp < n_skills:
-                y[t, kp] = float(ans)
+                y[t, kp] = float(seq["answers"][t + 1])
     return torch.from_numpy(y)
 
 
