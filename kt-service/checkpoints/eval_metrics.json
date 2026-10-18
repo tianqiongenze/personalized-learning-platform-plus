@@ -1,1 +1,1 @@
-{"auc": 0.7708, "accuracy": 0.6517, "n_predictions": 48984}
+{"dkt": {"auc": 0.4713, "accuracy": 0.6923, "n_predictions": 4686}, "bkt": {"auc": 0.5127, "accuracy": 0.6903, "n_predictions": 3562}, "protocol": "leakage-free: p[t] (input x[:t+1]) paired with ans[t+1], matches training target P(y_{t+1} | x_{1..t})"}

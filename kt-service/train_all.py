@@ -82,21 +82,28 @@ def main():
 
     # ---------- DKT ----------
     dkt = train_dkt(train_seqs, args.n_skills, epochs=args.epochs_dkt)
+    dkt.eval()
     torch.save(dkt.state_dict(), os.path.join(args.out, "dkt_model.pt"))
 
-    # ---------- 验证指标(DKT 下一题预测) ----------
+    # ---------- 验证指标(防泄漏评测) ----------
+    # 口径(与 C2 修复后的训练目标一致): 训练监督为 y[t] = P(y_{t+1} | x_{1..t}),
+    # 即时刻 t 的输入 x[:t+1] 不含 ans[t+1], 模型在 t 时刻的输出 p[t] 预测的是
+    # 第 t+1 题的对错。因此评测必须用 p[t] 配对 ans[t+1]; 禁止用 p[t+1](其输入
+    # x[:t+2] 已含 ans[t])配对 ans[t] —— 那是答案泄漏, AUC 虚高。
+    dkt.eval()
     y_true, y_score = [], []
     with torch.no_grad():
         for seq in val_seqs[:500]:
             x = encode_sequence(seq, args.n_skills).unsqueeze(0)
             p = dkt(x)[0]  # (T, S)
-            for t, (kps, ans) in enumerate(zip(seq["kps"], seq["answers"])):
-                if t + 1 >= p.shape[0]:
-                    break
-                nxt = p[t + 1]
-                for kp in kps:
-                    if kp < args.n_skills and ans in (0, 1):
-                        y_true.append(ans)
+            for t in range(len(seq["answers"]) - 1):
+                nxt_ans = seq["answers"][t + 1]
+                if nxt_ans not in (0, 1):
+                    continue
+                nxt = p[t]  # 输入仅 x[:t+1], 预测 t+1 题
+                for kp in seq["kps"][t + 1]:
+                    if kp < args.n_skills:
+                        y_true.append(int(nxt_ans))
                         y_score.append(float(nxt[kp]))
     metrics = {
         "auc": round(auc(y_true, y_score), 4),
@@ -104,7 +111,49 @@ def main():
             [1 if (s > 0.5) == (t == 1) else 0 for s, t in zip(y_score, y_true)])), 4),
         "n_predictions": len(y_true),
     }
-    print("eval:", metrics)
+    print("eval DKT:", metrics)
+
+    # ---------- BKT 同口径防泄漏评测 ----------
+    # BKT: 对每个 t, 用 x[:t+1](前 t+1 步作答)递推出的后验掌握度, 预测第 t+1 题
+    # P(correct) = p_known*(1-pS) + (1-p_known)*pG(与 predict_correct 同式)。
+    # 递增递推与"截断序列调 mastery"等价, 但 O(T) 而非 O(T^2)。
+    bkt_true, bkt_score = [], []
+    for seq in val_seqs[:500]:
+        answers, kps_list = seq["answers"], seq["kps"]
+        p_known: dict[int, float] = {}
+        for t in range(len(answers) - 1):
+            for kp in kps_list[t]:
+                cur = p_known.get(kp, float(bkt.params["pL0"][kp]))
+                p_known[kp], _ = bkt._step(
+                    cur, int(answers[t]),
+                    float(bkt.params["pL0"][kp]), float(bkt.params["pT"][kp]),
+                    float(bkt.params["pG"][kp]), float(bkt.params["pS"][kp]))
+            nxt_ans = answers[t + 1]
+            if nxt_ans not in (0, 1):
+                continue
+            probs = []
+            for kp in kps_list[t + 1]:
+                if kp >= args.n_skills:
+                    continue
+                m = p_known.get(kp, float(bkt.params["pL0"][kp]))
+                probs.append(m * (1 - float(bkt.params["pS"][kp]))
+                             + (1 - m) * float(bkt.params["pG"][kp]))
+            if probs:
+                bkt_true.append(int(nxt_ans))
+                bkt_score.append(float(np.mean(probs)))
+    bkt_metrics = {
+        "auc": round(auc(bkt_true, bkt_score), 4),
+        "accuracy": round(float(np.mean(
+            [1 if (s > 0.5) == (t == 1) else 0 for s, t in zip(bkt_score, bkt_true)])), 4),
+        "n_predictions": len(bkt_true),
+    }
+    print("eval BKT:", bkt_metrics)
+    metrics = {
+        "dkt": metrics,
+        "bkt": bkt_metrics,
+        "protocol": "leakage-free: p[t] (input x[:t+1]) paired with ans[t+1], "
+                    "matches training target P(y_{t+1} | x_{1..t})",
+    }
     json.dump(metrics, open(os.path.join(args.out, "eval_metrics.json"), "w"), ensure_ascii=False)
 
     # ---------- 学生掌握度索引(在线毫秒响应, 融合 BKT+DKT) ----------
