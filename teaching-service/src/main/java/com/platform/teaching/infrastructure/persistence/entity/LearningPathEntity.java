@@ -43,6 +43,8 @@ public class LearningPathEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status = "DRAFT";
 
+    /** 乐观锁版本列: 并发发布/更新读-改-写防丢失更新(OCC) */
+    @jakarta.persistence.Version
     @Column(name = "version", nullable = false)
     private Long version = 0L;
 
