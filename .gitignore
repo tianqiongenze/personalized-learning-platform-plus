@@ -46,3 +46,6 @@ locust/reports/**/*.html
 # ===== 编译产物（平台相关二进制）=====
 realtime-gateway/realtime-gateway-linux
 realtime-gateway/realtime-gateway-windows.exe
+
+# 构建暂存产物（tools/stage_build_ctx.py 生成，勿提交）
+.buildctx/
