@@ -93,6 +93,8 @@ app:
         redis-ttl: 60m
   events:
     enabled: true
+    # EER 铁律: 事务型 outbox(业务事务内同库写 event_outbox, relay 投递 Pulsar, at-least-once)
+    outbox: true
     default-topic: persistent://public/default/domain-events
   resilience:
     enabled: true
