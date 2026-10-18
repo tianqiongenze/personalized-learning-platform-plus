@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -50,15 +51,17 @@ public class JwtTokenService {
     }
 
     /**
-     * 生成刷新令牌
+     * 生成刷新令牌: 必须携带 roles/username —— 刷新重签 access token 时角色与用户名不丢。
      */
-    public String generateRefreshToken(String userId, String tenantId) {
+    public String generateRefreshToken(String userId, String tenantId, String username, String[] roles) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(refreshTokenExpiration);
 
         return Jwts.builder()
             .subject(userId)
             .claim("tenant_id", tenantId)
+            .claim("username", username)
+            .claim("roles", roles)
             .claim("type", "refresh")
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiry))
@@ -99,12 +102,20 @@ public class JwtTokenService {
     }
 
     /**
-     * 获取角色列表
+     * 获取角色列表。jjwt 反序列化 JSON 数组为 List&lt;String&gt;（嵌套时元素可能非 String），
+     * 逐元素取 String，兼容 List/String 两种形态；解析失败返回空数组。
      */
+    @SuppressWarnings("unchecked")
     public String[] getRoles(String token) {
         Object roles = parseToken(token).getPayload().get("roles");
-        if (roles instanceof String[]) {
-            return (String[]) roles;
+        if (roles instanceof List<?> list) {
+            return list.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .toArray(String[]::new);
+        }
+        if (roles instanceof String s) {
+            return s.isBlank() ? new String[0] : new String[]{s};
         }
         return new String[0];
     }

@@ -2,6 +2,7 @@ package com.platform.iam.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,7 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * IAM 安全装配:
  *  - BCrypt PasswordEncoder(用户口令散列)
- *  - 无状态过滤器链(网关已完成认证, 内部服务信任 X-User-* 头)
+ *  - JwtAuthenticationFilter 校验 Bearer 令牌(签名/过期), 逐请求装配 Authentication
+ *  - 认证策略: /actuator 只读探针匿名; /auth/login|refresh 匿名(认证入口);
+ *    其余 authenticated + @PreAuthorize 方法级鉴权(此前 permitAll 使 @PreAuthorize 全为死代码)
  *
  * 十万并发优化: BCrypt 强度由环境变量 BCRYPT_STRENGTH 控制(默认 10)。
  * 压测实测 strength=10 时单请求 ~150ms CPU, 是登录热点瓶颈;
@@ -20,6 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -37,10 +41,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh",
+                                 "/auth/login", "/auth/refresh").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .anyRequest().authenticated())
+            .addFilterBefore(jwtFilter,
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

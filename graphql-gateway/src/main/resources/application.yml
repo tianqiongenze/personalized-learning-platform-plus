@@ -36,6 +36,10 @@ app:
   http:
     connect-timeout-ms: 2000
     read-timeout-ms: 5000
+  security:
+    enabled: ${APP_SECURITY_ENABLED:true}
+  jwt:
+    secret: ${JWT_SECRET}  # 与 iam-service 共享; 未注入时启动即失败(边缘网关必须可验签)
 
 resilience4j:
   circuitbreaker:

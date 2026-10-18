@@ -46,14 +46,17 @@ class JwtTokenServiceTest {
     }
 
     @Test
-    @DisplayName("刷新令牌应携带 refresh 类型")
+    @DisplayName("刷新令牌应携带 refresh 类型与 roles/username(刷新重签角色不丢)")
     void shouldGenerateRefreshToken() {
-        String token = service.generateRefreshToken("user-2", "tenant-2");
+        String token = service.generateRefreshToken("user-2", "tenant-2", "bob", new String[]{"STUDENT"});
 
         assertThat(service.getUserId(token)).isEqualTo("user-2");
         assertThat(service.getTenantId(token)).isEqualTo("tenant-2");
         assertThat(service.getTokenType(token)).isEqualTo("refresh");
         assertThat(service.validateToken(token)).isTrue();
+        // 此前断裂③: refresh 不含 roles/username, 刷新后恒空 —— 现在必须携带
+        assertThat(service.getRoles(token)).containsExactly("STUDENT");
+        assertThat(service.getUsername(token)).isEqualTo("bob");
     }
 
     @Test
@@ -70,17 +73,30 @@ class JwtTokenServiceTest {
     }
 
     @Test
-    @DisplayName("getRoles 返回非空数组")
+    @DisplayName("getRoles 返回写入的角色码原样数组(角色往返)")
     void shouldReturnRolesArray() {
         String token = service.generateAccessToken("user-1", "tenant-1", "alice", new String[]{"TEACHER", "ADMIN"});
 
-        assertThat(service.getRoles(token)).isNotNull();
+        assertThat(service.getRoles(token)).containsExactly("TEACHER", "ADMIN");
     }
 
     @Test
-    @DisplayName("刷新令牌无 roles 声明时返回空数组")
+    @DisplayName("getRoles 兼容 List 形态(jjwt 对 JSON 数组的真实反序列化结果)")
+    void shouldReturnRolesFromListShape() {
+        // jjwt 反序列化 JSON 数组得到 List<String>, 而非 String[] —— 此前 instanceof String[] 恒 false。
+        // 手工签发带 List claim 的令牌, 验证 List 分支真实生效
+        javax.crypto.SecretKey key = io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET.getBytes());
+        String token = io.jsonwebtoken.Jwts.builder()
+                .subject("u").claim("roles", java.util.List.of("ADMIN"))
+                .signWith(key, io.jsonwebtoken.Jwts.SIG.HS256)
+                .compact();
+        assertThat(service.getRoles(token)).containsExactly("ADMIN");
+    }
+
+    @Test
+    @DisplayName("刷新令牌显式空 roles 时返回空数组")
     void shouldReturnEmptyRolesWhenAbsent() {
-        String token = service.generateRefreshToken("user-1", "tenant-1");
+        String token = service.generateRefreshToken("user-1", "tenant-1", "n", new String[0]);
 
         assertThat(service.getRoles(token)).isEmpty();
     }

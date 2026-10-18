@@ -34,6 +34,7 @@ public class AuthController {
     private final UserApplicationService userService;
     private final AuthApplicationService authService;
     private final JwtTokenService jwtTokenService;
+    private final RoleApplicationService roleService;
 
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户名密码登录，返回访问令牌和刷新令牌")
@@ -51,13 +52,15 @@ public class AuthController {
                     .body(ApiResponse.error(result.failureReason()));
         }
         var user = result.user();
-        String[] roles = user.getRoleIds() == null ? new String[0]
-                : user.getRoleIds().stream().map(r -> r.getValue().toString()).toArray(String[]::new);
+        // 角色写角色码(ADMIN/TEACHER...)而非 UUID: 网关/下游 hasRole('XXX') 才能匹配
+        String[] roles = roleService.findByUserId(user.getId()).stream()
+                .map(r -> r.code()).toArray(String[]::new);
         String access = jwtTokenService.generateAccessToken(
                 user.getId().getValue().toString(), user.getTenantId().getValue().toString(),
                 user.getUsername(), roles);
         String refresh = jwtTokenService.generateRefreshToken(
-                user.getId().getValue().toString(), user.getTenantId().getValue().toString());
+                user.getId().getValue().toString(), user.getTenantId().getValue().toString(),
+                user.getUsername(), roles);
         return ResponseEntity.ok(ApiResponse.success(new LoginResponse(
                 access, refresh, 900, "Bearer",
                 new com.platform.iam.interfaces.rest.dto.UserInfo(user.getId().getValue().toString(),
@@ -80,7 +83,7 @@ public class AuthController {
             String username = jwtTokenService.getUsername(request.refreshToken());
             String[] roles = jwtTokenService.getRoles(request.refreshToken());
             String access = jwtTokenService.generateAccessToken(userId, tenantId, username, roles);
-            String refresh = jwtTokenService.generateRefreshToken(userId, tenantId);
+            String refresh = jwtTokenService.generateRefreshToken(userId, tenantId, username, roles);
             return ResponseEntity.ok(ApiResponse.success(new LoginResponse(
                     access, refresh, 900, "Bearer",
                     new com.platform.iam.interfaces.rest.dto.UserInfo(userId, tenantId, username, null, null, roles))));
