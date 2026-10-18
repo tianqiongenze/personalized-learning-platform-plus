@@ -1,6 +1,7 @@
 package com.platform.ai.generation;
 
 import com.platform.common.event.EventTopics;
+import com.platform.common.event.OutboxEventRelay;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,8 @@ import java.util.UUID;
  * 异步生成入口(1000 并发削峰核心链路):
  *   提交 -> Pulsar ai-generation-tasks(队列削峰, 并发上限=消费者副本数×并发度)
  *        -> agent-service(LangGraph 工作流) / ai-service(单轮) 消费
- *        -> 结果写 ai-generation-results + HTTP 推送 realtime-gateway(/push)
+ *        -> 结果经 Outbox(app.events.outbox=true, at-least-once 不丢)或直发 ai-generation-results
+ *           + HTTP 推送 realtime-gateway(/push)
  *        -> 学生端经 WS/SSE 即时收到"生成完成"
  * 这样 AI 生成响应从"同步 30s×并发数"变为"提交毫秒级 + 完成推送", 支撑 1000 并发提交。
  */
@@ -25,9 +27,12 @@ public class AsyncGenerationService {
     private final PulsarTemplate<String> pulsar;
     private final ObjectMapper mapper;
     private final RestClient realtimeGateway;
+    /** outbox 模式(推荐, 事件不丢); null=直发 Pulsar(旧行为) */
+    private final OutboxEventRelay outbox;
 
     public AsyncGenerationService(PulsarTemplate<String> pulsar, ObjectMapper mapper,
-                                  @Value("${app.realtime.url:http://realtime-gateway.middleware:8095}") String realtimeUrl) {
+                                  @Value("${app.realtime.url:http://realtime-gateway.middleware:8095}") String realtimeUrl,
+                                  org.springframework.beans.factory.ObjectProvider<OutboxEventRelay> outboxProvider) {
         this.pulsar = pulsar;
         this.mapper = mapper;
         this.realtimeGateway = RestClient.builder()
@@ -37,6 +42,7 @@ public class AsyncGenerationService {
                     setReadTimeout(3000);
                 }})
                 .build();
+        this.outbox = outboxProvider.getIfAvailable();
     }
 
     /** 提交任务, 立即返回 taskId(前端可先渲染骨架屏) */
@@ -49,8 +55,13 @@ public class AsyncGenerationService {
                     "resourceType", resourceType, "knowledgePoint", knowledgePoint,
                     "industryTags", industryTags == null ? "" : industryTags,
                     "requirements", requirements == null ? "" : requirements));
-            // routingKey=studentId 保证同一学生的任务串行有序
-            pulsar.send(EventTopics.AI_GENERATION_TASKS, payload);
+            if (outbox != null) {
+                // 任务提交也走 outbox: 队列不可用不丢任务, relay 重投
+                outbox.save(EventTopics.AI_GENERATION_TASKS, "AI_GENERATION_TASK", tenantId, taskId, mapper.readTree(payload));
+            } else {
+                // routingKey=studentId 保证同一学生的任务串行有序
+                pulsar.send(EventTopics.AI_GENERATION_TASKS, payload);
+            }
             return taskId;
         } catch (Exception e) {
             log.error("生成任务提交失败 tenant={} student={}", tenantId, studentId, e);
@@ -58,16 +69,23 @@ public class AsyncGenerationService {
         }
     }
 
-    /** 生成完成后: 结果入主题(持久) + 实时推送(在线用户即时感知) */
+    /** 生成完成后: 结果入主题(持久, outbox 保证不丢) + 实时推送(在线用户即时感知) */
     public void publishResult(String taskId, String tenantId, String studentId,
                               String resourceType, String content, boolean passed) {
         try {
             String payload = mapper.writeValueAsString(java.util.Map.of(
                     "taskId", taskId, "tenantId", tenantId, "studentId", studentId,
                     "resourceType", resourceType, "passed", passed, "content", content));
-            pulsar.send(EventTopics.AI_GENERATION_RESULTS, payload);
+            if (outbox != null) {
+                // 生成结果不丢: 业务(索引/评分)事务同库原子写 outbox, relay 至少一次投递
+                outbox.save(EventTopics.AI_GENERATION_RESULTS, "AI_GENERATION_RESULT", tenantId, taskId,
+                        mapper.readTree(payload));
+            } else {
+                pulsar.send(EventTopics.AI_GENERATION_RESULTS, payload);
+            }
         } catch (Exception e) {
-            log.error("结果持久化失败 taskId={}", taskId, e);
+            // outbox 模式下落库失败必须上抛让消费侧重试整条消息(EER: 事件不丢)
+            throw new IllegalStateException("结果持久化失败 taskId={}", e);
         }
         try {
             realtimeGateway.post().uri("/push")
