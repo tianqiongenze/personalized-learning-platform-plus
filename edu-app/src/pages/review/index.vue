@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 复习卡片页(APP/小程序) — SM-2 到期卡片 + 掌握/再学滑动上报 */
+/** 复习卡片页(APP/小程序) — SM-2 到期卡片 + 掌握/再学上报(POST /kt/events) */
 import { ref } from 'vue'
 import AiAssistant from '../../components/AiAssistant.vue'
 
@@ -11,8 +11,19 @@ const cards = ref([
 const current = ref(0)
 const flipped = ref(false)
 
+/** 上报学习事件到 kt-service(BKT 更新掌握度)。失败静默: 学习不因上报失败中断 */
+function reportEvent(correct: boolean) {
+  uni.request({
+    url: `${import.meta.env.VITE_KT_URL || 'http://localhost:8086'}/kt/events`,
+    method: 'POST',
+    data: { studentId: 'guest', skillId: cards.value[current.value].id, correct },
+    timeout: 3000,
+    fail: () => { /* 上报失败不打断学习主链 */ },
+  })
+}
+
 function grade(good: boolean) {
-  // 真实环境: POST /kt/events (quality=good?5:1) → SM-2 重排
+  reportEvent(good)
   flipped.value = false
   current.value = (current.value + 1) % cards.value.length
   uni.showToast({ title: good ? '已按 SM-2 排期' : '将更频繁复习', icon: 'none' })
