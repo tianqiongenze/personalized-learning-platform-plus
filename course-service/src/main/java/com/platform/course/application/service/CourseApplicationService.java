@@ -55,11 +55,15 @@ public class CourseApplicationService {
     // ========== 课程命令处理 ==========
 
     public CourseId createCourse(CreateCourseCommand cmd) {
-        if (courseRepository.existsByCode(cmd.creatorId(), cmd.code())) {
+        String tenantId = com.platform.common.tenant.TenantContext.get();
+        if (courseRepository.existsByCode(tenantId, cmd.code())) {
             throw new CourseCodeAlreadyExistsException(cmd.code());
         }
 
-        Course course = Course.create(null, cmd.code(), cmd.name(), cmd.description(),
+        // 租户 ID 由 TenantContextFilter 从 X-Tenant-Id 装载, 缺省 "public"。
+        // 此前 createCourse 传 null 会命中 Course 构造器的 requireNonNull("租户ID不能为空") 必抛 NPE。
+        Course course = Course.create(tenantId,
+            cmd.code(), cmd.name(), cmd.description(),
             cmd.subject(), cmd.gradeLevel(), cmd.semester(), cmd.coverUrl(), cmd.settings(), cmd.creatorId());
 
         Course saved = courseRepository.save(course);

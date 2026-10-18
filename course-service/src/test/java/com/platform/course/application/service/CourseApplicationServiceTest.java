@@ -134,24 +134,27 @@ class CourseApplicationServiceTest {
         void shouldThrowWhenCourseCodeExists() {
             CreateCourseCommand cmd = new CreateCourseCommand("math_101", "数学", "描述", "数学",
                     "一年级", "2026春", null, null, "creator-1");
-            when(courseRepository.existsByCode("creator-1", "math_101")).thenReturn(true);
+            com.platform.common.tenant.TenantContext.set(TENANT);
+            when(courseRepository.existsByCode(TENANT, "math_101")).thenReturn(true);
 
             assertThatThrownBy(() -> service.createCourse(cmd))
                     .isInstanceOf(CourseCodeAlreadyExistsException.class)
                     .hasMessageContaining("math_101");
             verify(courseRepository, never()).save(any());
+            com.platform.common.tenant.TenantContext.clear();
         }
 
         @Test
-        @DisplayName("创建课程时缺少租户信息会失败(已知缺陷: 应用服务传入 null tenantId)")
+        @DisplayName("未设租户时缺省 'public' 不再 NPE(修复: 原传 null 必抛)")
         void shouldFailFastWhenTenantMissing() {
             CreateCourseCommand cmd = new CreateCourseCommand("new_101", "数学", "描述", "数学",
                     "一年级", "2026春", null, null, "creator-1");
-            when(courseRepository.existsByCode("creator-1", "new_101")).thenReturn(false);
+            com.platform.common.tenant.TenantContext.clear();
+            when(courseRepository.existsByCode(com.platform.common.tenant.TenantContext.DEFAULT_TENANT, "new_101")).thenReturn(false);
+            when(courseRepository.save(any(Course.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            assertThatThrownBy(() -> service.createCourse(cmd))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("租户ID不能为空");
+            var id = service.createCourse(cmd);
+            org.assertj.core.api.Assertions.assertThat(id).isNotNull();
         }
 
         @Test
