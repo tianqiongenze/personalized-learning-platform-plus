@@ -32,13 +32,18 @@ public class GenerationService {
     private final ChatClient chatClient;
     private final VectorStore vectorStore;
     private final RestClient reranker;
+    private final LlmExactCache llmCache;
+    private static final String SYSTEM_PROMPT =
+            "你是职业教育教学资源生成引擎。所有内容必须深度嵌入重庆'33618'产业集群的真实产业场景, 语言适配高职学生。";
 
     public GenerationService(ChatClient.Builder builder, VectorStore vectorStore,
-                             @Value("${app.reranker.url}") String rerankerUrl) {
+                             @Value("${app.reranker.url}") String rerankerUrl,
+                             LlmExactCache llmCache) {
         this.chatClient = builder
-                .defaultSystem("你是职业教育教学资源生成引擎。所有内容必须深度嵌入重庆'33618'产业集群的真实产业场景, 语言适配高职学生。")
+                .defaultSystem(SYSTEM_PROMPT)
                 .build();
         this.vectorStore = vectorStore;
+        this.llmCache = llmCache;
         this.reranker = RestClient.builder()
                 .baseUrl(rerankerUrl)
                 .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
@@ -54,9 +59,9 @@ public class GenerationService {
                 .query(query).topK(topK).build());
     }
 
-    /** 单轮生成: 简单模板资源 */
-    public String generate(String resourceType, String knowledgePoint,
-                           String industryTags, String requirements) {
+    /** 单轮生成: 简单模板资源。返回内容 + cache_hit 标记(观测缓存命中率) */
+    public GenerationResult generateWithMeta(String resourceType, String knowledgePoint,
+                                             String industryTags, String requirements) {
         String template = TEMPLATES.getOrDefault(resourceType, TEMPLATES.get("KNOWLEDGE_POINT_TALK"));
         List<Document> ctx = search(knowledgePoint + " " + industryTags, 6);
         String context = ctx == null ? "" :
@@ -65,7 +70,22 @@ public class GenerationService {
         if (requirements != null && !requirements.isBlank()) {
             prompt = prompt + "\n补充要求: " + requirements;
         }
-        return chatClient.prompt().user(prompt).call().content();
+        // L1 精确缓存: 相同 (资源类型, 知识点, 产业标签, 要求) 的重生成直接命中
+        String cached = llmCache.get(resourceType, SYSTEM_PROMPT, prompt);
+        if (cached != null) {
+            return new GenerationResult(cached, true);
+        }
+        String content = chatClient.prompt().user(prompt).call().content();
+        llmCache.put(resourceType, SYSTEM_PROMPT, prompt, content);
+        return new GenerationResult(content, false);
+    }
+
+    public record GenerationResult(String content, boolean cacheHit) {}
+
+    /** 兼容旧签名 */
+    public String generate(String resourceType, String knowledgePoint,
+                           String industryTags, String requirements) {
+        return generateWithMeta(resourceType, knowledgePoint, industryTags, requirements).content();
     }
 
     /** 资源入库后异步建向量索引(供后续 RAG 检索) */

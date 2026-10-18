@@ -109,6 +109,9 @@ app:
     service-url: ${KT_SERVICE_URL:http://kt-service.infra:8086}
   reranker:
     url: ${RERANKER_URL:http://vector-reranker.infra:8090}
+  # L1 精确缓存(SHA256 prompt → response, TTL 分级): 关闭仅影响成本不影响正确性
+  llm-cache:
+    enabled: ${LLM_CACHE_ENABLED:true}
   agent:
     url: ${AGENT_SERVICE_URL:http://agent-service.qianrenqianmian:8090}
   realtime:

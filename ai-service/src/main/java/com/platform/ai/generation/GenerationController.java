@@ -35,17 +35,19 @@ public class GenerationController {
 
     public record GenerateResponse(
             String generationId, String resourceType, String content,
-            String status, Instant generatedAt) {}
+            String status, Instant generatedAt,
+            boolean cacheHit, String cacheLayer) {}
 
     @PostMapping
     public ResponseEntity<GenerateResponse> generate(@RequestBody GenerateRequest req) {
-        String content = generationService.generate(
+        GenerationService.GenerationResult r = generationService.generateWithMeta(
                 req.resourceType(), req.knowledgePoint(),
                 req.industryTags() == null ? "智能制造" : req.industryTags(),
                 req.requirements());
         String id = UUID.randomUUID().toString();
         return ResponseEntity.status(HttpStatus.CREATED).body(new GenerateResponse(
-                id, req.resourceType(), content, "COMPLETED", Instant.now()));
+                id, req.resourceType(), r.content(), "COMPLETED", Instant.now(),
+                r.cacheHit(), r.cacheHit() ? "exact" : "none"));
     }
 
     /** 异步提交(1000 并发削峰): 毫秒级返回 taskId, 完成后经 realtime-gateway 推送 */
