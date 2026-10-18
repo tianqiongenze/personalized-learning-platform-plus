@@ -50,7 +50,7 @@ export default function AiAssistant({ pageContext }: { pageContext: string }) {
       <Button type="primary" shape="circle" size="large" style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 999 }}
         onClick={() => setOpen(true)} title="AI 助手">AI</Button>
       <Drawer title={<span>AI 助手 <Tag color="blue">{pageContext}</Tag></span>}
-        placement="right" width={460} open={open} onClose={() => setOpen(true && false) || setOpen(false)}>
+        placement="right" width={460} open={open} onClose={() => setOpen(false)}>
         <List
           dataSource={msgs}
           renderItem={m => (

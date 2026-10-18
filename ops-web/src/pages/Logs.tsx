@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Col, Row, Table, Tag, Typography, Select, Button, Drawer, List } from 'antd'
+import { Card, Col, Row, Table, Tag, Typography, Select, Button, Drawer, List, Input } from 'antd'
 import { getEvents, getLokiLogs, setLogLevel } from '../api'
 import AiAssistant from '../components/AiAssistant'
 
@@ -16,7 +16,7 @@ export default function Logs() {
   const query = () => {
     getLokiLogs(logql, 200).then(r => {
       const streams = r?.data?.result ?? []
-      const rows = streams.flatMap(s => s.values.map((v: string[]) => ({ ts: v[0], line: v[1] })))
+      const rows = streams.flatMap((s: { values: string[][] }) => s.values.map((v: string[]) => ({ ts: v[0], line: v[1] })))
       setEntries(rows)
     }).catch(() => {})
   }
