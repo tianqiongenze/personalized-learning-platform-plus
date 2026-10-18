@@ -1,0 +1,430 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+  namespace: load-testing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      containers:
+      - name: locust-master
+        image: locustio/locust:2.17.0
+        command: ["locust", "-f", "/mnt/locust/locustfile.py", "--master", "--host=http://nginx-gateway.qianrenqianmian.svc.cluster.local"]
+        ports:
+        - containerPort: 8089
+        - containerPort: 5557
+        - containerPort: 5558
+        volumeMounts:
+        - name: locust-scripts
+          mountPath: /mnt/locust
+        - name: reports
+          mountPath: /mnt/locust/reports
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "2Gi"
+      volumes:
+      - name: locust-scripts
+        configMap:
+          name: locust-scripts
+      - name: reports
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: locust-master
+  namespace: load-testing
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 8089
+    targetPort: 8089
+  - name: master-p1
+    port: 5557
+    targetPort: 5557
+  - name: master-p2
+    port: 5558
+    targetPort: 5558
+  selector:
+    app: locust-master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-worker
+  namespace: load-testing
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: locust-worker
+  template:
+    metadata:
+      labels:
+        app: locust-worker
+    spec:
+      containers:
+      - name: locust-worker
+        image: locustio/locust:2.17.0
+        command: ["locust", "-f", "/mnt/locust/locustfile.py", "--worker", "--master-host=locust-master"]
+        volumeMounts:
+        - name: locust-scripts
+          mountPath: /mnt/locust
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"
+      volumes:
+      - name: locust-scripts
+        configMap:
+          name: locust-scripts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: locust-scripts
+  namespace: load-testing
+data:
+  locustfile.py: |
+    """
+    Locust Performance Test Script for Personalized Learning Platform Plus
+    Target: 5000 concurrent users
+    """
+    import random
+    import json
+    import time
+    from locust import HttpUser, task, between, events, LoadTestShape
+    from locust.contrib.fasthttp import FastHttpUser
+
+    class PersonalizedLearningUser(FastHttpUser):
+        wait_time = between(3, 10)
+        auth_token = None
+        user_id = None
+
+        def on_start(self):
+            self.login()
+
+        def login(self):
+            username = f"testuser{random.randint(1, 10000)}"
+            password = "testpass123"
+            with self.client.post("/api/v1/auth/login",
+                                  json={"username": username, "password": password},
+                                  catch_response=True) as response:
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        self.auth_token = data.get("token")
+                        self.user_id = data.get("user", {}).get("id")
+                        response.success()
+                    except:
+                        response.failure("Failed to parse login response")
+                else:
+                    self.register(username, password)
+
+        def register(self, username, password):
+            with self.client.post("/api/v1/auth/register",
+                                  json={"username": username, "email": f"{username}@test.com", "password": password},
+                                  catch_response=True) as response:
+                if response.status_code in [200, 201]:
+                    self.login()
+                    response.success()
+                else:
+                    response.failure(f"Registration failed: {response.status_code}")
+
+        def get_auth_headers(self):
+            if self.auth_token:
+                return {"Authorization": f"Bearer {self.auth_token}"}
+            return {}
+
+        @task(10)
+        def view_dashboard(self):
+            with self.client.get("/api/v1/analytics/dashboard",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Dashboard failed: {response.status_code}")
+
+        @task(8)
+        def view_knowledge_trace(self):
+            with self.client.get("/api/v1/knowledge/state",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Knowledge trace failed: {response.status_code}")
+
+        @task(6)
+        def view_learning_paths(self):
+            with self.client.get("/api/v1/paths",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Learning paths failed: {response.status_code}")
+
+        @task(5)
+        def get_recommendations(self):
+            with self.client.get("/api/v1/recommendations",
+                                 headers=self.get_auth_headers(),
+                                 params={"limit": 10},
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                    response.success()
+                else:
+                    response.failure(f"Recommendations failed: {response.status_code}")
+
+        @task(4)
+        def view_knowledge_graph(self):
+            with self.client.get("/api/v1/knowledge-graph/query",
+                                 headers=self.get_auth_headers(),
+                                 params={"limit": 50},
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Knowledge graph failed: {response.status_code}")
+
+        @task(3)
+        def view_multimodal_analysis(self):
+            with self.client.get("/api/v1/multimodal/analyses",
+                                 headers=self.get_auth_headers(),
+                                 params={"limit": 10},
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Multimodal analysis failed: {response.status_code}")
+
+        @task(2)
+        def accept_recommendation(self):
+            with self.client.get("/api/v1/recommendations",
+                                 headers=self.get_auth_headers(),
+                                 params={"limit": 5},
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    recommendations = response.json()
+                    if recommendations:
+                        rec_id = random.choice(recommendations)["id"]
+                        with self.client.post(f"/api/v1/recommendations/{rec_id}/accept",
+                                              headers=self.get_auth_headers(),
+                                              catch_response=True) as accept_response:
+                            if accept_response.status_code in [200, 201]:
+                                accept_response.success()
+                            else:
+                                accept_response.failure(f"Accept failed: {accept_response.status_code}")
+                    response.success()
+                else:
+                    response.failure(f"Get recommendations failed: {response.status_code}")
+
+        @task(2)
+        def start_learning_path(self):
+            with self.client.get("/api/v1/paths",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    paths = response.json()
+                    if paths:
+                        path_id = random.choice(paths)["id"]
+                        with self.client.post(f"/api/v1/paths/{path_id}/start",
+                                              headers=self.get_auth_headers(),
+                                              catch_response=True) as start_response:
+                            if start_response.status_code in [200, 201]:
+                                start_response.success()
+                            else:
+                                start_response.failure(f"Start path failed: {start_response.status_code}")
+                    response.success()
+                else:
+                    response.failure(f"Get paths failed: {response.status_code}")
+
+        @task(1)
+        def upload_behavioral_data(self):
+            behavioral_data = {
+                "response_times": [random.uniform(1, 30) for _ in range(20)],
+                "clicks": random.randint(10, 100),
+                "scroll_depth": random.uniform(0, 1),
+                "session_duration": random.randint(60, 3600)
+            }
+            with self.client.post("/api/v1/multimodal/upload/behavioral",
+                                  headers=self.get_auth_headers(),
+                                  json=behavioral_data,
+                                  catch_response=True) as response:
+                if response.status_code in [200, 201]:
+                    response.success()
+                else:
+                    response.failure(f"Upload failed: {response.status_code}")
+
+        @task(1)
+        def complete_learning_step(self):
+            with self.client.get("/api/v1/paths",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    paths = response.json()
+                    if paths:
+                        path = random.choice(paths)
+                        if path.get("steps"):
+                            step = random.choice(path["steps"])
+                            if step["status"] == "in_progress":
+                                step_id = step["id"]
+                                with self.client.post(f"/api/v1/paths/{path['id']}/steps/{step_id}/complete",
+                                                      headers=self.get_auth_headers(),
+                                                      json={"mastery_after": random.uniform(0.5, 0.95)},
+                                                      catch_response=True) as complete_response:
+                                    if complete_response.status_code in [200, 201]:
+                                        complete_response.success()
+                                    else:
+                                        complete_response.failure(f"Complete step failed: {complete_response.status_code}")
+                    response.success()
+                else:
+                    response.failure(f"Get paths failed: {response.status_code}")
+
+    class AdminUser(FastHttpUser):
+        wait_time = between(10, 30)
+        auth_token = None
+
+        def on_start(self):
+            self.admin_login()
+
+        def admin_login(self):
+            with self.client.post("/api/v1/auth/login",
+                                  json={"username": "admin", "password": "admin123"},
+                                  catch_response=True) as response:
+                if response.status_code == 200:
+                    self.auth_token = response.json().get("token")
+                    response.success()
+                else:
+                    response.failure("Admin login failed")
+
+        def get_auth_headers(self):
+            if self.auth_token:
+                return {"Authorization": f"Bearer {self.auth_token}"}
+            return {}
+
+        @task(5)
+        def view_admin_dashboard(self):
+            with self.client.get("/api/v1/admin/dashboard",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Admin dashboard failed: {response.status_code}")
+
+        @task(3)
+        def view_user_management(self):
+            with self.client.get("/api/v1/admin/users",
+                                 headers=self.get_auth_headers(),
+                                 params={"page": 1, "size": 50},
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"User management failed: {response.status_code}")
+
+        @task(2)
+        def view_system_metrics(self):
+            with self.client.get("/api/v1/admin/metrics",
+                                 headers=self.get_auth_headers(),
+                                 catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"System metrics failed: {response.status_code}")
+
+    class AnonymousUser(FastHttpUser):
+        wait_time = between(5, 15)
+
+        @task(10)
+        def view_landing_page(self):
+            with self.client.get("/", catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Landing page failed: {response.status_code}")
+
+        @task(5)
+        def view_login_page(self):
+            with self.client.get("/login", catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Login page failed: {response.status_code}")
+
+        @task(3)
+        def view_register_page(self):
+            with self.client.get("/register", catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                else:
+                    response.failure(f"Register page failed: {response.status_code}")
+
+        @task(2)
+        def attempt_login(self):
+            with self.client.post("/api/v1/auth/login",
+                                  json={"username": "testuser", "password": "wrongpass"},
+                                  catch_response=True) as response:
+                if response.status_code == 401:
+                    response.success()
+                else:
+                    response.failure(f"Login attempt unexpected status: {response.status_code}")
+
+    class StagesShape(LoadTestShape):
+        stages = [
+            {"duration": 120, "users": 100, "spawn_rate": 10},
+            {"duration": 300, "users": 1000, "spawn_rate": 20},
+            {"duration": 600, "users": 3000, "spawn_rate": 30},
+            {"duration": 900, "users": 5000, "spawn_rate": 25},
+            {"duration": 1200, "users": 5000, "spawn_rate": 10},
+            {"duration": 300, "users": 0, "spawn_rate": 50},
+        ]
+
+        def tick(self):
+            run_time = self.get_run_time()
+            for stage in self.stages:
+                if run_time < stage["duration"]:
+                    return (stage["users"], stage["spawn_rate"])
+            return None
+
+    user_classes = [
+        (PersonalizedLearningUser, 85),
+        (AdminUser, 10),
+        (AnonymousUser, 5),
+    ]
+
+    @events.request.add_listener
+    def on_request(request_type, name, response_time, response_length, response, context, exception, **kwargs):
+        if response_time > 5000:
+            print(f"SLOW REQUEST: {request_type} {name} took {response_time:.2f}ms")
+
+    @events.test_start.add_listener
+    def on_test_start(environment, **kwargs):
+        print("=" * 60)
+        print("LOAD TEST STARTED - Personalized Learning Platform Plus")
+        print("Target: 5000 concurrent users")
+        print("=" * 60)
+
+    @events.test_stop.add_listener
+    def on_test_stop(environment, **kwargs):
+        print("=" * 60)
+        print("LOAD TEST COMPLETED")
+        print("=" * 60)

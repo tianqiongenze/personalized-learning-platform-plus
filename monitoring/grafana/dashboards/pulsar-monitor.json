@@ -1,0 +1,117 @@
+{
+  "uid": "pulsar-monitor",
+  "title": "Bookie 可写性",
+  "tags": [
+    "platform-plus"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Topic 消息入速率",
+      "type": "timeseries",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(pulsar_topic_rate_in[5m])) by (topic)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 2,
+      "title": "Topic 消息出速率",
+      "type": "timeseries",
+      "x": 12,
+      "y": 0,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(pulsar_topic_rate_out[5m])) by (topic)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 3,
+      "title": "订阅积压 backlog",
+      "type": "timeseries",
+      "x": 0,
+      "y": 8,
+      "w": 24,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(pulsar_sub_back_log) by (topic, subscription)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "Bookie 可写性",
+      "type": "stat",
+      "x": 0,
+      "y": 16,
+      "w": 8,
+      "h": 4,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"pulsar-bookie\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 4
+      }
+    }
+  ]
+}

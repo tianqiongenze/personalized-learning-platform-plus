@@ -1,0 +1,16 @@
+# 全局模型槽位默认配置(校级) — OpenMAIC slots 语义
+# 覆盖链: 全局默认 → courses/{courseId}.yml 课程覆盖 → API 任务级参数
+# 密钥永不进前端: providers.api_key_env 只写环境变量名
+slots:
+  llm: qwen2.5-14b-instruct          # 默认对话模型
+  course.outline: qwen2.5-32b-instruct # 大纲生成(强模型任务)
+  exercise: qwen2.5-14b-instruct     # 出题
+  grading: qwen2.5-7b-instruct       # 批改(轻模型)
+  rag.rewrite: qwen2.5-7b-instruct   # RAG 改写
+  tts: null                          # null = 关闭该能力
+  workflow: standard                 # standard | two_phase | fast
+
+providers:
+  litellm:
+    base_url: http://ai-platform:4000/v1
+    api_key_env: LLM_API_KEY

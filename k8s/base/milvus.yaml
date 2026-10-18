@@ -1,0 +1,203 @@
+# =============================================================================
+# Milvus 2.4 standalone —— 向量数据库（RAG 检索底座，承载 "33618" 产业知识库、
+# 课程资源向量索引）。若集群已存在向量库，部署脚本探测后将跳过本文件。
+# 拓扑: etcd(元数据) + MinIO(对象存储) + milvus-standalone + Attu(管理界面)
+# 踩坑:
+#   1. standalone 仍是 3 组件形态(etcd/minio/milvus), 缺一不可启动。
+#   2. Milvus 指标: milvus:9091/metrics(Prometheus 兼容), Attu 默认 3000。
+#   3. minio 需要正确桶名 milvus-bucket; 首次启动慢, readiness 宽限要给足。
+#   4. RESTful v2(19195 端口) 供运维平台查询 collection 统计:
+#      POST /v2/vectordb/collections/list 与 /describe。
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: milvus-etcd
+  namespace: infra
+  labels: {app: milvus, component: etcd}
+spec:
+  clusterIP: None
+  selector: {app: milvus, component: etcd}
+  ports:
+    - {name: client, port: 2379}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: milvus-etcd
+  namespace: infra
+spec:
+  serviceName: milvus-etcd
+  replicas: 1
+  selector:
+    matchLabels: {app: milvus, component: etcd}
+  template:
+    metadata:
+      labels: {app: milvus, component: etcd}
+    spec:
+      containers:
+        - name: etcd
+          image: quay.io/coreos/etcd:v3.6.5
+          command: ["etcd"]
+          args:
+            - "-advertise-client-urls=http://milvus-etcd:2379"
+            - "-listen-client-urls=http://0.0.0.0:2379"
+            - "--initial-cluster-state=new"
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          ports:
+            - {containerPort: 2379, name: client}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/etcd}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 5Gi}}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: milvus-minio
+  namespace: infra
+  labels: {app: milvus, component: minio}
+spec:
+  selector: {app: milvus, component: minio}
+  ports:
+    - {name: http, port: 9000}
+    - {name: console, port: 9001}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: milvus-minio
+  namespace: infra
+spec:
+  serviceName: milvus-minio
+  replicas: 1
+  selector:
+    matchLabels: {app: milvus, component: minio}
+  template:
+    metadata:
+      labels: {app: milvus, component: minio}
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+          command: ["minio"]
+          args: ["server", "/minio_data", "--console-address", ":9001"]
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom: {secretKeyRef: {name: platform-secrets, key: minio-access-key}}
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom: {secretKeyRef: {name: platform-secrets, key: minio-secret-key}}
+          ports:
+            - {containerPort: 9000, name: http}
+            - {containerPort: 9001, name: console}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "1", memory: 2Gi}
+          readinessProbe:
+            httpGet: {path: /minio/health/ready, port: 9000}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - {name: data, mountPath: /minio_data}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 50Gi}}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: milvus
+  namespace: infra
+  labels: {app: milvus}
+spec:
+  selector: {app: milvus, component: standalone}
+  ports:
+    - {name: grpc, port: 19530}       # gRPC 与 RESTful v2 同端口(POST /v2/vectordb/*)
+    - {name: metrics, port: 9091}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: milvus-standalone
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: milvus, component: standalone}
+  template:
+    metadata:
+      labels: {app: milvus, component: standalone}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: milvus
+          image: milvusdb/milvus:v2.6.6
+          command: ["milvus", "run", "standalone"]
+          env:
+            - name: ETCD_ENDPOINTS
+              value: "milvus-etcd:2379"
+            - name: MINIO_ADDRESS
+              value: "milvus-minio:9000"
+            - name: MINIO_ACCESS_KEY_ID
+              valueFrom: {secretKeyRef: {name: platform-secrets, key: minio-access-key}}
+            - name: MINIO_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: platform-secrets, key: minio-secret-key}}
+            - name: COMMON_STORAGETYPE
+              value: "remote"
+          ports:
+            - {containerPort: 19530, name: grpc}
+            - {containerPort: 9091, name: metrics}
+          resources:
+            requests: {cpu: 500m, memory: 2Gi}
+            limits: {cpu: "2", memory: 8Gi}   # 官方最低 2vCPU/8GB, 低配会导致启动失败
+          readinessProbe:
+            httpGet: {path: /healthz, port: 9091}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/milvus}
+      volumes:
+        - name: data
+          emptyDir: {}   # 向量数据以 MinIO 为准, 本地仅缓存
+---
+# Attu: Milvus 图形化管理(内网运维访问)
+apiVersion: v1
+kind: Service
+metadata:
+  name: attu
+  namespace: infra
+spec:
+  selector: {app: attu}
+  ports:
+    - {port: 3000, targetPort: 3000}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attu
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: attu}
+  template:
+    metadata:
+      labels: {app: attu}
+    spec:
+      containers:
+        - name: attu
+          image: zilliz/attu:v2.6.0
+          env:
+            - name: MILVUS_URL
+              value: "milvus.infra:19530"
+          ports:
+            - {containerPort: 3000}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}

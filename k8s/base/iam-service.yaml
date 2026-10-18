@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-service
+  namespace: qianrenqianmian
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: iam-service
+  template:
+    metadata:
+      labels:
+        app: iam-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/api/v1/actuator/prometheus"
+    spec:
+      containers:
+      - name: iam-service
+        image: platform/iam-service:2.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
+          value: "true"
+        envFrom:
+        - configMapRef:
+            name: platform-plus-config
+        - secretRef:
+            name: platform-plus-secrets
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        readinessProbe:
+          httpGet:
+            path: /api/v1/actuator/health/readiness
+            port: 8082
+          initialDelaySeconds: 60
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /api/v1/actuator/health/liveness
+            port: 8082
+          initialDelaySeconds: 90
+          periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iam-service
+  namespace: qianrenqianmian
+spec:
+  type: NodePort
+  selector:
+    app: iam-service
+  ports:
+  - port: 8082
+    targetPort: 8082

@@ -1,0 +1,174 @@
+# =============================================================================
+# Redis Cluster 7.2 —— 【参考部署物，生产环境勿用】
+# 生产: 两台服务器(10.167.2.175/176) K8s 集群中【已存在 Redis Cluster，直接复用】，
+#       应用通过 env REDIS_CLUSTER_NODES / REDIS_PASSWORD 指向既有集群。
+# 本文件仅用于本地开发/演练环境自建一套等价集群（k8s/base 部署脚本默认跳过本文件）。
+# 拓扑(100K 并发): 12 Pod = 6 master + 6 replica（--cluster-replicas 1）
+#   6 分片将 16384 slot 均分, 单分片故障时其 replica 自动接管; 读请求经 replica
+#   分流(应用侧 READONLY + 就近读), 写按 slot 分散到 6 个 master, 水平扩展读吞吐。
+#   每分片 maxmemory 1500mb → 集群总内存 ~9GB 可缓存, 命中率目标 >= 90%。
+# 踩坑记录（排查既有集群时同样适用）:
+#   1. headless 域名带 .svc.cluster.local 后缀会导致集群总线通告错误地址
+#      —— 必须 cluster-announce-ip 直通 Pod IP, 否则 slot 迁移/故障转移失败。
+#   2. 宿主机端口与容器端口不一致时必须配 cluster-announce-port/bus-port。
+#   3. Cluster 模式禁用 SELECT db; 多 key 操作必须带 hash tag({tenantId})。
+#   4. redis_exporter 以 sidecar 逐 Pod 暴露指标, Prometheus 注解抓取。
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  namespace: infra
+  labels: {app: redis-cluster}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app: redis-cluster}
+  ports:
+    - {name: client, port: 6379}
+    - {name: cluster-bus, port: 16379}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  namespace: infra
+spec:
+  serviceName: redis-cluster
+  replicas: 12
+  selector:
+    matchLabels: {app: redis-cluster}
+  template:
+    metadata:
+      labels: {app: redis-cluster}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: /scrape
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: {app: redis-cluster}
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: redis
+          image: redis:8.2-alpine
+          command: ["sh", "-c"]
+          args:
+            - >
+              export REDIS_PASSWORD=$(cat /secrets/redis-password) &&
+              sed "s/\${REDIS_PASSWORD}/$REDIS_PASSWORD/g" /conf-raw/redis.conf > /conf/redis.conf &&
+              redis-server /conf/redis.conf
+              --cluster-announce-ip $POD_IP
+          env:
+            - name: POD_IP
+              valueFrom: {fieldRef: {fieldPath: status.podIP}}
+          ports:
+            - {containerPort: 6379, name: client}
+            - {containerPort: 16379, name: bus}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "2", memory: 2Gi}
+          readinessProbe:
+            exec: {command: ["sh", "-c", "redis-cli -a $(cat /secrets/redis-password) --no-auth-warning ping | grep -q PONG"]}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec: {command: ["sh", "-c", "redis-cli -a $(cat /secrets/redis-password) --no-auth-warning ping | grep -q PONG"]}
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - {name: conf, mountPath: /conf}
+            - {name: conf-raw, mountPath: /conf-raw}
+            - {name: data, mountPath: /data}
+            - {name: secrets, mountPath: /secrets}
+        - name: redis-exporter
+          image: oliver006/redis_exporter:v1.74.0
+          command: ["sh", "-c"]
+          args:
+            - >
+              redis_exporter --redis.addr redis://:$(cat /secrets/redis-password)@localhost:6379
+          ports:
+            - {containerPort: 9121, name: metrics}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          volumeMounts:
+            - {name: secrets, mountPath: /secrets}
+      volumes:
+        - name: conf
+          emptyDir: {}
+        - name: conf-raw
+          configMap: {name: redis-cluster-config}
+        - name: secrets
+          secret: {secretName: platform-secrets, items: [{key: redis-password, path: redis-password}]}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: platform-ssd
+        resources: {requests: {storage: 20Gi}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  namespace: infra
+data:
+  redis.conf: |
+    port 6379
+    cluster-enabled yes
+    cluster-config-file /data/nodes.conf
+    cluster-node-timeout 15000
+    cluster-announce-bus-port 16379
+    appendonly yes
+    appendfsync everysec
+    save ""
+    maxmemory 1500mb
+    maxmemory-policy allkeys-lru
+    requirepass ${REDIS_PASSWORD}
+    masterauth ${REDIS_PASSWORD}
+    protected-mode no
+---
+# ---------- 集群初始化 Job: 3主3从, 幂等 ----------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-init
+  namespace: infra
+spec:
+  backoffLimit: 8
+  ttlSecondsAfterFinished: 900
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: redis:8.2-alpine
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom: {secretKeyRef: {name: platform-secrets, key: redis-password}}
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              NS=infra; PREFIX=redis-cluster; HOSTS=""
+              for i in 0 1 2 3 4 5 6 7 8 9 10 11; do
+                HOSTS="$HOSTS $PREFIX-$i.$PREFIX.$NS.svc.cluster.local:6379"
+              done
+              echo "等待 12 个节点就绪..."
+              for h in $HOSTS; do
+                until redis-cli -a "$REDIS_PASSWORD" --no-auth-warning -h ${h%%:*} ping | grep -q PONG; do sleep 3; done
+              done
+              if redis-cli -a "$REDIS_PASSWORD" --no-auth-warning -h $PREFIX-0.$PREFIX.$NS.svc.cluster.local cluster info | grep -q "cluster_state:ok"; then
+                echo "集群已初始化, 跳过"
+              else
+                echo "创建集群 6 master + 6 replica..."
+                yes yes | redis-cli -a "$REDIS_PASSWORD" --no-auth-warning --cluster create $HOSTS --cluster-replicas 1
+              fi
+              echo "== cluster nodes =="
+              redis-cli -a "$REDIS_PASSWORD" --no-auth-warning -h $PREFIX-0.$PREFIX.$NS.svc.cluster.local cluster nodes

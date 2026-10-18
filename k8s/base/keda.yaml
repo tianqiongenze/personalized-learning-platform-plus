@@ -1,0 +1,112 @@
+# =============================================================================
+# KEDA —— 事件/队列驱动弹性(ai-service / agent-service)
+# 依赖: KEDA 2.14+ 已安装(kubectl apply -f keda.yaml 之外需先装 KEDA Operator)
+# 场景: AI 生成与 Agent 编排是 10 万并发下的"异步排队"瓶颈路径, CPU 指标滞后,
+#       改用 Pulsar backlog(积压消息数)作为主扩缩信号, 提前扩容、按需缩容。
+# 与 HPA 关系:
+#   KEDA ScaledObject 会自行创建 HPA(命名 keda-hpa-<scaledObject>)。
+#   ai-service / agent-service 请【二选一】:
+#     队列驱动(本文件, 推荐) 或 CPU 驱动(hpa-100k.yaml)。
+#   同时启用会导致两个 HPA 争抢同一 scaleTarget。启用本文件时请在 overlay 中
+#   delete ai-service-hpa / agent-service-hpa(见 hpa-100k.yaml 末尾说明)。
+# =============================================================================
+# ---------- Pulsar 认证(占位: 指向既有 Secret, 按实际调整) ----------
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-pulsar-auth
+  namespace: qianrenqianmian
+spec:
+  secretTargetRef:
+    - parameter: bearerToken
+      name: platform-plus-secrets
+      key: PULSAR_TOKEN
+---
+# ---------- ai-service: Pulsar 生成请求积压驱动 ----------
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: keda-ai-service
+  namespace: qianrenqianmian
+  labels: {app: ai-service, layer: ai}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-service
+  minReplicaCount: 3
+  maxReplicaCount: 60
+  pollingInterval: 15          # 每 15s 拉取一次指标
+  cooldownPeriod: 600          # 缩容冷却 10min(AI 冷启动慢)
+  idleReplicaCount: 3          # 无流量时保留 3 副本(避免冷启动)
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - {type: Percent, value: 100, periodSeconds: 15}
+            - {type: Pods, value: 10, periodSeconds: 15}
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 600
+  triggers:
+    - type: pulsar
+      metadata:
+        adminURL: http://pulsar-broker.infra.svc.cluster.local:8080
+        topic: persistent://platform/ai/generation-requests
+        subscription: ai-service-sub
+        msgBacklogThreshold: "200"          # 积压 > 200 即扩容
+        activationMsgBacklogThreshold: "20" # 积压 > 20 才从 idle 激活
+      authenticationRef:
+        name: keda-pulsar-auth
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "70"
+---
+# ---------- agent-service: Pulsar 积压 + Prometheus 在途任务 ----------
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: keda-agent-service
+  namespace: qianrenqianmian
+  labels: {app: agent-service, layer: agent}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: agent-service
+  minReplicaCount: 3
+  maxReplicaCount: 60
+  pollingInterval: 15
+  cooldownPeriod: 300
+  idleReplicaCount: 3
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - {type: Percent, value: 100, periodSeconds: 15}
+            - {type: Pods, value: 10, periodSeconds: 15}
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 300
+  triggers:
+    - type: pulsar
+      metadata:
+        adminURL: http://pulsar-broker.infra.svc.cluster.local:8080
+        topic: persistent://platform/agent/orchestration-requests
+        subscription: agent-service-sub
+        msgBacklogThreshold: "100"
+        activationMsgBacklogThreshold: "10"
+      authenticationRef:
+        name: keda-pulsar-auth
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        metricName: agent_pending_tasks
+        query: sum(agent_pending_tasks{namespace="qianrenqianmian"})
+        threshold: "50"
+        activationThreshold: "5"

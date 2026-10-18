@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    field.cattle.io/publicEndpoints: '[{"port":30267,"protocol":"TCP","serviceName":"infra:cockroachdb-read","allNodes":true},{"nodeName":":k8s-master","addresses":["10.167.2.175"],"port":26267,"protocol":"TCP","podName":"infra:cockroachdb-b-0","allNodes":false},{"nodeName":":k8s-master","addresses":["10.167.2.175"],"port":26269,"protocol":"TCP","podName":"infra:cockroachdb-b-0","allNodes":false}]'
+    kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"apps/v1","kind":"StatefulSet","metadata":{"annotations":{},"labels":{"app":"cockroachdb","node":"b"},"name":"cockroachdb-b","namespace":"infra"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"cockroachdb","node":"b"}},"serviceName":"cockroachdb-b","template":{"metadata":{"labels":{"app":"cockroachdb","node":"b"}},"spec":{"containers":[{"command":["sh","-c","ulimit
+      -n 65536 \u0026\u0026 /cockroach-binary/cockroach start --insecure --store=path=/cockroach/cockroach-data
+      --listen-addr=0.0.0.0:26267 --http-addr=0.0.0.0:26269 --advertise-addr=10.167.2.175:26267
+      --join=10.167.2.175:26257,10.167.2.175:26267,10.167.2.176:26257 --locality=zone=sh175-b
+      --cache=512MiB --max-sql-memory=512MiB"],"image":"10.100.135.132:5000/jupyter/scipy-notebook:latest","imagePullPolicy":"IfNotPresent","name":"cockroachdb","ports":[{"containerPort":26267},{"containerPort":26269}],"resources":{"limits":{"cpu":4,"memory":"3Gi"},"requests":{"cpu":1,"memory":"1Gi"}},"securityContext":{"capabilities":{"add":["SYS_RESOURCE","IPC_LOCK"]},"runAsGroup":0,"runAsUser":0},"volumeMounts":[{"mountPath":"/cockroach/cockroach-data","name":"data"},{"mountPath":"/cockroach-binary","name":"cockroach-binary","readOnly":true},{"mountPath":"/dev/shm","name":"shm"}]}],"dnsPolicy":"ClusterFirstWithHostNet","hostNetwork":true,"initContainers":[{"command":["sh","-c","cp
+      /host-cockroach/cockroach /cockroach-binary/cockroach \u0026\u0026 chmod +x
+      /cockroach-binary/cockroach"],"image":"10.100.135.132:5000/jupyter/scipy-notebook:latest","imagePullPolicy":"IfNotPresent","name":"copy-binary","securityContext":{"runAsUser":0},"volumeMounts":[{"mountPath":"/cockroach-binary","name":"cockroach-binary"},{"mountPath":"/host-cockroach","name":"host-binary","readOnly":true}]}],"nodeSelector":{"kubernetes.io/hostname":"k8s-master"},"securityContext":{"fsGroup":0,"runAsGroup":0,"runAsUser":0},"volumes":[{"hostPath":{"path":"/home/crdb-data/b","type":"Directory"},"name":"data"},{"emptyDir":{},"name":"cockroach-binary"},{"hostPath":{"path":"/opt/cockroach","type":"Directory"},"name":"host-binary"},{"emptyDir":{"medium":"Memory","sizeLimit":"1Gi"},"name":"shm"}]}}}}
+
+      '
+  creationTimestamp: '2026-09-04T12:39:37Z'
+  generation: 5
+  labels:
+    app: cockroachdb
+    node: b
+  name: cockroachdb-b
+  namespace: infra
+  resourceVersion: '37811824'
+  uid: 03ceb3fc-8bf3-4b3d-958f-61ab1284c9c7
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: cockroachdb
+      node: b
+  serviceName: cockroachdb-b
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cockroachdb
+        node: b
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - ulimit -n 65536 && /cockroach-binary/cockroach start --insecure --store=path=/cockroach/cockroach-data
+          --listen-addr=0.0.0.0:26267 --http-addr=0.0.0.0:26269 --advertise-addr=10.167.2.175:26267
+          --join=10.167.2.175:26257,10.167.2.175:26267,10.167.2.176:26257 --locality=zone=sh175-b
+          --cache=512MiB --max-sql-memory=512MiB
+        image: 10.100.135.132:5000/jupyter/scipy-notebook:latest
+        imagePullPolicy: IfNotPresent
+        name: cockroachdb
+        ports:
+        - containerPort: 26267
+          protocol: TCP
+        - containerPort: 26269
+          protocol: TCP
+        resources:
+          limits:
+            cpu: '4'
+            memory: 3Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        securityContext:
+          capabilities:
+            add:
+            - SYS_RESOURCE
+            - IPC_LOCK
+          runAsGroup: 0
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /cockroach/cockroach-data
+          name: data
+        - mountPath: /cockroach-binary
+          name: cockroach-binary
+          readOnly: true
+        - mountPath: /dev/shm
+          name: shm
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      initContainers: []
+      nodeSelector:
+        kubernetes.io/hostname: k8s-master
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+        runAsGroup: 0
+        runAsUser: 0
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: crdb-data-b
+      - name: cockroach-binary
+        hostPath:
+          path: /opt/cockroach
+          type: Directory
+      - hostPath:
+          path: /opt/cockroach
+          type: Directory
+        name: host-binary
+      - emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+        name: shm
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+status:
+  availableReplicas: 0
+  collisionCount: 0
+  currentReplicas: 1
+  currentRevision: cockroachdb-b-7c67c7df87
+  observedGeneration: 5
+  replicas: 1
+  updateRevision: cockroachdb-b-7c67c7df87
+  updatedReplicas: 1

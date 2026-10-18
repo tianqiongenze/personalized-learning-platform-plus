@@ -1,0 +1,35 @@
+# 新服务 HPA(AI 生成是 1000 并发下的瓶颈路径)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: ai-service, namespace: qianrenqianmian}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: ai-service}
+  minReplicas: 4
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  behavior:
+    scaleUp: {stabilizationWindowSeconds: 30, policies: [{type: Percent, value: 100, periodSeconds: 15}]}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: agent-service, namespace: qianrenqianmian}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: agent-service}
+  minReplicas: 4
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: realtime-gateway, namespace: qianrenqianmian}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: realtime-gateway}
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 60}}

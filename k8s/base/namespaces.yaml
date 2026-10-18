@@ -1,0 +1,47 @@
+# =============================================================================
+# 命名空间定义
+# 修复记录: 原文件仅 qianrenqianmian 带 part-of 标签, 其余命名空间无 `name` 标签,
+#           导致 network-policies.yaml 中的 namespaceSelector(matchLabels: name: xxx)
+#           全部无法匹配(默认拒绝会阻断 ingress-nginx 入站)。此处统一补齐 `name` 标签。
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qianrenqianmian   # 本项目业务命名空间(千人千面)
+  labels:
+    name: qianrenqianmian
+    environment: production
+    app.kubernetes.io/part-of: personalized-learning-platform-plus
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra             # 基础应用命名空间(消息/向量/图/KT 推理等技术底座)
+  labels:
+    name: infra
+    environment: production
+    app.kubernetes.io/part-of: personalized-learning-platform-plus
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: load-testing
+  labels:
+    name: load-testing
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  labels:
+    name: ingress-nginx
+    app.kubernetes.io/part-of: personalized-learning-platform-plus

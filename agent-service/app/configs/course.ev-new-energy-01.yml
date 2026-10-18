@@ -1,0 +1,7 @@
+# 课程级模型/工作流覆盖示例 — 智能网联新能源汽车课程
+# 教师可在课程设置里调整; 校方可用 lock 锁定(见 OpenMAIC allowUserKeys/lock 语义)
+slots:
+  llm: qwen2.5-14b-instruct
+  course.outline: qwen2.5-32b-instruct
+  exercise: qwen2.5-14b-instruct
+  workflow: two_phase          # 该课程使用双阶段生成(先大纲后逐项)

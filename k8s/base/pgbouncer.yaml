@@ -1,0 +1,113 @@
+# =============================================================================
+# PgBouncer —— PostgreSQL 协议连接池, 前置 CockroachDB(26257)
+# 背景: CRDB 直连在高并发下连接数激增(SQL 连接内存开销大), 应用 60 副本 x
+#       连接池 20 ≈ 1200 连接, 直接压垮 CRDB。PgBouncer 以 transaction 模式
+#       复用后端连接, 把"应用连接数"与"CRDB 连接数"解耦。
+# 连接预算(见 docs/CAPACITY_100K.md):
+#   前端 max_client_conn = 2000/副本 x 3 副本
+#   后端 default_pool_size = 40/库 (3 副本 x 40 = 120 后端连接 << CRDB 上限)
+# 用法: 应用连接串由 jdbc:postgresql://cockroachdb-public.infra:26257/<db>
+#       改为 jdbc:postgresql://pgbouncer.infra:6432/<db>?sslmode=disable
+# 注意: transaction 模式下不可用会话级特性(SET/临时表/命名 prepare 需谨慎);
+#       如应用依赖, 改 pool_mode=session 并相应下调 default_pool_size。
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  namespace: infra
+data:
+  pgbouncer.ini: |
+    [databases]
+    ; 通配转发到 CRDB, 库名/用户透传
+    * = host=cockroachdb-public.infra.svc.cluster.local port=26257
+
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = 6432
+    auth_type = scram-sha-256
+    auth_file = /etc/pgbouncer/userlist.txt
+    pool_mode = transaction
+    max_client_conn = 2000
+    default_pool_size = 40
+    min_pool_size = 10
+    reserve_pool_size = 10
+    reserve_pool_timeout = 3
+    server_reset_query = DISCARD ALL
+    server_idle_timeout = 300
+    server_lifetime = 3600
+    ignore_startup_parameters = extra_float_digits,options
+    admin_users = root
+    stats_users = root
+    log_connections = 0
+    log_disconnections = 0
+---
+# 认证文件占位: 生产请用 external-secrets / sealed-secrets 注入真实口令
+# (userlist.txt 格式: "user" "SCRAM-SHA-256$<salt>$<storedkey>:<serverkey>")
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgbouncer-auth
+  namespace: infra
+type: Opaque
+stringData:
+  userlist.txt: |
+    "root" ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+  namespace: infra
+  labels: {app: pgbouncer, layer: data-access}
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: pgbouncer}
+  template:
+    metadata:
+      labels: {app: pgbouncer}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9127"
+    spec:
+      containers:
+        - name: pgbouncer
+          image: edoburu/pgbouncer:v1.22.1-p1
+          ports:
+            - {name: pgbouncer, containerPort: 6432}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          readinessProbe:
+            tcpSocket: {port: 6432}
+            initialDelaySeconds: 5
+          livenessProbe:
+            tcpSocket: {port: 6432}
+            initialDelaySeconds: 15
+          volumeMounts:
+            - {name: config, mountPath: /etc/pgbouncer/pgbouncer.ini, subPath: pgbouncer.ini}
+            - {name: auth, mountPath: /etc/pgbouncer/userlist.txt, subPath: userlist.txt}
+        - name: pgbouncer-exporter
+          image: prometheuscommunity/pgbouncer-exporter:v0.10.2
+          args: ["--pgBouncer.connectionString=postgres://root@127.0.0.1:6432/pgbouncer?sslmode=disable"]
+          ports:
+            - {name: metrics, containerPort: 9127}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+      volumes:
+        - {name: config, configMap: {name: pgbouncer-config}}
+        - {name: auth, secret: {secretName: pgbouncer-auth}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer
+  namespace: infra
+  labels: {app: pgbouncer}
+spec:
+  selector: {app: pgbouncer}
+  ports:
+    - {name: pgbouncer, port: 6432, targetPort: 6432}
+    - {name: metrics, port: 9127, targetPort: 9127}

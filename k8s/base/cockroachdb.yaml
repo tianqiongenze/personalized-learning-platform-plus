@@ -1,0 +1,146 @@
+# =============================================================================
+# CockroachDB (CRDB) —— 【参考部署物，生产环境勿用】
+# 生产: 两台服务器(10.167.2.175/176) K8s 集群中【已存在 CRDB 集群，直接复用】。
+#       应用连接串统一走 env: SPRING_DATASOURCE_URL=jdbc:postgresql://<crdb-haproxy-or-lb>:26257/<db>?sslmode=require
+# 本文件仅用于本地开发/演练环境自建 3 副本集群（部署脚本默认跳过）。
+# 要点/踩坑:
+#   1. Hibernate 6 内置 CockroachDB 方言(org.hibernate.dialect.CockroachDBDialect),
+#      驱动继续用 org.postgresql.Driver; 旧 Hibernate 6.1.x 有版本探测 bug(HHH-15511),
+#      Boot 3.5.x 携带的 Hibernate 6.6.x 已修复。
+#   2. CRDB 不支持 CREATE INDEX CONCURRENTLY 的部分语法差异, Flyway 迁移脚本
+#      需用 CRDB 兼容 SQL（本平台 V1 脚本已按 PG+CRDB 双兼容写法编写）。
+#   3. 官方建议 >=3 副本（Raft 多数派 2/3）; 双机部署 3 副本必然有一台承载 2 副本。
+#   4. secure 模式需 CA/节点/客户端证书(init Job 生成); 内网演练环境可用 insecure。
+#   5. 事务重试: CRDB 40001 序列化冲突较 PG 常见, 应用层建议配置 spring 重试或
+#      cockroachdb jdbc retry driver(org.postgresql:postgresql + crdb retry wrapper)。
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: cockroachdb-public
+  namespace: infra
+  labels: {app: cockroachdb}
+spec:
+  ports:
+    - {name: grpc, port: 26257, targetPort: grpc}
+    - {name: http, port: 8080, targetPort: http}
+  selector: {app: cockroachdb}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cockroachdb
+  namespace: infra
+  labels: {app: cockroachdb}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app: cockroachdb}
+  ports:
+    - {name: grpc, port: 26257}
+    - {name: http, port: 8080}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cockroachdb-pdb
+  namespace: infra
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {app: cockroachdb}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+  namespace: infra
+spec:
+  serviceName: cockroachdb
+  replicas: 3
+  selector:
+    matchLabels: {app: cockroachdb}
+  template:
+    metadata:
+      labels: {app: cockroachdb}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /_status/vars
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector: {matchLabels: {app: cockroachdb}}
+                topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: cockroachdb
+          image: cockroachdb/cockroach:v25.4.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-ecx"]
+          args:
+            - >
+              exec /cockroach/cockroach start --logtostderr=INFO --certs-dir=/cockroach/cockroach-certs
+              --advertise-host=$(hostname -f) --http-addr=0.0.0.0:8080
+              --join=cockroachdb-0.cockroachdb.infra.svc.cluster.local:26257,cockroachdb-1.cockroachdb.infra.svc.cluster.local:26257,cockroachdb-2.cockroachdb.infra.svc.cluster.local:26257
+              --cache=25% --max-sql-memory=25%
+          env:
+            - name: COCKROACH_CHANNEL
+              value: kubernetes-single-bucket
+          ports:
+            - {name: grpc, containerPort: 26257}
+            - {name: http, containerPort: 8080}
+          resources:
+            requests: {cpu: "1", memory: 2Gi}
+            limits: {cpu: "2", memory: 4Gi}
+          readinessProbe:
+            httpGet: {path: "/health?ready=1", port: http, scheme: HTTPS}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: http, scheme: HTTPS}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          volumeMounts:
+            - {name: datadir, mountPath: /cockroach/cockroach-data}
+            - {name: certs, mountPath: /cockroach/cockroach-certs}
+      volumes:
+        - name: certs
+          secret: {secretName: cockroachdb-certs, defaultMode: 256}
+  volumeClaimTemplates:
+    - metadata: {name: datadir}
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: local-path
+        resources: {requests: {storage: 50Gi}}
+---
+# 证书生成 Job（insecure 演练可跳过; secure 模式必须先跑）
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cockroachdb-init-certs
+  namespace: infra
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: certgen
+          image: cockroachdb/cockroach:v25.4.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              mkdir -p certs my-safe-directory
+              cockroach cert create-ca --certs-dir=certs --ca-key=my-safe-directory/ca.key
+              cockroach cert create-node --certs-dir=certs --ca-key=my-safe-directory/ca.key \
+                localhost 127.0.0.1 cockroachdb-public cockroachdb-public.infra \
+                cockroachdb-public.infra.svc.cluster.local \
+                "*.cockroachdb.infra.svc.cluster.local" "*.cockroachdb.middleware" cockroachdb.infra.svc.cluster.local
+              cockroach cert create-client root --certs-dir=certs --ca-key=my-safe-directory/ca.key
+              kubectl create secret generic cockroachdb-certs --from-file=certs -n infra --dry-run=client -o yaml | kubectl apply -f -

@@ -1,0 +1,26 @@
+{
+  "token": {
+    "setVersion": "1.0.0",
+    "updatedAt": "2026-10-11"
+  },
+  "color": {
+    "brand": { "primary": "#1677FF", "gradient": "linear-gradient(90deg,#1677FF,#69B1FF)" },
+    "semantics": { "success": "#52C41A", "warning": "#FAAD14", "error": "#FF4D4F" },
+    "mastery": { "high": "#52C41A", "mid": "#FAAD14", "low": "#FF7A45" },
+    "bloom": {
+      "remember": "#8C8C8C", "understand": "#1677FF", "apply": "#13C2C2",
+      "analyze": "#FAAD14", "evaluate": "#722ED1", "create": "#EB2F96"
+    },
+    "neutrals": { "bg": "#F5F7FA", "card": "#FFFFFF", "text": "#262626", "textSecondary": "#8C8C8C" }
+  },
+  "radius": { "sm": "8rpx", "md": "12rpx", "lg": "16rpx", "circle": "50%" },
+  "typography": {
+    "fontFamily": "PingFang SC, Roboto, Source Han Sans, sans-serif",
+    "title": { "size": "34rpx", "weight": "600" },
+    "body": { "size": "28rpx", "weight": "400" },
+    "caption": { "size": "24rpx", "weight": "400" }
+  },
+  "spacing": { "xs": "8rpx", "sm": "12rpx", "md": "16rpx", "lg": "24rpx", "xl": "32rpx" },
+  "assistant": { "fab": { "size": "112rpx", "position": "right-bottom", "offset": "32rpx" } },
+  "accessibility": { "contrastMin": "4.5:1", "fontScaleMax": 1.2 }
+}

@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graphql-gateway
+  namespace: qianrenqianmian
+  labels: { app: graphql-gateway, version: v8 }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: graphql-gateway }
+  template:
+    metadata:
+      labels: { app: graphql-gateway, version: v8 }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8097"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: graphql-gateway
+          image: docker.io/platform/graphql-gateway:8.0.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8097 }]
+          env:
+            - name: SVC_TENANT
+              value: http://tenant-service:8081/api/v1
+            - name: SVC_IAM
+              value: http://iam-service:8082/api/v1
+            - name: SVC_COURSE
+              value: http://course-service:8083/api/v1
+            - name: SVC_TEACHING
+              value: http://teaching-service:8084/api/v1
+            - name: SVC_KT
+              value: http://kt-service:8095
+            - name: SVC_AI
+              value: http://ai-service:8090/api/v1
+            - name: SVC_OPS
+              value: http://ops-service:8096/api/v1/ops
+            - name: GRAPHIQL_ENABLED
+              value: "false"
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:MaxRAMPercentage=70 -XX:+UseZGC
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8097 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8097 }
+            initialDelaySeconds: 40
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graphql-gateway
+  namespace: qianrenqianmian
+spec:
+  selector: { app: graphql-gateway }
+  ports:
+    - port: 8097
+      targetPort: 8097
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: graphql-gateway
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: graphql-gateway
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }

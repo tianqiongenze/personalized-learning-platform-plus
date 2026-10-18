@@ -1,0 +1,155 @@
+# =============================================================================
+# PrometheusRule —— 平台告警规则(≥12 条, 面向 10 万并发的容量/质量/中间件信号)
+# 依赖: prometheus-operator(PrometheusRule CRD, monitoring.coreos.com/v1)。
+#   若集群使用纯 Deployment 版 Prometheus(见 k8s/base/prometheus.yaml), 请将
+#   下方 groups 内容原样粘贴进该文件的 ConfigMap `prometheus-rules`
+#   (data.platform-alerts.yml) 后热加载即可, 二者格式完全兼容。
+# 分级: critical(立即处理) / warning(需关注) / info(观察)。
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform-100k-alerts
+  namespace: monitoring
+  labels:
+    role: alert-rules
+    app.kubernetes.io/part-of: personalized-learning-platform-plus
+spec:
+  groups:
+    # ======================= 服务可用性 / 质量 =======================
+    - name: platform-availability
+      rules:
+        - alert: ServiceDown
+          expr: up{namespace=~"qianrenqianmian|infra"} == 0
+          for: 1m
+          labels: {severity: critical, team: sre}
+          annotations:
+            summary: "服务 {{ $labels.job }}/{{ $labels.instance }} 掉线"
+            description: "目标已连续 1 分钟不可达, 请检查 Pod 状态与依赖。"
+        - alert: High5xxRate
+          expr: |
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (application)
+              / clamp_min(sum(rate(http_server_requests_seconds_count[5m])) by (application), 1) > 0.05
+          for: 5m
+          labels: {severity: critical, team: sre}
+          annotations:
+            summary: "{{ $labels.application }} 5xx 比例超过 5%"
+            description: "错误率 {{ $value | humanizePercentage }} 持续 5 分钟。"
+        - alert: HighP99Latency
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(http_server_requests_seconds_bucket[5m])) by (le, application)) > 2
+          for: 5m
+          labels: {severity: warning, team: sre}
+          annotations:
+            summary: "{{ $labels.application }} P99 延迟超过 2s"
+            description: "P99 = {{ $value }}s, 可能触发用户侧超时。"
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total[15m]) * 60 > 1
+          for: 5m
+          labels: {severity: warning, team: sre}
+          annotations:
+            summary: "Pod {{ $labels.pod }} 反复重启"
+            description: "15 分钟内重启速率 > 1 次/分钟。"
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready", status="true"} == 0
+          for: 5m
+          labels: {severity: critical, team: sre}
+          annotations:
+            summary: "节点 {{ $labels.node }} 未就绪"
+            description: "节点连续 5 分钟 NotReady, 请检查 kubelet/网络。"
+
+    # ======================= 租户 / 配额 =======================
+    - name: platform-tenant
+      rules:
+        - alert: TenantQuotaExceeded
+          expr: platform_tenant_quota_usage_ratio > 0.9
+          for: 10m
+          labels: {severity: warning, team: platform}
+          annotations:
+            summary: "租户 {{ $labels.tenant }} 配额使用率超过 90%"
+            description: "当前 {{ $value | humanizePercentage }}, 接近硬限, 建议扩容或限流。"
+        - alert: TenantRateLimited
+          expr: sum(rate(platform_tenant_ratelimit_rejected_total[5m])) by (tenant) > 10
+          for: 5m
+          labels: {severity: warning, team: platform}
+          annotations:
+            summary: "租户 {{ $labels.tenant }} 被限流"
+            description: "拒绝速率 {{ $value }}/s, 检查配额或异常调用方。"
+
+    # ======================= 消息 / 中间件 =======================
+    - name: platform-messaging
+      rules:
+        - alert: PulsarBacklogHigh
+          expr: sum(pulsar_subscription_back_log) by (topic) > 50000
+          for: 10m
+          labels: {severity: critical, team: middleware}
+          annotations:
+            summary: "Pulsar 主题 {{ $labels.topic }} 积压超过 5 万"
+            description: "消费能力不足, 触发 KEDA 扩容或排查消费者阻塞。"
+        - alert: RedisLowHitRatio
+          expr: |
+            sum(rate(redis_keyspace_hits_total[5m])) by (instance)
+              / clamp_min(sum(rate(redis_keyspace_hits_total[5m])) by (instance)
+                + sum(rate(redis_keyspace_misses_total[5m])) by (instance), 1) < 0.7
+          for: 15m
+          labels: {severity: warning, team: middleware}
+          annotations:
+            summary: "Redis {{ $labels.instance }} 命中率低于 70%"
+            description: "命中率 {{ $value | humanizePercentage }}, 缓存可能失效或容量不足。"
+        - alert: CrdbConnectionPoolHigh
+          expr: |
+            sum(pgbouncer_pools_server_active_connections) by (database)
+              / clamp_min(sum(pgbouncer_pools_server_max_connections) by (database), 1) > 0.85
+          for: 5m
+          labels: {severity: warning, team: data}
+          annotations:
+            summary: "CRDB 连接池 {{ $labels.database }} 使用率超过 85%"
+            description: "连接池接近上限, 可能引发排队; 需调大 default_pool_size 或加副本。"
+
+    # ======================= AI / 推理 =======================
+    - name: platform-ai
+      rules:
+        - alert: ModelInferenceQueueBacklog
+          expr: sum(model_inference_queue_size) by (model) > 100
+          for: 5m
+          labels: {severity: warning, team: ai}
+          annotations:
+            summary: "模型 {{ $labels.model }} 推理队列积压超过 100"
+            description: "推理吞吐不足, 触发 KEDA/HPA 扩容推理副本。"
+        - alert: AiGenerationTimeout
+          expr: |
+            sum(rate(ai_generation_timeouts_total[5m]))
+              / clamp_min(sum(rate(ai_generation_requests_total[5m])), 1) > 0.05
+          for: 5m
+          labels: {severity: critical, team: ai}
+          annotations:
+            summary: "AI 生成超时比例超过 5%"
+            description: "超时率 {{ $value | humanizePercentage }}, 检查 LLM 后端与超时配置。"
+
+    # ======================= 容量 / 弹性 / 证书 =======================
+    - name: platform-capacity
+      rules:
+        - alert: HpaAtMaxReplicas
+          expr: kube_horizontalpodautoscaler_status_current_replicas >= kube_horizontalpodautoscaler_spec_max_replicas
+          for: 10m
+          labels: {severity: warning, team: sre}
+          annotations:
+            summary: "HPA {{ $labels.horizontalpodautoscaler }} 已达副本上限"
+            description: "当前 {{ $value }} 副本触顶 10 分钟, 需上调 maxReplicas 或扩容节点。"
+        - alert: DiskUsageHigh
+          expr: |
+            (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+               / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) > 0.85
+          for: 15m
+          labels: {severity: warning, team: sre}
+          annotations:
+            summary: "节点 {{ $labels.instance }} 磁盘 {{ $labels.mountpoint }} 使用率超过 85%"
+            description: "当前 {{ $value | humanizePercentage }}, 关注 PVC/PV 扩容。"
+        - alert: CertificateExpiringSoon
+          expr: (probe_ssl_earliest_cert_expiry - time()) < 30 * 24 * 3600
+          for: 1h
+          labels: {severity: warning, team: sre}
+          annotations:
+            summary: "证书 {{ $labels.instance }} 30 天内过期"
+            description: "剩余 {{ $value | humanizeDuration }}, 请及时轮换。"

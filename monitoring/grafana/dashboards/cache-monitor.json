@@ -1,0 +1,167 @@
+{
+  "uid": "cache-monitor",
+  "title": "NebulaGraph 慢查询",
+  "tags": [
+    "platform-plus"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Redis Cluster 命中率",
+      "type": "gauge",
+      "x": 0,
+      "y": 0,
+      "w": 8,
+      "h": 6,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "1 - (rate(redis_keyspace_misses_total[5m]) / clamp_min(rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]), 0.001))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "id": 2,
+      "title": "Redis 各节点内存",
+      "type": "timeseries",
+      "x": 8,
+      "y": 0,
+      "w": 16,
+      "h": 6,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 16,
+        "h": 6
+      }
+    },
+    {
+      "id": 3,
+      "title": "Redis OPS",
+      "type": "timeseries",
+      "x": 0,
+      "y": 6,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "redis_instantaneous_ops_per_sec",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "L1 Caffeine 命中率",
+      "type": "timeseries",
+      "x": 12,
+      "y": 6,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(caffeine_cache_hits_total[5m])) by (application, cache) / clamp_min(sum(rate(caffeine_cache_requests_total[5m])) by (application, cache), 0.001)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Milvus 可用性",
+      "type": "stat",
+      "x": 0,
+      "y": 14,
+      "w": 6,
+      "h": 5,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"milvus\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "id": 6,
+      "title": "NebulaGraph 慢查询",
+      "type": "timeseries",
+      "x": 6,
+      "y": 14,
+      "w": 18,
+      "h": 5,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(nebula_graphd_num_queries_latency_us_sum[5m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 14,
+        "w": 18,
+        "h": 5
+      }
+    }
+  ]
+}

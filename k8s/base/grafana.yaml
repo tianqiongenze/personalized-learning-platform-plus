@@ -1,0 +1,153 @@
+# =============================================================================
+# Grafana 升级版 —— 集成进管理员统一运维监测平台(ops-web)
+# 集成方式(三选一按需用, 全部已配置):
+#   1. iframe/kiosk 嵌入: allow_embedding + kiosk=tv&refresh 参数, ops-web 直接内嵌大屏
+#   2. 服务账号 Token: ops-service 用 GRAFANA_SA_TOKEN 调 /api/ds_query 等官方 HTTP API,
+#      在运维平台自研页面渲染指标(不跳转 Grafana)
+#   3. 反向代理子路径: ingress /grafana -> grafana:3000 (serve_from_sub_path)
+# 升级项: 10.2 -> 10.5.2; 修复原 dashboard provider 指向空目录(无任何看板)的问题,
+#         通过 ConfigMap 装载 monitoring/grafana/dashboards 下全部看板; 新增 Loki 数据源。
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ini
+  namespace: monitoring
+data:
+  grafana.ini: |
+    [server]
+    domain = platform.local
+    root_url = %(protocol)s://%(domain)s/grafana/
+    serve_from_sub_path = true
+    [security]
+    allow_embedding = true          # 供统一运维平台 iframe 嵌入
+    [auth.anonymous]
+    enabled = true
+    org_role = Viewer               # 内网只读; 写操作仍需 admin 登录
+    hide_version = true
+    [users]
+    allow_sign_up = false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus:9090
+        access: proxy
+        isDefault: true
+        editable: false
+      - name: Loki
+        type: loki
+        url: http://loki:3100
+        access: proxy
+        editable: false
+        jsonData:
+          maxLines: 1000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Platform Plus'
+        orgId: 1
+        folder: 'Platform Plus'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /etc/grafana/provisioning/dashboards
+          foldersFromFilesStructure: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:11.6.3
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: "admin"
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: platform-plus-secrets
+              key: GRAFANA_PASSWORD
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_INSTALL_PLUGINS
+          value: ""
+        volumeMounts:
+        - name: ini
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+        - name: datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: dashboards-provider
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+          subPath: dashboards.yaml
+        - name: dashboards-json
+          mountPath: /etc/grafana/provisioning/dashboards/json
+        - name: data
+          mountPath: /var/lib/grafana
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+      volumes:
+      - name: ini
+        configMap:
+          name: grafana-ini
+      - name: datasources
+        configMap:
+          name: grafana-datasources
+      - name: dashboards-provider
+        configMap:
+          name: grafana-dashboards
+      - name: dashboards-json
+        configMap:
+          name: grafana-dashboard-jsons
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: grafana

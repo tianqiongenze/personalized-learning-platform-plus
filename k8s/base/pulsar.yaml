@@ -1,0 +1,329 @@
+# =============================================================================
+# Apache Pulsar 3.2 - 消息中间件（替换原 Kafka/ZooKeeper 单机栈）
+# 拓扑（2 节点 K8s 优化）:
+#   zookeeper   x1 (元数据, 可后续扩为 3)
+#   bookie      x2 (BookKeeper 存储节点, 跨两台服务器分布)
+#   broker      x2 (无状态, Pulsar 读写均经 broker)
+#   pulsar-init  Job (初始化集群元数据, 类似 broker initContainer)
+# 设计要点/踩坑:
+#   1. broker 启动前必须完成 ZK 元数据初始化, 否则 CrashLoopBackOff —— 用 init Job。
+#   2. BookKeeper 写入法定人数 E/W/A 与 bookie 数量必须匹配, 否则 NoBookieException。
+#      2 bookie 时: ensemble=2 writeQuorum=2 ackQuorum=2（并发高可降为 ackQuorum=1 换吞吐）。
+#   3. Pulsar 自带 Prometheus 指标: broker :8080/metrics, bookie :8000/metrics,
+#      ZK :8000/metrics —— 由 Prometheus pod 注解自动抓取。
+#   4. 兼容性: Pulsar 3.x 与 spring-boot-starter-pulsar(Boot 3.2+/Spring Pulsar 0.6+/1.x)
+#      的 Pulsar Client 3.x 兼容。
+# =============================================================================
+# 注: infra 命名空间统一由 namespaces.yaml 声明(原此处内联的 Namespace 文档已移除,
+#     避免与 namespaces.yaml 重复导致 kustomize build 失败)。
+# ---------- ZooKeeper (Pulsar 元数据) ----------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulsar-zk-config
+  namespace: infra
+data:
+  ZOOKEEPER_SERVERS: "pulsar-zookeeper-0.pulsar-zookeeper.infra.svc.cluster.local:2888:3888"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-zookeeper
+  namespace: infra
+  labels: {app: pulsar, component: zookeeper}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app: pulsar, component: zookeeper}
+  ports:
+    - {name: client, port: 2181}
+    - {name: follower, port: 2888}
+    - {name: leader-election, port: 3888}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pulsar-zookeeper
+  namespace: infra
+spec:
+  serviceName: pulsar-zookeeper
+  replicas: 1
+  selector:
+    matchLabels: {app: pulsar, component: zookeeper}
+  template:
+    metadata:
+      labels: {app: pulsar, component: zookeeper}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      nodeSelector:
+        platform.node/role: data
+      containers:
+        - name: zookeeper
+          image: apachepulsar/pulsar:4.0.5
+          command: ["sh", "-c"]
+          args:
+            - >
+              bin/apply-config-from-env.py conf/zookeeper.conf &&
+              bin/generate-zookeeper-config.sh conf/zookeeper.conf &&
+              bin/pulsar zookeeper
+          envFrom:
+            - configMapRef: {name: pulsar-zk-config}
+          ports:
+            - {containerPort: 2181, name: client}
+            - {containerPort: 2888, name: follower}
+            - {containerPort: 3888, name: leader-election}
+            - {containerPort: 8000, name: metrics}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          readinessProbe:
+            exec: {command: ["bin/pulsar-admin", "brokers", "healthcheck"]}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - {name: data, mountPath: /pulsar/data}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: local-path
+        resources: {requests: {storage: 5Gi}}
+---
+# ---------- BookKeeper (消息存储) ----------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulsar-bookie-config
+  namespace: infra
+data:
+  # 2 bookie 拓扑下的写入法定人数
+  PULSAR_PREFIX_ledgerStorageClass: org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage
+  PULSAR_PREFIX_journalMaxSizeMB: "2048"
+  PULSAR_PREFIX_journalMaxBackups: "5"
+  PULSAR_PREFIX_diskUsageThreshold: "0.95"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-bookie
+  namespace: infra
+  labels: {app: pulsar, component: bookie}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app: pulsar, component: bookie}
+  ports:
+    - {name: bookie, port: 3181}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pulsar-bookie
+  namespace: infra
+spec:
+  serviceName: pulsar-bookie
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {app: pulsar, component: bookie}
+  template:
+    metadata:
+      labels: {app: pulsar, component: bookie}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels: {app: pulsar, component: bookie}
+              topologyKey: kubernetes.io/hostname   # 两个 bookie 分布在两台服务器
+      containers:
+        - name: bookie
+          image: apachepulsar/pulsar:4.0.5
+          command: ["sh", "-c"]
+          args:
+            - "bin/apply-config-from-env.py conf/bookkeeper.conf && bin/pulsar bookie"
+          env:
+            - name: PULSAR_PREFIX_httpServerEnabled
+              value: "true"
+          envFrom:
+            - configMapRef: {name: pulsar-bookie-config}
+          ports:
+            - {containerPort: 3181, name: bookie}
+            - {containerPort: 8000, name: metrics}
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits: {cpu: "2", memory: 3Gi}
+          readinessProbe:
+            httpGet: {path: /heartbeat, port: 8000}
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          volumeMounts:
+            - {name: journal, mountPath: /pulsar/data/bookkeeper/journal}
+            - {name: ledgers, mountPath: /pulsar/data/bookkeeper/ledgers}
+  volumeClaimTemplates:
+    - metadata: {name: journal}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 10Gi}}}
+    - metadata: {name: ledgers}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 30Gi}}}
+---
+# ---------- Broker (协议接入层) ----------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulsar-broker-config
+  namespace: infra
+data:
+  PULSAR_PREFIX_clusterName: platform-plus
+  PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus: "true"   # 供统一运维平台查看 topic 级消息
+  PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus: "true"
+  PULSAR_PREFIX_allowAutoTopicCreation: "true"
+  PULSAR_PREFIX_allowAutoTopicCreationType: "partitioned"
+  PULSAR_PREFIX_defaultNumPartitions: "6"
+  PULSAR_PREFIX_transactionCoordinatorEnabled: "false"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar-broker
+  namespace: infra
+  labels: {app: pulsar, component: broker}
+spec:
+  clusterIP: None
+  selector: {app: pulsar, component: broker}
+  ports:
+    - {name: http, port: 8080}
+    - {name: pulsar, port: 6650}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pulsar-broker
+  namespace: infra
+spec:
+  serviceName: pulsar-broker
+  replicas: 2
+  selector:
+    matchLabels: {app: pulsar, component: broker}
+  template:
+    metadata:
+      labels: {app: pulsar, component: broker}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: {app: pulsar, component: broker}
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: broker
+          image: apachepulsar/pulsar:4.0.5
+          command: ["sh", "-c"]
+          args:
+            - >
+              bin/apply-config-from-env.py conf/broker.conf &&
+              bin/pulsar broker
+          env:
+            - name: PULSAR_PREFIX_zookeeperServers
+              value: "pulsar-zookeeper.infra.svc.cluster.local:2181"
+            - name: PULSAR_PREFIX_configurationStoreServers
+              value: "pulsar-zookeeper.infra.svc.cluster.local:2181"
+            - name: PULSAR_PREFIX_bookkeeperClientBookieWatchTimeoutMs
+              value: "60000"
+          envFrom:
+            - configMapRef: {name: pulsar-broker-config}
+          ports:
+            - {containerPort: 8080, name: http}
+            - {containerPort: 6650, name: pulsar}
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits: {cpu: "2", memory: 3Gi}
+          readinessProbe:
+            httpGet: {path: /admin/v2/brokers/health, port: 8080}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+  # broker 无状态, 不需要 PVC
+---
+# ---------- 集群元数据初始化 Job ----------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulsar-init
+  namespace: infra
+  annotations:
+    platform.io/ops-note: "重复部署时先 kubectl -n infra delete job pulsar-init --ignore-not-found"
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: apachepulsar/pulsar:4.0.5
+          command: ["sh", "-c"]
+          args:
+            - >
+              bin/pulsar initialize-cluster-metadata
+              --cluster platform-plus
+              --zookeeper pulsar-zookeeper.infra.svc.cluster.local:2181
+              --configuration-store pulsar-zookeeper.infra.svc.cluster.local:2181
+              --web-service-url http://pulsar-broker.infra.svc.cluster.local:8080/
+              --broker-service-url pulsar://pulsar-broker.infra.svc.cluster.local:6650/;
+              bin/pulsar initialize-transaction-coordinator-metadata -cs pulsar-zookeeper.infra.svc.cluster.local:2181 -c platform-plus || true
+---
+# ---------- 业务 namespace / 权限初始化 Job ----------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulsar-init-topics
+  namespace: infra
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init-topics
+          image: apachepulsar/pulsar:4.0.5
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              A="bin/pulsar-admin --admin-url http://pulsar-broker.infra.svc.cluster.local:8080"
+              $A tenants create platform || true
+              $A namespaces create platform/edu || true
+              # 领域事件主题: 保留 7 天, 供审计与运维平台回查消息
+              $A topics create platform/edu/domain-events || true
+              $A namespaces set-retention platform/edu --size 10G --time 7d || true
+              $A topics create platform/edu/ai-generation-tasks || true
+              $A topics create platform/edu/ai-generation-results || true
+              $A topics create platform/edu/learning-behavior || true
+              $A topics create platform/edu/resource-index-upsert || true
+              # 死信/重试
+              $A topics create platform/edu/domain-events-DLQ || true
+---
+# 服务发现: 客户端统一连 pulsar://pulsar.infra.svc:6650
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulsar
+  namespace: infra
+spec:
+  selector: {app: pulsar, component: broker}
+  ports:
+    - {name: pulsar, port: 6650}
+    - {name: http, port: 8080}

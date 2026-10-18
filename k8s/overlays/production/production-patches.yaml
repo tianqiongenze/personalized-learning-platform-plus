@@ -1,0 +1,72 @@
+# 生产资源规格 patch(命名空间统一为 qianrenqianmian)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-service
+  namespace: qianrenqianmian
+spec:
+  template:
+    spec:
+      containers:
+      - name: tenant-service
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-service
+  namespace: qianrenqianmian
+spec:
+  template:
+    spec:
+      containers:
+      - name: iam-service
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: course-service
+  namespace: qianrenqianmian
+spec:
+  template:
+    spec:
+      containers:
+      - name: course-service
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "4Gi"
+          limits:
+            cpu: "8000m"
+            memory: "8Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teaching-service
+  namespace: qianrenqianmian
+spec:
+  template:
+    spec:
+      containers:
+      - name: teaching-service
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "4Gi"

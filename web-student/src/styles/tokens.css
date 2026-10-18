@@ -1,0 +1,33 @@
+:root {
+  --brand-primary: #1677FF;
+  --brand-gradient: linear-gradient(90deg,#1677FF,#69B1FF);
+  --semantics-success: #52C41A;
+  --semantics-warning: #FAAD14;
+  --semantics-error: #FF4D4F;
+  --mastery-high: #52C41A;
+  --mastery-mid: #FAAD14;
+  --mastery-low: #FF7A45;
+  --bloom-remember: #8C8C8C;
+  --bloom-understand: #1677FF;
+  --bloom-apply: #13C2C2;
+  --bloom-analyze: #FAAD14;
+  --bloom-evaluate: #722ED1;
+  --bloom-create: #EB2F96;
+  --neutrals-bg: #F5F7FA;
+  --neutrals-card: #FFFFFF;
+  --neutrals-text: #262626;
+  --neutrals-textSecondary: #8C8C8C;
+  --sm: 12rpx;
+  --md: 16rpx;
+  --lg: 24rpx;
+  --circle: 50%;
+  --xs: 8rpx;
+  --xl: 32rpx;
+  --font-family: PingFang SC, Roboto, Source Han Sans, sans-serif;
+  --font-title-size: 34rpx;
+  --font-title-weight: 600;
+  --font-body-size: 28rpx;
+  --font-body-weight: 400;
+  --font-caption-size: 24rpx;
+  --font-caption-weight: 400;
+}

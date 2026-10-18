@@ -1,0 +1,192 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /api/v1
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    max-connections: 8192
+    accept-count: 200
+
+spring:
+  application:
+    name: ai-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    url: jdbc:postgresql://${CRDB_JDBC_HOST_PORT:localhost:5432}/ai_db?sslmode=${CRDB_SSLMODE:disable}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.CockroachDialect}
+        jdbc.batch_size: 30
+        order_inserts: true
+        order_updates: true
+        default_schema: public
+        query.startup_check: false
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  data:
+    redis:
+      password: ${REDIS_PASSWORD:}
+      # dify-plus redis8-svc (round-robin across 3 cluster nodes)
+      host: ${REDIS_HOST:redis8-svc.dify-plus.svc.cluster.local}
+      port: ${REDIS_PORT:6379}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 30s
+        pool:
+          max-active: 30
+          max-idle: 15
+          min-idle: 8
+    jpa:
+      repositories:
+        bootstrap-mode: lazy
+  pulsar:
+    client:
+      service-url: ${PULSAR_SERVICE_URL:pulsar://localhost:6650}
+    producer:
+      send-timeout: 5s
+    consumer:
+      subscription-name: ${spring.application.name}-sub
+
+app:
+  tenant:
+    enabled: true
+    default-rate-per-min: 1200
+    burst-allowance: 1.5
+  cache:
+    enabled: true
+    metrics: true
+    l1:
+      max-size: 10000
+      expire-after-write: 5m
+      expire-after-access: 10m
+    l2:
+      time-to-live: 30m
+      cache-null-values: false
+      key-prefix: "ai:"
+      invalidation-channel: "plp:cache:invalidate"
+    specs:
+      courseDetail:
+        max-size: 20000
+        expire-after-write: 10m
+        redis-ttl: 60m
+  events:
+    enabled: true
+    default-topic: persistent://public/default/domain-events
+  resilience:
+    enabled: true
+  cors:
+    allowed-origins: "${CORS_ORIGINS:*}"
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+  kt:
+    service-url: ${KT_SERVICE_URL:http://kt-service.infra:8086}
+  reranker:
+    url: ${RERANKER_URL:http://vector-reranker.infra:8090}
+  agent:
+    url: ${AGENT_SERVICE_URL:http://agent-service.qianrenqianmian:8090}
+  realtime:
+    url: ${APP_REALTIME_URL:http://realtime-gateway.qianrenqianmian:8095}
+
+spring.ai:
+  model:
+    chat: openai
+  openai:
+    base-url: ${LLM_BASE_URL:http://litellm.ai-platform:4000}
+    api-key: ${LLM_API_KEY:EMPTY}
+    chat:
+      options:
+        model: ${LLM_MODEL:qwen2.5-7b-instruct}
+        temperature: 0.4
+    embedding:
+      options:
+        model: ${EMBEDDING_MODEL:bge-m3}
+  vectorstore:
+    milvus:
+      client:
+        host: ${MILVUS_HOST:localhost}
+        port: ${MILVUS_PORT:19530}
+      databaseName: default
+      collectionName: edu_resources
+      dimension: 1024
+      indexType: HNSW
+      metricType: COSINE
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+  ratelimiter:
+    instances:
+      default:
+        limit-for-period: 200
+        limit-refresh-period: 1s
+        timeout-duration: 500ms
+        register-health-indicator: true
+  retry:
+    instances:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,caches,circuitbreakers,ratelimiters
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db,redis
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: ${POD_NAMESPACE:platform-plus}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,300ms,500ms,1s
+
+logging:
+  level:
+    com.platform.ai: ${LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [trace=%X{traceId:-}] - %msg%n"

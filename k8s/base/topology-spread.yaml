@@ -1,0 +1,132 @@
+# =============================================================================
+# 拓扑分布约束(topologySpreadConstraints)—— 反亲和跨节点/跨可用区打散
+# 用途: 由 k8s/base/kustomization.yaml 的 patches 引用(strategic merge),
+#       为无状态核心服务追加调度约束, 使副本尽量分散到不同节点/可用区,
+#       避免单节点故障导致同服务多副本同时下线。
+# 策略: whenUnsatisfiable=ScheduleAnyway(软约束), 兼容现有 2 节点集群;
+#       跨 zone 约束在多区域多活(region-a/region-b)下生效。
+# 说明: topologySpreadConstraints 列表无 mergeKey, strategic merge 会整体替换。
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: tenant-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: tenant-service}}
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: tenant-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: iam-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: iam-service}}
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: iam-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: course-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: course-service}}
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: course-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: teaching-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: teaching-service}}
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: teaching-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: graphql-gateway, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: graphql-gateway}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ai-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: ai-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: agent-service, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: agent-service}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: realtime-gateway, namespace: qianrenqianmian}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: realtime-gateway}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: kt-service, namespace: infra}
+spec:
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app: kt-service}}

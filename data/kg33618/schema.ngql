@@ -1,0 +1,76 @@
+-- =============================================================================
+-- 重庆 "33618" 现代制造业集群产业知识图谱 —— NebulaGraph DDL
+-- 与以下既有实现严格对齐, 改动需同步:
+--   * k8s/base/nebula.yaml  nebula-init Job (CREATE SPACE/TAG/EDGE)
+--   * agent-service/app/tools/edu_tools.py :: query_knowledge_graph
+--   * agent-service/app/agents/generation_graph.py :: retrieve_context (RAG 底座)
+-- 版本: NebulaGraph v3.8.x
+-- 执行: nebula-console -addr <graphd-host> -port 9669 -u root -p nebula -f schema.ngql
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- 1. SPACE —— vid 固定字符串 64 字节, 容纳 "kp_icv_01_05" 这类可读业务主键
+-- ---------------------------------------------------------------------------
+CREATE SPACE IF NOT EXISTS kg33618 (
+  partition_num = 10,
+  replica_factor = 1,
+  vid_type = FIXED_STRING(64)
+);
+
+USE kg33618;
+
+-- ---------------------------------------------------------------------------
+-- 2. TAG —— 实体
+--    industry         产业(重庆 33618 集群体系中的一个集群/赛道)
+--    post             岗位(中职/高职对口就业岗位)
+--    knowledge_point  知识点(教学最小单元, 供个性化路径与资源生成锚定)
+--    resource         教学资源(6 类生成资源的落库实体, 由生成引擎写入)
+-- ---------------------------------------------------------------------------
+CREATE TAG IF NOT EXISTS industry(
+  name    string COMMENT "产业名称",
+  cluster string COMMENT "集群层级: 万亿级主导/五千亿级支柱/千亿级特色优势/18个新星"
+);
+
+CREATE TAG IF NOT EXISTS post(
+  name string COMMENT "岗位名称"
+);
+
+CREATE TAG IF NOT EXISTS knowledge_point(
+  name       string COMMENT "知识点名称",
+  subject    string COMMENT "所属专业/技术领域, 如 新能源汽车技术",
+  difficulty int    COMMENT "难度 1-5(沿先修链递增)"
+);
+
+CREATE TAG IF NOT EXISTS resource(
+  res_id string COMMENT "资源唯一编号",
+  type   string COMMENT "EXERCISE_SET/EXPLANATION_DOC/TRAINING_TASK/MICRO_LESSON_SCRIPT/MICRO_VIDEO_SCRIPT/KNOWLEDGE_POINT_TALK"
+);
+
+-- ---------------------------------------------------------------------------
+-- 3. EDGE —— 关系
+--    belongs_to   (post)  -> (industry)         岗位归属产业
+--    requires     (post)  -> (knowledge_point)  岗位要求知识点
+--    prerequisite (kp)    -> (kp)               先修: 学完起点才能学终点(基础->进阶)
+--    relates_to   (kp)    -> (kp)               跨岗位/跨产业弱关联, 供推荐与路径拓展
+--    covers       (resource)->(knowledge_point) 资源覆盖知识点(生成引擎写回)
+-- ---------------------------------------------------------------------------
+CREATE EDGE IF NOT EXISTS belongs_to();
+CREATE EDGE IF NOT EXISTS requires();
+CREATE EDGE IF NOT EXISTS prerequisite(weight double COMMENT "先修强度, 默认 1.0");
+CREATE EDGE IF NOT EXISTS relates_to(weight double COMMENT "关联强度 (0,1]");
+CREATE EDGE IF NOT EXISTS covers();
+
+-- ---------------------------------------------------------------------------
+-- 4. 索引 —— 支撑按名称/专业检索与 nGQL LOOKUP
+--    (数据导入后需在 seed_33618.ngql 末尾执行 REBUILD TAG INDEX 才生效)
+-- ---------------------------------------------------------------------------
+CREATE TAG INDEX IF NOT EXISTS idx_industry_name ON industry(name(64));
+CREATE TAG INDEX IF NOT EXISTS idx_post_name     ON post(name(64));
+CREATE TAG INDEX IF NOT EXISTS idx_kp_name      ON knowledge_point(name(64));
+CREATE TAG INDEX IF NOT EXISTS idx_kp_subject   ON knowledge_point(subject(64));
+
+-- ---------------------------------------------------------------------------
+-- 5. 校验: 查看 schema(导入 seed 后可用 SHOW STATS 复核规模)
+-- ---------------------------------------------------------------------------
+SHOW TAGS;
+SHOW EDGES;

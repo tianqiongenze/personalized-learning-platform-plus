@@ -1,0 +1,18 @@
+# 研究型本科档 — OpenMAIC 教育层级 profile
+id: research-undergrad
+display: 研究型本科
+bloomCeiling: evaluate
+scaffolding: medium
+interaction:
+  maxTurns: 8
+  socraticLevel: open
+  depthTarget: analyze
+  breadthBranches: 3
+  giveAnswerOnMiss: false
+promptModifiers:
+  audience: 研究型本科学生, 具备完整学科基础
+  style: 原理驱动, 强调推导与证明, 鼓励跨学科类比, 引入文献线索
+workflow: two_phase
+slotOverrides:
+  exercise: qwen2.5-14b-instruct
+reviewWeights: {accuracy: 0.35, fit: 0.25, industry: 0.15, safety: 0.25}

@@ -1,0 +1,4 @@
+-- 西南四省产业战略图谱 —— schema 增量(挂靠 kg33618 space)
+-- industry tag 增加 province 属性, 支持按省份检索(agent 的 query_knowledge_graph)
+USE kg33618;
+ALTER TAG industry ADD (province string COMMENT "所属省份: 四川/贵州/云南/西藏(重庆已有33618)");

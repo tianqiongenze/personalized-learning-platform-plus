@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+GET,tenant_list(crdb+cache),CatchResponseError('status=500'),29781,2026-10-15T01:16:57Z,2026-10-15T01:19:56Z
+POST,iam_login(bcrypt+jwt),CatchResponseError('status=500'),25167,2026-10-15T01:16:57Z,2026-10-15T01:19:56Z
+GET,course_list(native_sql),CatchResponseError('status=401'),17580,2026-10-15T01:16:57Z,2026-10-15T01:19:56Z

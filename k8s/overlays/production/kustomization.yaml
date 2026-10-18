@@ -1,0 +1,45 @@
+# =============================================================================
+# production overlay —— 引用 base 并叠加生产差异
+# 变更记录: 原文件逐个列举 ../base/*.yaml 且 namespace 误设为 platform-plus,
+#           现改为引用 ../../base, 命名空间统一为 qianrenqianmian。
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 注意: 不在此设置 `namespace:` —— base 跨 qianrenqianmian/infra/monitoring 三个
+# 命名空间, kustomize 的 namespace 转换器会强制改写全部资源命名空间(原文件误设为
+# platform-plus, 且未创建该命名空间, 会导致部署失败)。命名空间以各清单声明为准。
+resources:
+  - ../../base
+
+# 生产镜像 tag 覆盖(base 中的镜像名为 platform/<svc>)
+images:
+  - {name: platform/tenant-service, newTag: "2.0.0"}
+  - {name: platform/iam-service, newTag: "2.0.0"}
+  - {name: platform/course-service, newTag: "2.0.0"}
+  - {name: platform/teaching-service, newTag: "2.0.0"}
+  - {name: platform/graphql-gateway, newTag: "2.0.0"}
+  - {name: platform/ai-service, newTag: "1.0.0"}
+  - {name: platform/agent-service, newTag: "1.0.0"}
+  - {name: platform/ops-service, newTag: "1.0.0"}
+  - {name: platform/realtime-gateway, newTag: "1.0.0"}
+  - {name: platform/vector-reranker, newTag: "1.0.0"}
+  - {name: platform/kt-service, newTag: "1.0.0"}
+
+# 生产副本基线(HPA min 之下, 仅作初始值)
+replicas:
+  - {name: tenant-service, count: 4}
+  - {name: iam-service, count: 4}
+  - {name: course-service, count: 6}
+  - {name: teaching-service, count: 4}
+
+# 非选择器标签(includeSelectors: false, 避免改动不可变 selector)
+labels:
+  - includeSelectors: false
+    pairs:
+      environment: production
+      managed-by: kustomize
+
+# 资源规格 patch(仅调整 requests/limits, 不新增字段)
+patches:
+  - path: production-patches.yaml

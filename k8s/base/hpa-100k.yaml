@@ -1,0 +1,252 @@
+# =============================================================================
+# HPA-100K —— 面向 10 万并发的水平扩缩容(核心服务上限 60)
+# 依赖: metrics-server(K8s 1.28, autoscaling/v2)
+# 变更: 取代 k8s/base/hpa.yaml 与 hpa-new-services.yaml(二者 namespace 误写为
+#       platform-plus, 且上限仅 12~20, 无法承载 10 万并发)。
+# 说明:
+#   - CPU 目标 65%(较原 70% 提前扩容, 为突发留余量), 内存 80% 兜底。
+#   - scaleUp 立即(0s 稳定窗 + 100%/15s), scaleDown 300s 稳定窗防抖动。
+#   - ai-service / agent-service 亦由 keda.yaml 以队列驱动扩缩; 二者【二选一】:
+#       队列深度敏感 -> 用 KEDA(推荐, 支持缩到 0); CPU 敏感 -> 保留本文件 HPA。
+#     启用 KEDA 时请从 base kustomization 中移除 ai/agent 的 HPA(见文件末注释)。
+# =============================================================================
+# ---------- 核心业务服务(qianrenqianmian) ----------
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tenant-service-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: tenant-service}
+  minReplicas: 4
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  - type: Resource
+    resource: {name: memory, target: {type: Utilization, averageUtilization: 80}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - {type: Percent, value: 10, periodSeconds: 60}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: iam-service-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: iam-service}
+  minReplicas: 4
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  - type: Resource
+    resource: {name: memory, target: {type: Utilization, averageUtilization: 80}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - {type: Percent, value: 10, periodSeconds: 60}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: course-service-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: course-service}
+  minReplicas: 6
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  - type: Resource
+    resource: {name: memory, target: {type: Utilization, averageUtilization: 80}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - {type: Percent, value: 10, periodSeconds: 60}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: teaching-service-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: teaching-service}
+  minReplicas: 4
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  - type: Resource
+    resource: {name: memory, target: {type: Utilization, averageUtilization: 80}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - {type: Percent, value: 10, periodSeconds: 60}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: graphql-gateway-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: graphql-gateway}
+  minReplicas: 4
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - {type: Percent, value: 10, periodSeconds: 60}
+---
+# ---------- 实时网关(SSE/WS 长连接, 高并发) ----------
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: realtime-gateway-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: realtime-gateway}
+  minReplicas: 4
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 60}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 8, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+---
+# ---------- 运维平台(非核心热路径) ----------
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ops-service-hpa
+  namespace: qianrenqianmian
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: ops-service}
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 70}}
+---
+# ---------- AI 生成 / Agent / KT 推理(min 3 max 60, CPU 65%) ----------
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-service-hpa
+  namespace: qianrenqianmian
+  annotations:
+    autoscaling.platform/aligned-with: keda-ai-service   # 与 KEDA 二选一
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: ai-service}
+  minReplicas: 3
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 10, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 600        # AI 冷启动慢, 缩容更保守
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: agent-service-hpa
+  namespace: qianrenqianmian
+  annotations:
+    autoscaling.platform/aligned-with: keda-agent-service
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: agent-service}
+  minReplicas: 3
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 10, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 600
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kt-service-hpa
+  namespace: infra
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: kt-service}
+  minReplicas: 3
+  maxReplicas: 60
+  metrics:
+  - type: Resource
+    resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Pods, value: 10, periodSeconds: 15}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 600
+---
+# 提示: 若采用 keda.yaml 的队列驱动扩缩(推荐), 请从 base kustomization 的
+# resources 中移除 hpa-100k.yaml 后改用如下 patches 仅保留其余 HPA, 或直接
+# 在 overlay 中 delete: ai-service-hpa / agent-service-hpa。

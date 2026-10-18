@@ -1,0 +1,30 @@
+# =============================================================================
+# 持久卷挂载补丁 —— 将 Prometheus / Grafana 的 emptyDir 替换为 PVC
+# 由 k8s/base/kustomization.yaml 的 patches 引用。
+# 采用 strategic merge: 同名 volume(data) 会被替换, 并追加 PVC 卷。
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: prometheus-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: grafana-data

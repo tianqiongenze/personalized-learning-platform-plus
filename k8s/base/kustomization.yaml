@@ -1,0 +1,90 @@
+# =============================================================================
+# base kustomization —— 平台全量基础清单
+# 用法: kubectl apply -k k8s/base            (直接部署 base)
+#       kubectl apply -k k8s/overlays/production
+#       kubectl apply -k k8s/overlays/regions/region-a
+# 说明:
+#   - base 不设置全局 namespace / 不注入 commonLabels(避免改动 Deployment
+#     selector 导致不可变字段报错), 命名空间由各清单显式声明, 环境差异交由 overlay。
+#   - 标 "复用既有集群" 的中间件(CRDB/Redis/Pulsar/Milvus/Nebula/监控栈)在生产
+#     若已存在, 由部署脚本探测跳过或使用 overlay 的 delete 指令剔除。
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # ---------- 命名空间 & 配置 ----------
+  - namespaces.yaml
+  - configmap-secret.yaml
+  - external-secrets.yaml      # 需先装 External Secrets Operator(否则 apply 失败, 见 k8s/README.md)
+
+  # ---------- 存储 ----------
+  - storageclass.yaml
+  - pvc.yaml
+
+  # ---------- 业务服务(qianrenqianmian) ----------
+  - tenant-service.yaml
+  - iam-service.yaml
+  - course-service.yaml
+  - teaching-service.yaml
+  - graphql-gateway.yaml
+  - new-services.yaml          # ai/agent/ops/realtime/ops-web/kt/web-student/reranker
+
+  # ---------- 业务侧数据组件 ----------
+  - tenant-postgres.yaml
+  - tenant-redis.yaml
+  - iam-postgres.yaml
+  - iam-redis.yaml
+  - course-postgres.yaml
+  - course-redis.yaml
+  - teaching-postgres.yaml
+  - teaching-redis.yaml
+
+  # ---------- 中间件(infra, 生产优先复用既有集群, 见 docs/EXISTING_INFRA_REUSE.md) ----------
+  # cockroachdb.yaml / kafka.yaml / milvus.yaml / nebula.yaml 由 deploy-rancher.sh 探测
+  # 既有组件后"跳过或剔除"; redis-cluster.yaml / pgbouncer.yaml 为【自建参考清单】,
+  # 生产已有 Redis Cluster(dify-plus) 时绝不部署, 仅 overlays/self-contained 选用。
+  - cockroachdb.yaml
+  - pulsar.yaml
+  - kafka.yaml
+  - zookeeper.yaml
+  - milvus.yaml
+  - nebula.yaml
+  # 既有集群声明(输出为 ConfigMap, 供业务服务 envFrom 复用, 不部署重复实例)
+  - existing-infra.yaml
+
+  # ---------- 监控 & 可观测(monitoring, 复用既有 kube-prometheus-stack + Loki) ----------
+  - prometheus-rules.yaml
+  - alertmanager.yaml
+  - grafana-dashboards.yaml
+  - monitoring-stack.yaml
+  - jaeger.yaml
+
+  # ---------- 弹性 / 可用性 ----------
+  - hpa-100k.yaml
+  - keda.yaml
+  - pdb.yaml
+  # topology-spread.yaml 为 patch, 见下方 patches(不作为独立资源)
+
+  # ---------- 网络 ----------
+  - ingress-v2.yaml
+  - network-policies.yaml
+
+  # ---------- 基础设施 & 压测 ----------
+  - metallb.yaml
+  - locust.yaml
+
+# 补丁: PVC 挂载替换 + 核心服务拓扑分布约束
+patches:
+  - path: pvc-mounts-patch.yaml
+  - path: topology-spread.yaml
+
+# 已废弃 / 被取代 / 仅在自建环境选用, 不再纳入 base(文件保留供参考):
+#   - namespace.yaml            -> 被 namespaces.yaml 取代(platform-plus 为过时命名空间)
+#   - hpa.yaml                  -> 被 hpa-100k.yaml 取代(且原文件 namespace 错误)
+#   - hpa-new-services.yaml     -> 被 hpa-100k.yaml 取代
+#   - ingress.yaml              -> 被 ingress-v2.yaml 取代(路由重复)
+#   - redis-cluster.yaml        -> 生产已有 Redis Cluster(dify-plus), 复用不重建;
+#                                  仅 overlays/self-contained 自建环境选用
+#   - pgbouncer.yaml            -> 同理, 仅在需要独立连接池时叠加, 不与既有 CRDB 冲突
+#   - prometheus.yaml / grafana.yaml -> 复用 monitoring 命名空间既有 kube-prometheus-stack

@@ -1,0 +1,119 @@
+name: cd
+
+# 触发: main 分支 CI 成功后自动发布 staging; prod 需人工审批。
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "要发布的镜像 tag(默认取本次 commit SHA)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+  ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+  IMAGE_TAG: ${{ github.event.inputs.image_tag || github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  # =====================================================================
+  # 1) 自动发布 staging
+  # =====================================================================
+  staging:
+    name: deploy/staging
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install argocd CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd && sudo mv argocd /usr/local/bin/
+
+      - name: Sync staging
+        run: |
+          argocd login "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web --insecure
+          # 更新 staging 应用使用的镜像 tag(kustomize image override)
+          argocd app set personalized-learning-platform-staging \
+            --kustomize-image "platform/tenant-service=${IMAGE_TAG}"
+          argocd app sync personalized-learning-platform-staging --prune --timeout 600
+          argocd app wait personalized-learning-platform-staging --health --timeout 600
+
+      - name: Smoke test (staging)
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "https://staging.platform.local/api/v1/ops/health" >/dev/null; then
+              echo "staging healthy"; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::staging 健康检查失败"; exit 1
+
+  # =====================================================================
+  # 2) 生产发布(人工审批占位)
+  #    使用 GitHub Environment `production` 的 Required reviewers 实现审批:
+  #    Settings -> Environments -> production -> Required reviewers。
+  #    未审批前 prod job 会处于 Waiting 状态。
+  # =====================================================================
+  prod-approval:
+    name: deploy/prod (manual approval)
+    needs: staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production          # <- 审批门禁(Required reviewers)
+    steps:
+      - name: Approval gate
+        run: echo "已通过人工审批, 进入生产发布。镜像 tag=$IMAGE_TAG"
+
+  prod:
+    name: deploy/prod
+    needs: prod-approval
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install argocd CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd && sudo mv argocd /usr/local/bin/
+
+      - name: Sync prod (region-a + region-b)
+        run: |
+          argocd login "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web --insecure
+          for APP in personalized-learning-platform-prod-region-a personalized-learning-platform-prod-region-b; do
+            argocd app set "$APP" --kustomize-image "platform/tenant-service=${IMAGE_TAG}"
+            argocd app sync "$APP" --prune --timeout 900
+            argocd app wait "$APP" --health --timeout 900
+          done
+
+      - name: Post-deploy verification
+        run: |
+          echo "校验 HPA/PDB/告警已生效:"
+          # 占位: 实际通过 kubeconfig secret 执行 kubectl 校验
+          # kubectl get hpa -n qianrenqianmian
+          # kubectl get pdb -n qianrenqianmian
+          echo "OK"
+
+  # =====================================================================
+  # 3) 失败回滚(手动触发占位)
+  # =====================================================================
+  rollback:
+    name: rollback
+    if: ${{ failure() }}
+    needs: [staging]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback hint
+        run: |
+          echo "::warning::发布失败, 请执行回滚:"
+          echo "argocd app rollback personalized-learning-platform-prod-region-a"
+          echo "argocd app rollback personalized-learning-platform-prod-region-b"

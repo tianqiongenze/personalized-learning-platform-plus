@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-loadgen
+  namespace: qianrenqianmian
+  labels: { app: k6-loadgen, layer: performance-test }
+spec:
+  replicas: 8   # 8 个压测实例; 每实例 K6_STAGES/K6_VU 指定 VU 数
+  selector:
+    matchLabels: { app: k6-loadgen }
+  template:
+    metadata:
+      labels: { app: k6-loadgen, layer: performance-test }
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: { app: k6-loadgen }
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: k6
+          image: grafana/k6:0.49.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              # 将共享脚本拷贝进本地内存(避免卷声明)
+              cp /shared/load.js /tmp/load.js
+              exec k6 run /tmp/load.js
+          env:
+            - name: K6_STAGES
+              value: '[{"duration":"6m","target":__VU}]'
+            - name: K6_VU
+              value: "12500"
+          resources:
+            requests: { cpu: "2", memory: "2Gi" }
+            limits: { cpu: "2", memory: "3Gi" }
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+      volumes:
+        - name: shared
+          configMap:
+            name: k6-loadgen-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-loadgen-script
+  namespace: qianrenqianmian
+data:
+  load.js: |
+    #!/bin/sh
+    echo "placeholder replaced by deploy script"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k6-loadgen
+  namespace: qianrenqianmian
+spec:
+  selector: { app: k6-loadgen }
+  ports:
+    - name: metrics
+      port: 6565

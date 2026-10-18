@@ -1,0 +1,6680 @@
+{
+  "space": "kg33618",
+  "description": "重庆 33618 现代制造业集群产业知识图谱(种子数据)",
+  "generated_by": "data/kg33618/build_kg.py",
+  "schema": {
+    "tags": {
+      "industry": [
+        "name",
+        "cluster"
+      ],
+      "post": [
+        "name"
+      ],
+      "knowledge_point": [
+        "name",
+        "subject",
+        "difficulty"
+      ],
+      "resource": [
+        "res_id",
+        "type"
+      ]
+    },
+    "edges": {
+      "belongs_to": [],
+      "requires": [],
+      "prerequisite": [
+        "weight"
+      ],
+      "relates_to": [
+        "weight"
+      ],
+      "covers": []
+    },
+    "edge_semantics": {
+      "belongs_to": "(post)->(industry) 岗位归属产业",
+      "requires": "(post)->(knowledge_point) 岗位要求知识点",
+      "prerequisite": "(kp)->(kp) 先修: 学完起点才能学终点",
+      "relates_to": "(kp)->(kp) 跨岗位弱关联"
+    }
+  },
+  "stats": {
+    "industry": 14,
+    "post": 50,
+    "knowledge_point": 271,
+    "edges_total": 590,
+    "edges_by_type": {
+      "belongs_to": 50,
+      "requires": 271,
+      "prerequisite": 221,
+      "relates_to": 48
+    }
+  },
+  "vertices": {
+    "industry": [
+      {
+        "vid": "ind_icv",
+        "name": "智能网联新能源汽车",
+        "cluster": "万亿级主导产业集群"
+      },
+      {
+        "vid": "ind_ei",
+        "name": "新一代电子信息制造业",
+        "cluster": "万亿级主导产业集群"
+      },
+      {
+        "vid": "ind_am",
+        "name": "先进材料",
+        "cluster": "万亿级主导产业集群"
+      },
+      {
+        "vid": "ind_im",
+        "name": "智能装备及智能制造",
+        "cluster": "五千亿级支柱产业集群"
+      },
+      {
+        "vid": "ind_fp",
+        "name": "食品及农产品加工",
+        "cluster": "五千亿级支柱产业集群"
+      },
+      {
+        "vid": "ind_si",
+        "name": "软件信息服务",
+        "cluster": "五千亿级支柱产业集群"
+      },
+      {
+        "vid": "ind_moto",
+        "name": "高端摩托车",
+        "cluster": "千亿级特色优势产业集群"
+      },
+      {
+        "vid": "ind_nes",
+        "name": "新能源及新型储能",
+        "cluster": "千亿级特色优势产业集群"
+      },
+      {
+        "vid": "ind_rail",
+        "name": "轨道交通装备",
+        "cluster": "千亿级特色优势产业集群"
+      },
+      {
+        "vid": "ind_bio",
+        "name": "生物医药",
+        "cluster": "千亿级特色优势产业集群"
+      },
+      {
+        "vid": "ind_sat",
+        "name": "卫星互联网",
+        "cluster": "18个新星产业集群"
+      },
+      {
+        "vid": "ind_lowalt",
+        "name": "低空经济(无人机)",
+        "cluster": "18个新星产业集群"
+      },
+      {
+        "vid": "ind_sensor",
+        "name": "传感器及仪器仪表",
+        "cluster": "18个新星产业集群"
+      },
+      {
+        "vid": "ind_power",
+        "name": "功率半导体及集成电路",
+        "cluster": "18个新星产业集群"
+      }
+    ],
+    "post": [
+      {
+        "vid": "post_icv_01",
+        "name": "新能源汽车电控系统调试员",
+        "industry": "ind_icv",
+        "subject": "新能源汽车技术"
+      },
+      {
+        "vid": "post_icv_02",
+        "name": "动力电池装配与检测员",
+        "industry": "ind_icv",
+        "subject": "新能源汽车技术"
+      },
+      {
+        "vid": "post_icv_03",
+        "name": "整车总装线电气装配工",
+        "industry": "ind_icv",
+        "subject": "新能源汽车技术"
+      },
+      {
+        "vid": "post_icv_04",
+        "name": "智能网联汽车测试员",
+        "industry": "ind_icv",
+        "subject": "新能源汽车技术"
+      },
+      {
+        "vid": "post_icv_05",
+        "name": "新能源汽车售后维修技师",
+        "industry": "ind_icv",
+        "subject": "新能源汽车技术"
+      },
+      {
+        "vid": "post_ei_01",
+        "name": "SMT贴片设备操作员",
+        "industry": "ind_ei",
+        "subject": "电子信息工程技术"
+      },
+      {
+        "vid": "post_ei_02",
+        "name": "电子产品测试技术员",
+        "industry": "ind_ei",
+        "subject": "电子信息工程技术"
+      },
+      {
+        "vid": "post_ei_03",
+        "name": "显示模组装配技术员",
+        "industry": "ind_ei",
+        "subject": "电子信息工程技术"
+      },
+      {
+        "vid": "post_ei_04",
+        "name": "集成电路封装测试操作员",
+        "industry": "ind_ei",
+        "subject": "电子信息工程技术"
+      },
+      {
+        "vid": "post_ei_05",
+        "name": "电子装联工艺员",
+        "industry": "ind_ei",
+        "subject": "电子信息工程技术"
+      },
+      {
+        "vid": "post_am_01",
+        "name": "金属材料热处理操作工",
+        "industry": "ind_am",
+        "subject": "材料工程技术"
+      },
+      {
+        "vid": "post_am_02",
+        "name": "铝合金挤压成型技术员",
+        "industry": "ind_am",
+        "subject": "材料工程技术"
+      },
+      {
+        "vid": "post_am_03",
+        "name": "复合材料成型工",
+        "industry": "ind_am",
+        "subject": "材料工程技术"
+      },
+      {
+        "vid": "post_am_04",
+        "name": "材料性能检测员",
+        "industry": "ind_am",
+        "subject": "材料工程技术"
+      },
+      {
+        "vid": "post_im_01",
+        "name": "工业机器人系统运维员",
+        "industry": "ind_im",
+        "subject": "电气自动化技术"
+      },
+      {
+        "vid": "post_im_02",
+        "name": "电气自动化设备安装调试员",
+        "industry": "ind_im",
+        "subject": "电气自动化技术"
+      },
+      {
+        "vid": "post_im_03",
+        "name": "工业互联网运维工程师",
+        "industry": "ind_im",
+        "subject": "电气自动化技术"
+      },
+      {
+        "vid": "post_im_04",
+        "name": "数控机床操作与编程员",
+        "industry": "ind_im",
+        "subject": "电气自动化技术"
+      },
+      {
+        "vid": "post_im_05",
+        "name": "智能制造产线集成技术员",
+        "industry": "ind_im",
+        "subject": "电气自动化技术"
+      },
+      {
+        "vid": "post_fp_01",
+        "name": "食品加工设备操作员",
+        "industry": "ind_fp",
+        "subject": "食品智能加工技术"
+      },
+      {
+        "vid": "post_fp_02",
+        "name": "食品质量检验员",
+        "industry": "ind_fp",
+        "subject": "食品智能加工技术"
+      },
+      {
+        "vid": "post_fp_03",
+        "name": "冷链仓储管理员",
+        "industry": "ind_fp",
+        "subject": "食品智能加工技术"
+      },
+      {
+        "vid": "post_si_01",
+        "name": "工业软件开发工程师",
+        "industry": "ind_si",
+        "subject": "软件技术"
+      },
+      {
+        "vid": "post_si_02",
+        "name": "大数据运维工程师",
+        "industry": "ind_si",
+        "subject": "软件技术"
+      },
+      {
+        "vid": "post_si_03",
+        "name": "信息系统实施顾问",
+        "industry": "ind_si",
+        "subject": "软件技术"
+      },
+      {
+        "vid": "post_si_04",
+        "name": "信息安全运维员",
+        "industry": "ind_si",
+        "subject": "软件技术"
+      },
+      {
+        "vid": "post_moto_01",
+        "name": "摩托车整车装配工",
+        "industry": "ind_moto",
+        "subject": "摩托车制造与维修"
+      },
+      {
+        "vid": "post_moto_02",
+        "name": "摩托车发动机测试员",
+        "industry": "ind_moto",
+        "subject": "摩托车制造与维修"
+      },
+      {
+        "vid": "post_moto_03",
+        "name": "摩托车维修技师",
+        "industry": "ind_moto",
+        "subject": "摩托车制造与维修"
+      },
+      {
+        "vid": "post_nes_01",
+        "name": "储能系统集成技术员",
+        "industry": "ind_nes",
+        "subject": "新能源装备技术"
+      },
+      {
+        "vid": "post_nes_02",
+        "name": "光伏组件生产操作员",
+        "industry": "ind_nes",
+        "subject": "新能源装备技术"
+      },
+      {
+        "vid": "post_nes_03",
+        "name": "充电桩安装调试员",
+        "industry": "ind_nes",
+        "subject": "新能源装备技术"
+      },
+      {
+        "vid": "post_rail_01",
+        "name": "轨道交通车辆检修工",
+        "industry": "ind_rail",
+        "subject": "城市轨道交通车辆技术"
+      },
+      {
+        "vid": "post_rail_02",
+        "name": "轨道信号设备维护员",
+        "industry": "ind_rail",
+        "subject": "城市轨道交通车辆技术"
+      },
+      {
+        "vid": "post_rail_03",
+        "name": "轨道交通供电技术员",
+        "industry": "ind_rail",
+        "subject": "城市轨道交通车辆技术"
+      },
+      {
+        "vid": "post_bio_01",
+        "name": "药品生产操作员",
+        "industry": "ind_bio",
+        "subject": "药品生物技术"
+      },
+      {
+        "vid": "post_bio_02",
+        "name": "药物质量检验员",
+        "industry": "ind_bio",
+        "subject": "药品生物技术"
+      },
+      {
+        "vid": "post_bio_03",
+        "name": "医疗器械装配技术员",
+        "industry": "ind_bio",
+        "subject": "药品生物技术"
+      },
+      {
+        "vid": "post_sat_01",
+        "name": "卫星终端设备调试员",
+        "industry": "ind_sat",
+        "subject": "卫星通信与导航技术"
+      },
+      {
+        "vid": "post_sat_02",
+        "name": "卫星总装测试技术员",
+        "industry": "ind_sat",
+        "subject": "卫星通信与导航技术"
+      },
+      {
+        "vid": "post_sat_03",
+        "name": "地面站运维员",
+        "industry": "ind_sat",
+        "subject": "卫星通信与导航技术"
+      },
+      {
+        "vid": "post_lowalt_01",
+        "name": "无人机装配与调试员",
+        "industry": "ind_lowalt",
+        "subject": "无人机应用技术"
+      },
+      {
+        "vid": "post_lowalt_02",
+        "name": "无人机驾驶员(视距内)",
+        "industry": "ind_lowalt",
+        "subject": "无人机应用技术"
+      },
+      {
+        "vid": "post_lowalt_03",
+        "name": "无人机维修员",
+        "industry": "ind_lowalt",
+        "subject": "无人机应用技术"
+      },
+      {
+        "vid": "post_sensor_01",
+        "name": "传感器装配调试员",
+        "industry": "ind_sensor",
+        "subject": "智能传感器技术"
+      },
+      {
+        "vid": "post_sensor_02",
+        "name": "智能仪表测试员",
+        "industry": "ind_sensor",
+        "subject": "智能传感器技术"
+      },
+      {
+        "vid": "post_sensor_03",
+        "name": "工业视觉系统集成员",
+        "industry": "ind_sensor",
+        "subject": "智能传感器技术"
+      },
+      {
+        "vid": "post_power_01",
+        "name": "半导体器件制造操作员",
+        "industry": "ind_power",
+        "subject": "微电子技术"
+      },
+      {
+        "vid": "post_power_02",
+        "name": "功率模块封装技术员",
+        "industry": "ind_power",
+        "subject": "微电子技术"
+      },
+      {
+        "vid": "post_power_03",
+        "name": "芯片测试技术员",
+        "industry": "ind_power",
+        "subject": "微电子技术"
+      }
+    ],
+    "knowledge_point": [
+      {
+        "vid": "kp_icv_01_01",
+        "name": "高压安全操作规程",
+        "subject": "新能源汽车技术",
+        "difficulty": 1,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_02",
+        "name": "动力电池管理系统(BMS)原理",
+        "subject": "新能源汽车技术",
+        "difficulty": 2,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_03",
+        "name": "电机控制器(MCU)参数标定",
+        "subject": "新能源汽车技术",
+        "difficulty": 3,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_04",
+        "name": "整车控制器(VCU)信号交互",
+        "subject": "新能源汽车技术",
+        "difficulty": 4,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_05",
+        "name": "CAN总线报文解析",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_06",
+        "name": "高压互锁回路(PIL)诊断",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_01_07",
+        "name": "绝缘电阻检测方法",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_01"
+      },
+      {
+        "vid": "kp_icv_02_01",
+        "name": "锂离子电芯分选与配组",
+        "subject": "新能源汽车技术",
+        "difficulty": 1,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_02_02",
+        "name": "电池模组激光焊接工艺",
+        "subject": "新能源汽车技术",
+        "difficulty": 2,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_02_03",
+        "name": "电池包气密性检测",
+        "subject": "新能源汽车技术",
+        "difficulty": 3,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_02_04",
+        "name": "电池热管理系统装配",
+        "subject": "新能源汽车技术",
+        "difficulty": 4,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_02_05",
+        "name": "电池包绝缘耐压测试",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_02_06",
+        "name": "BMS采集线束安装",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_02"
+      },
+      {
+        "vid": "kp_icv_03_01",
+        "name": "整车线束布置与固定",
+        "subject": "新能源汽车技术",
+        "difficulty": 1,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_03_02",
+        "name": "接插件压接工艺",
+        "subject": "新能源汽车技术",
+        "difficulty": 2,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_03_03",
+        "name": "总装下线电检(EOL)流程",
+        "subject": "新能源汽车技术",
+        "difficulty": 3,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_03_04",
+        "name": "整车网络拓扑识读",
+        "subject": "新能源汽车技术",
+        "difficulty": 4,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_03_05",
+        "name": "灯光系统装配与调试",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_03_06",
+        "name": "螺纹拧紧扭矩控制",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_03"
+      },
+      {
+        "vid": "kp_icv_04_01",
+        "name": "车载毫米波雷达标定",
+        "subject": "新能源汽车技术",
+        "difficulty": 1,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_04_02",
+        "name": "摄像头标定与图像质量评估",
+        "subject": "新能源汽车技术",
+        "difficulty": 2,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_04_03",
+        "name": "自动驾驶数据采集与标注",
+        "subject": "新能源汽车技术",
+        "difficulty": 3,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_04_04",
+        "name": "车路协同(V2X)通信测试",
+        "subject": "新能源汽车技术",
+        "difficulty": 4,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_04_05",
+        "name": "域控制器刷写与诊断",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_04_06",
+        "name": "功能安全(ISO 26262)基础",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_04"
+      },
+      {
+        "vid": "kp_icv_05_01",
+        "name": "高压系统下电与验电流程",
+        "subject": "新能源汽车技术",
+        "difficulty": 1,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_icv_05_02",
+        "name": "动力电池健康状态(SOH)评估",
+        "subject": "新能源汽车技术",
+        "difficulty": 2,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_icv_05_03",
+        "name": "充电系统故障诊断",
+        "subject": "新能源汽车技术",
+        "difficulty": 3,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_icv_05_04",
+        "name": "驱动电机异响诊断",
+        "subject": "新能源汽车技术",
+        "difficulty": 4,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_icv_05_05",
+        "name": "车载充电机(OBC)检修",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_icv_05_06",
+        "name": "故障码(DTC)读取与清除",
+        "subject": "新能源汽车技术",
+        "difficulty": 5,
+        "industry": "ind_icv",
+        "post": "post_icv_05"
+      },
+      {
+        "vid": "kp_ei_01_01",
+        "name": "锡膏印刷工艺",
+        "subject": "电子信息工程技术",
+        "difficulty": 1,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_01_02",
+        "name": "贴片机程序编制",
+        "subject": "电子信息工程技术",
+        "difficulty": 2,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_01_03",
+        "name": "回流焊温度曲线设置",
+        "subject": "电子信息工程技术",
+        "difficulty": 3,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_01_04",
+        "name": "钢网清洗与保养",
+        "subject": "电子信息工程技术",
+        "difficulty": 4,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_01_05",
+        "name": "AOI光学检测判读",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_01_06",
+        "name": "元件供料器(Feeder)装调",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_01"
+      },
+      {
+        "vid": "kp_ei_02_01",
+        "name": "ICT在线测试原理",
+        "subject": "电子信息工程技术",
+        "difficulty": 1,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_02_02",
+        "name": "功能测试(FCT)夹具使用",
+        "subject": "电子信息工程技术",
+        "difficulty": 2,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_02_03",
+        "name": "示波器信号测量",
+        "subject": "电子信息工程技术",
+        "difficulty": 3,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_02_04",
+        "name": "电路板故障定位",
+        "subject": "电子信息工程技术",
+        "difficulty": 4,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_02_05",
+        "name": "测试程序调试",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_02_06",
+        "name": "ESD静电防护规范",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_02"
+      },
+      {
+        "vid": "kp_ei_03_01",
+        "name": "液晶模组贴合工艺",
+        "subject": "电子信息工程技术",
+        "difficulty": 1,
+        "industry": "ind_ei",
+        "post": "post_ei_03"
+      },
+      {
+        "vid": "kp_ei_03_02",
+        "name": "背光模组装配",
+        "subject": "电子信息工程技术",
+        "difficulty": 2,
+        "industry": "ind_ei",
+        "post": "post_ei_03"
+      },
+      {
+        "vid": "kp_ei_03_03",
+        "name": "显示缺陷(亮点/暗点)判定",
+        "subject": "电子信息工程技术",
+        "difficulty": 3,
+        "industry": "ind_ei",
+        "post": "post_ei_03"
+      },
+      {
+        "vid": "kp_ei_03_04",
+        "name": "模组点灯测试",
+        "subject": "电子信息工程技术",
+        "difficulty": 4,
+        "industry": "ind_ei",
+        "post": "post_ei_03"
+      },
+      {
+        "vid": "kp_ei_03_05",
+        "name": "洁净室操作规范",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_03"
+      },
+      {
+        "vid": "kp_ei_04_01",
+        "name": "芯片引线键合(Wire Bonding)工艺",
+        "subject": "电子信息工程技术",
+        "difficulty": 1,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_04_02",
+        "name": "塑封工艺原理",
+        "subject": "电子信息工程技术",
+        "difficulty": 2,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_04_03",
+        "name": "引脚成型与切筋",
+        "subject": "电子信息工程技术",
+        "difficulty": 3,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_04_04",
+        "name": "芯片测试分选",
+        "subject": "电子信息工程技术",
+        "difficulty": 4,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_04_05",
+        "name": "洁净车间防静电操作",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_04_06",
+        "name": "X-Ray焊点检测",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_04"
+      },
+      {
+        "vid": "kp_ei_05_01",
+        "name": "波峰焊工艺参数设置",
+        "subject": "电子信息工程技术",
+        "difficulty": 1,
+        "industry": "ind_ei",
+        "post": "post_ei_05"
+      },
+      {
+        "vid": "kp_ei_05_02",
+        "name": "通孔元件手工焊接",
+        "subject": "电子信息工程技术",
+        "difficulty": 2,
+        "industry": "ind_ei",
+        "post": "post_ei_05"
+      },
+      {
+        "vid": "kp_ei_05_03",
+        "name": "IPC-A-610验收标准",
+        "subject": "电子信息工程技术",
+        "difficulty": 3,
+        "industry": "ind_ei",
+        "post": "post_ei_05"
+      },
+      {
+        "vid": "kp_ei_05_04",
+        "name": "焊接缺陷(虚焊/连锡)分析",
+        "subject": "电子信息工程技术",
+        "difficulty": 4,
+        "industry": "ind_ei",
+        "post": "post_ei_05"
+      },
+      {
+        "vid": "kp_ei_05_05",
+        "name": "三防漆涂覆工艺",
+        "subject": "电子信息工程技术",
+        "difficulty": 5,
+        "industry": "ind_ei",
+        "post": "post_ei_05"
+      },
+      {
+        "vid": "kp_am_01_01",
+        "name": "钢的退火与正火工艺",
+        "subject": "材料工程技术",
+        "difficulty": 1,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_01_02",
+        "name": "淬火与回火原理",
+        "subject": "材料工程技术",
+        "difficulty": 2,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_01_03",
+        "name": "感应加热表面淬火",
+        "subject": "材料工程技术",
+        "difficulty": 3,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_01_04",
+        "name": "金相试样制备",
+        "subject": "材料工程技术",
+        "difficulty": 4,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_01_05",
+        "name": "硬度测试(布氏/洛氏)",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_01_06",
+        "name": "热处理炉温度控制",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_01"
+      },
+      {
+        "vid": "kp_am_02_01",
+        "name": "铝合金挤压模具结构",
+        "subject": "材料工程技术",
+        "difficulty": 1,
+        "industry": "ind_am",
+        "post": "post_am_02"
+      },
+      {
+        "vid": "kp_am_02_02",
+        "name": "挤压温度与速度控制",
+        "subject": "材料工程技术",
+        "difficulty": 2,
+        "industry": "ind_am",
+        "post": "post_am_02"
+      },
+      {
+        "vid": "kp_am_02_03",
+        "name": "时效处理工艺",
+        "subject": "材料工程技术",
+        "difficulty": 3,
+        "industry": "ind_am",
+        "post": "post_am_02"
+      },
+      {
+        "vid": "kp_am_02_04",
+        "name": "型材表面缺陷分析",
+        "subject": "材料工程技术",
+        "difficulty": 4,
+        "industry": "ind_am",
+        "post": "post_am_02"
+      },
+      {
+        "vid": "kp_am_02_05",
+        "name": "挤压机液压系统操作",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_02"
+      },
+      {
+        "vid": "kp_am_03_01",
+        "name": "碳纤维预浸料铺层",
+        "subject": "材料工程技术",
+        "difficulty": 1,
+        "industry": "ind_am",
+        "post": "post_am_03"
+      },
+      {
+        "vid": "kp_am_03_02",
+        "name": "热压罐固化工艺",
+        "subject": "材料工程技术",
+        "difficulty": 2,
+        "industry": "ind_am",
+        "post": "post_am_03"
+      },
+      {
+        "vid": "kp_am_03_03",
+        "name": "树脂传递模塑(RTM)工艺",
+        "subject": "材料工程技术",
+        "difficulty": 3,
+        "industry": "ind_am",
+        "post": "post_am_03"
+      },
+      {
+        "vid": "kp_am_03_04",
+        "name": "复合材料无损检测",
+        "subject": "材料工程技术",
+        "difficulty": 4,
+        "industry": "ind_am",
+        "post": "post_am_03"
+      },
+      {
+        "vid": "kp_am_03_05",
+        "name": "孔隙率检测方法",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_03"
+      },
+      {
+        "vid": "kp_am_04_01",
+        "name": "金属拉伸试验操作",
+        "subject": "材料工程技术",
+        "difficulty": 1,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_am_04_02",
+        "name": "冲击韧性试验",
+        "subject": "材料工程技术",
+        "difficulty": 2,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_am_04_03",
+        "name": "扫描电镜(SEM)样品制备",
+        "subject": "材料工程技术",
+        "difficulty": 3,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_am_04_04",
+        "name": "材料化学成分光谱分析",
+        "subject": "材料工程技术",
+        "difficulty": 4,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_am_04_05",
+        "name": "疲劳试验机操作",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_am_04_06",
+        "name": "检测数据记录与报告编制",
+        "subject": "材料工程技术",
+        "difficulty": 5,
+        "industry": "ind_am",
+        "post": "post_am_04"
+      },
+      {
+        "vid": "kp_im_01_01",
+        "name": "机器人示教编程",
+        "subject": "电气自动化技术",
+        "difficulty": 1,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_01_02",
+        "name": "机器人坐标系标定",
+        "subject": "电气自动化技术",
+        "difficulty": 2,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_01_03",
+        "name": "末端执行器(夹爪)装调",
+        "subject": "电气自动化技术",
+        "difficulty": 3,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_01_04",
+        "name": "机器人离线编程",
+        "subject": "电气自动化技术",
+        "difficulty": 4,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_01_05",
+        "name": "安全围栏与急停回路",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_01_06",
+        "name": "机器人故障诊断与维护",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_01"
+      },
+      {
+        "vid": "kp_im_02_01",
+        "name": "电气原理图识读",
+        "subject": "电气自动化技术",
+        "difficulty": 1,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_02_02",
+        "name": "PLC梯形图编程",
+        "subject": "电气自动化技术",
+        "difficulty": 2,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_02_03",
+        "name": "变频器参数设置",
+        "subject": "电气自动化技术",
+        "difficulty": 3,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_02_04",
+        "name": "传感器选型与接线",
+        "subject": "电气自动化技术",
+        "difficulty": 4,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_02_05",
+        "name": "控制柜接线工艺",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_02_06",
+        "name": "伺服系统调试",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_02"
+      },
+      {
+        "vid": "kp_im_03_01",
+        "name": "Modbus/Profinet通信配置",
+        "subject": "电气自动化技术",
+        "difficulty": 1,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_03_02",
+        "name": "工业网关数据采集",
+        "subject": "电气自动化技术",
+        "difficulty": 2,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_03_03",
+        "name": "OPC UA协议应用",
+        "subject": "电气自动化技术",
+        "difficulty": 3,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_03_04",
+        "name": "边缘计算网关部署",
+        "subject": "电气自动化技术",
+        "difficulty": 4,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_03_05",
+        "name": "设备上云与数据建模",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_03_06",
+        "name": "工业网络故障排查",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_03"
+      },
+      {
+        "vid": "kp_im_04_01",
+        "name": "G代码编程基础",
+        "subject": "电气自动化技术",
+        "difficulty": 1,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_04_02",
+        "name": "数控机床对刀",
+        "subject": "电气自动化技术",
+        "difficulty": 2,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_04_03",
+        "name": "数控加工工艺编制",
+        "subject": "电气自动化技术",
+        "difficulty": 3,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_04_04",
+        "name": "CAD/CAM软件建模",
+        "subject": "电气自动化技术",
+        "difficulty": 4,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_04_05",
+        "name": "刀具磨损识别",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_04_06",
+        "name": "加工精度检测",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_04"
+      },
+      {
+        "vid": "kp_im_05_01",
+        "name": "产线数字孪生建模",
+        "subject": "电气自动化技术",
+        "difficulty": 1,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_im_05_02",
+        "name": "MES系统数据交互",
+        "subject": "电气自动化技术",
+        "difficulty": 2,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_im_05_03",
+        "name": "AGV调度与路径规划",
+        "subject": "电气自动化技术",
+        "difficulty": 3,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_im_05_04",
+        "name": "机器视觉引导定位",
+        "subject": "电气自动化技术",
+        "difficulty": 4,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_im_05_05",
+        "name": "产线节拍平衡分析",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_im_05_06",
+        "name": "工业现场总线组网",
+        "subject": "电气自动化技术",
+        "difficulty": 5,
+        "industry": "ind_im",
+        "post": "post_im_05"
+      },
+      {
+        "vid": "kp_fp_01_01",
+        "name": "杀菌釜操作规程",
+        "subject": "食品智能加工技术",
+        "difficulty": 1,
+        "industry": "ind_fp",
+        "post": "post_fp_01"
+      },
+      {
+        "vid": "kp_fp_01_02",
+        "name": "均质机操作与维护",
+        "subject": "食品智能加工技术",
+        "difficulty": 2,
+        "industry": "ind_fp",
+        "post": "post_fp_01"
+      },
+      {
+        "vid": "kp_fp_01_03",
+        "name": "灌装机调试",
+        "subject": "食品智能加工技术",
+        "difficulty": 3,
+        "industry": "ind_fp",
+        "post": "post_fp_01"
+      },
+      {
+        "vid": "kp_fp_01_04",
+        "name": "食品包装密封性检测",
+        "subject": "食品智能加工技术",
+        "difficulty": 4,
+        "industry": "ind_fp",
+        "post": "post_fp_01"
+      },
+      {
+        "vid": "kp_fp_01_05",
+        "name": "CIP就地清洗工艺",
+        "subject": "食品智能加工技术",
+        "difficulty": 5,
+        "industry": "ind_fp",
+        "post": "post_fp_01"
+      },
+      {
+        "vid": "kp_fp_02_01",
+        "name": "微生物菌落总数检测",
+        "subject": "食品智能加工技术",
+        "difficulty": 1,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_02_02",
+        "name": "食品理化指标检测",
+        "subject": "食品智能加工技术",
+        "difficulty": 2,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_02_03",
+        "name": "高效液相色谱(HPLC)操作",
+        "subject": "食品智能加工技术",
+        "difficulty": 3,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_02_04",
+        "name": "食品添加剂限量标准",
+        "subject": "食品智能加工技术",
+        "difficulty": 4,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_02_05",
+        "name": "样品前处理技术",
+        "subject": "食品智能加工技术",
+        "difficulty": 5,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_02_06",
+        "name": "检验报告编制规范",
+        "subject": "食品智能加工技术",
+        "difficulty": 5,
+        "industry": "ind_fp",
+        "post": "post_fp_02"
+      },
+      {
+        "vid": "kp_fp_03_01",
+        "name": "冷链温湿度监控",
+        "subject": "食品智能加工技术",
+        "difficulty": 1,
+        "industry": "ind_fp",
+        "post": "post_fp_03"
+      },
+      {
+        "vid": "kp_fp_03_02",
+        "name": "冷库设备运行管理",
+        "subject": "食品智能加工技术",
+        "difficulty": 2,
+        "industry": "ind_fp",
+        "post": "post_fp_03"
+      },
+      {
+        "vid": "kp_fp_03_03",
+        "name": "食品保质期管理",
+        "subject": "食品智能加工技术",
+        "difficulty": 3,
+        "industry": "ind_fp",
+        "post": "post_fp_03"
+      },
+      {
+        "vid": "kp_fp_03_04",
+        "name": "冷链物流追溯系统",
+        "subject": "食品智能加工技术",
+        "difficulty": 4,
+        "industry": "ind_fp",
+        "post": "post_fp_03"
+      },
+      {
+        "vid": "kp_fp_03_05",
+        "name": "仓储货位规划",
+        "subject": "食品智能加工技术",
+        "difficulty": 5,
+        "industry": "ind_fp",
+        "post": "post_fp_03"
+      },
+      {
+        "vid": "kp_si_01_01",
+        "name": "Java/Python编程基础",
+        "subject": "软件技术",
+        "difficulty": 1,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_01_02",
+        "name": "关系数据库SQL",
+        "subject": "软件技术",
+        "difficulty": 2,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_01_03",
+        "name": "RESTful API设计",
+        "subject": "软件技术",
+        "difficulty": 3,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_01_04",
+        "name": "前后端分离架构",
+        "subject": "软件技术",
+        "difficulty": 4,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_01_05",
+        "name": "Git版本控制",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_01_06",
+        "name": "单元测试与调试",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_01"
+      },
+      {
+        "vid": "kp_si_02_01",
+        "name": "Linux系统运维",
+        "subject": "软件技术",
+        "difficulty": 1,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_02_02",
+        "name": "Docker容器部署",
+        "subject": "软件技术",
+        "difficulty": 2,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_02_03",
+        "name": "Hadoop/HDFS基础",
+        "subject": "软件技术",
+        "difficulty": 3,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_02_04",
+        "name": "数据采集(Flume/Kafka)",
+        "subject": "软件技术",
+        "difficulty": 4,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_02_05",
+        "name": "SQL数据查询与分析",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_02_06",
+        "name": "监控告警(Prometheus)",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_02"
+      },
+      {
+        "vid": "kp_si_03_01",
+        "name": "需求调研方法",
+        "subject": "软件技术",
+        "difficulty": 1,
+        "industry": "ind_si",
+        "post": "post_si_03"
+      },
+      {
+        "vid": "kp_si_03_02",
+        "name": "系统部署与配置",
+        "subject": "软件技术",
+        "difficulty": 2,
+        "industry": "ind_si",
+        "post": "post_si_03"
+      },
+      {
+        "vid": "kp_si_03_03",
+        "name": "用户培训与文档编写",
+        "subject": "软件技术",
+        "difficulty": 3,
+        "industry": "ind_si",
+        "post": "post_si_03"
+      },
+      {
+        "vid": "kp_si_03_04",
+        "name": "数据迁移与校验",
+        "subject": "软件技术",
+        "difficulty": 4,
+        "industry": "ind_si",
+        "post": "post_si_03"
+      },
+      {
+        "vid": "kp_si_03_05",
+        "name": "系统测试用例设计",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_03"
+      },
+      {
+        "vid": "kp_si_04_01",
+        "name": "网络安全基础",
+        "subject": "软件技术",
+        "difficulty": 1,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_si_04_02",
+        "name": "防火墙策略配置",
+        "subject": "软件技术",
+        "difficulty": 2,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_si_04_03",
+        "name": "漏洞扫描与加固",
+        "subject": "软件技术",
+        "difficulty": 3,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_si_04_04",
+        "name": "日志分析与审计",
+        "subject": "软件技术",
+        "difficulty": 4,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_si_04_05",
+        "name": "数据备份与恢复",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_si_04_06",
+        "name": "等保2.0合规基础",
+        "subject": "软件技术",
+        "difficulty": 5,
+        "industry": "ind_si",
+        "post": "post_si_04"
+      },
+      {
+        "vid": "kp_moto_01_01",
+        "name": "摩托车发动机总装工艺",
+        "subject": "摩托车制造与维修",
+        "difficulty": 1,
+        "industry": "ind_moto",
+        "post": "post_moto_01"
+      },
+      {
+        "vid": "kp_moto_01_02",
+        "name": "车架装配与校正",
+        "subject": "摩托车制造与维修",
+        "difficulty": 2,
+        "industry": "ind_moto",
+        "post": "post_moto_01"
+      },
+      {
+        "vid": "kp_moto_01_03",
+        "name": "整车电气线路装配",
+        "subject": "摩托车制造与维修",
+        "difficulty": 3,
+        "industry": "ind_moto",
+        "post": "post_moto_01"
+      },
+      {
+        "vid": "kp_moto_01_04",
+        "name": "制动系统调试",
+        "subject": "摩托车制造与维修",
+        "difficulty": 4,
+        "industry": "ind_moto",
+        "post": "post_moto_01"
+      },
+      {
+        "vid": "kp_moto_01_05",
+        "name": "整车下线检测",
+        "subject": "摩托车制造与维修",
+        "difficulty": 5,
+        "industry": "ind_moto",
+        "post": "post_moto_01"
+      },
+      {
+        "vid": "kp_moto_02_01",
+        "name": "发动机台架试验",
+        "subject": "摩托车制造与维修",
+        "difficulty": 1,
+        "industry": "ind_moto",
+        "post": "post_moto_02"
+      },
+      {
+        "vid": "kp_moto_02_02",
+        "name": "排放检测(国四标准)",
+        "subject": "摩托车制造与维修",
+        "difficulty": 2,
+        "industry": "ind_moto",
+        "post": "post_moto_02"
+      },
+      {
+        "vid": "kp_moto_02_03",
+        "name": "燃油供给系统调试",
+        "subject": "摩托车制造与维修",
+        "difficulty": 3,
+        "industry": "ind_moto",
+        "post": "post_moto_02"
+      },
+      {
+        "vid": "kp_moto_02_04",
+        "name": "点火系统故障诊断",
+        "subject": "摩托车制造与维修",
+        "difficulty": 4,
+        "industry": "ind_moto",
+        "post": "post_moto_02"
+      },
+      {
+        "vid": "kp_moto_02_05",
+        "name": "噪声与振动测试",
+        "subject": "摩托车制造与维修",
+        "difficulty": 5,
+        "industry": "ind_moto",
+        "post": "post_moto_02"
+      },
+      {
+        "vid": "kp_moto_03_01",
+        "name": "电喷系统检修",
+        "subject": "摩托车制造与维修",
+        "difficulty": 1,
+        "industry": "ind_moto",
+        "post": "post_moto_03"
+      },
+      {
+        "vid": "kp_moto_03_02",
+        "name": "离合器拆装与调整",
+        "subject": "摩托车制造与维修",
+        "difficulty": 2,
+        "industry": "ind_moto",
+        "post": "post_moto_03"
+      },
+      {
+        "vid": "kp_moto_03_03",
+        "name": "传动链条维护",
+        "subject": "摩托车制造与维修",
+        "difficulty": 3,
+        "industry": "ind_moto",
+        "post": "post_moto_03"
+      },
+      {
+        "vid": "kp_moto_03_04",
+        "name": "制动液更换与排气",
+        "subject": "摩托车制造与维修",
+        "difficulty": 4,
+        "industry": "ind_moto",
+        "post": "post_moto_03"
+      },
+      {
+        "vid": "kp_moto_03_05",
+        "name": "故障诊断思路",
+        "subject": "摩托车制造与维修",
+        "difficulty": 5,
+        "industry": "ind_moto",
+        "post": "post_moto_03"
+      },
+      {
+        "vid": "kp_nes_01_01",
+        "name": "储能电池成组技术",
+        "subject": "新能源装备技术",
+        "difficulty": 1,
+        "industry": "ind_nes",
+        "post": "post_nes_01"
+      },
+      {
+        "vid": "kp_nes_01_02",
+        "name": "储能变流器(PCS)原理",
+        "subject": "新能源装备技术",
+        "difficulty": 2,
+        "industry": "ind_nes",
+        "post": "post_nes_01"
+      },
+      {
+        "vid": "kp_nes_01_03",
+        "name": "电池管理系统(BMS)通信",
+        "subject": "新能源装备技术",
+        "difficulty": 3,
+        "industry": "ind_nes",
+        "post": "post_nes_01"
+      },
+      {
+        "vid": "kp_nes_01_04",
+        "name": "储能电站电气一次/二次",
+        "subject": "新能源装备技术",
+        "difficulty": 4,
+        "industry": "ind_nes",
+        "post": "post_nes_01"
+      },
+      {
+        "vid": "kp_nes_01_05",
+        "name": "储能消防与热管理",
+        "subject": "新能源装备技术",
+        "difficulty": 5,
+        "industry": "ind_nes",
+        "post": "post_nes_01"
+      },
+      {
+        "vid": "kp_nes_02_01",
+        "name": "硅片制绒工艺",
+        "subject": "新能源装备技术",
+        "difficulty": 1,
+        "industry": "ind_nes",
+        "post": "post_nes_02"
+      },
+      {
+        "vid": "kp_nes_02_02",
+        "name": "电池片丝网印刷",
+        "subject": "新能源装备技术",
+        "difficulty": 2,
+        "industry": "ind_nes",
+        "post": "post_nes_02"
+      },
+      {
+        "vid": "kp_nes_02_03",
+        "name": "光伏组件层压工艺",
+        "subject": "新能源装备技术",
+        "difficulty": 3,
+        "industry": "ind_nes",
+        "post": "post_nes_02"
+      },
+      {
+        "vid": "kp_nes_02_04",
+        "name": "EL电致发光检测",
+        "subject": "新能源装备技术",
+        "difficulty": 4,
+        "industry": "ind_nes",
+        "post": "post_nes_02"
+      },
+      {
+        "vid": "kp_nes_02_05",
+        "name": "组件功率分档测试",
+        "subject": "新能源装备技术",
+        "difficulty": 5,
+        "industry": "ind_nes",
+        "post": "post_nes_02"
+      },
+      {
+        "vid": "kp_nes_03_01",
+        "name": "交直流充电桩结构",
+        "subject": "新能源装备技术",
+        "difficulty": 1,
+        "industry": "ind_nes",
+        "post": "post_nes_03"
+      },
+      {
+        "vid": "kp_nes_03_02",
+        "name": "充电桩通信协议(OCPP)",
+        "subject": "新能源装备技术",
+        "difficulty": 2,
+        "industry": "ind_nes",
+        "post": "post_nes_03"
+      },
+      {
+        "vid": "kp_nes_03_03",
+        "name": "电气安全接地",
+        "subject": "新能源装备技术",
+        "difficulty": 3,
+        "industry": "ind_nes",
+        "post": "post_nes_03"
+      },
+      {
+        "vid": "kp_nes_03_04",
+        "name": "计量与计费模块",
+        "subject": "新能源装备技术",
+        "difficulty": 4,
+        "industry": "ind_nes",
+        "post": "post_nes_03"
+      },
+      {
+        "vid": "kp_nes_03_05",
+        "name": "充电桩故障排查",
+        "subject": "新能源装备技术",
+        "difficulty": 5,
+        "industry": "ind_nes",
+        "post": "post_nes_03"
+      },
+      {
+        "vid": "kp_rail_01_01",
+        "name": "转向架结构与检修",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 1,
+        "industry": "ind_rail",
+        "post": "post_rail_01"
+      },
+      {
+        "vid": "kp_rail_01_02",
+        "name": "车辆空气制动系统",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 2,
+        "industry": "ind_rail",
+        "post": "post_rail_01"
+      },
+      {
+        "vid": "kp_rail_01_03",
+        "name": "受电弓维护",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 3,
+        "industry": "ind_rail",
+        "post": "post_rail_01"
+      },
+      {
+        "vid": "kp_rail_01_04",
+        "name": "牵引电机检修",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 4,
+        "industry": "ind_rail",
+        "post": "post_rail_01"
+      },
+      {
+        "vid": "kp_rail_01_05",
+        "name": "车门系统调试",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 5,
+        "industry": "ind_rail",
+        "post": "post_rail_01"
+      },
+      {
+        "vid": "kp_rail_02_01",
+        "name": "列车自动控制(ATC)系统基础",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 1,
+        "industry": "ind_rail",
+        "post": "post_rail_02"
+      },
+      {
+        "vid": "kp_rail_02_02",
+        "name": "转辙机维护",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 2,
+        "industry": "ind_rail",
+        "post": "post_rail_02"
+      },
+      {
+        "vid": "kp_rail_02_03",
+        "name": "轨道电路原理",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 3,
+        "industry": "ind_rail",
+        "post": "post_rail_02"
+      },
+      {
+        "vid": "kp_rail_02_04",
+        "name": "信号联锁系统",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 4,
+        "industry": "ind_rail",
+        "post": "post_rail_02"
+      },
+      {
+        "vid": "kp_rail_02_05",
+        "name": "通信传输设备维护",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 5,
+        "industry": "ind_rail",
+        "post": "post_rail_02"
+      },
+      {
+        "vid": "kp_rail_03_01",
+        "name": "牵引变电所运行",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 1,
+        "industry": "ind_rail",
+        "post": "post_rail_03"
+      },
+      {
+        "vid": "kp_rail_03_02",
+        "name": "接触网检修",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 2,
+        "industry": "ind_rail",
+        "post": "post_rail_03"
+      },
+      {
+        "vid": "kp_rail_03_03",
+        "name": "直流牵引供电系统",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 3,
+        "industry": "ind_rail",
+        "post": "post_rail_03"
+      },
+      {
+        "vid": "kp_rail_03_04",
+        "name": "高压开关柜操作",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 4,
+        "industry": "ind_rail",
+        "post": "post_rail_03"
+      },
+      {
+        "vid": "kp_rail_03_05",
+        "name": "继电保护基础",
+        "subject": "城市轨道交通车辆技术",
+        "difficulty": 5,
+        "industry": "ind_rail",
+        "post": "post_rail_03"
+      },
+      {
+        "vid": "kp_bio_01_01",
+        "name": "GMP规范基础",
+        "subject": "药品生物技术",
+        "difficulty": 1,
+        "industry": "ind_bio",
+        "post": "post_bio_01"
+      },
+      {
+        "vid": "kp_bio_01_02",
+        "name": "固体制剂生产工艺",
+        "subject": "药品生物技术",
+        "difficulty": 2,
+        "industry": "ind_bio",
+        "post": "post_bio_01"
+      },
+      {
+        "vid": "kp_bio_01_03",
+        "name": "压片机操作",
+        "subject": "药品生物技术",
+        "difficulty": 3,
+        "industry": "ind_bio",
+        "post": "post_bio_01"
+      },
+      {
+        "vid": "kp_bio_01_04",
+        "name": "药品包装与批号管理",
+        "subject": "药品生物技术",
+        "difficulty": 4,
+        "industry": "ind_bio",
+        "post": "post_bio_01"
+      },
+      {
+        "vid": "kp_bio_01_05",
+        "name": "洁净区更衣与操作规范",
+        "subject": "药品生物技术",
+        "difficulty": 5,
+        "industry": "ind_bio",
+        "post": "post_bio_01"
+      },
+      {
+        "vid": "kp_bio_02_01",
+        "name": "高效液相色谱(HPLC)操作",
+        "subject": "药品生物技术",
+        "difficulty": 1,
+        "industry": "ind_bio",
+        "post": "post_bio_02"
+      },
+      {
+        "vid": "kp_bio_02_02",
+        "name": "药品含量测定",
+        "subject": "药品生物技术",
+        "difficulty": 2,
+        "industry": "ind_bio",
+        "post": "post_bio_02"
+      },
+      {
+        "vid": "kp_bio_02_03",
+        "name": "微生物限度检查",
+        "subject": "药品生物技术",
+        "difficulty": 3,
+        "industry": "ind_bio",
+        "post": "post_bio_02"
+      },
+      {
+        "vid": "kp_bio_02_04",
+        "name": "溶出度测定",
+        "subject": "药品生物技术",
+        "difficulty": 4,
+        "industry": "ind_bio",
+        "post": "post_bio_02"
+      },
+      {
+        "vid": "kp_bio_02_05",
+        "name": "药品检验记录规范",
+        "subject": "药品生物技术",
+        "difficulty": 5,
+        "industry": "ind_bio",
+        "post": "post_bio_02"
+      },
+      {
+        "vid": "kp_bio_03_01",
+        "name": "无菌医疗器械装配",
+        "subject": "药品生物技术",
+        "difficulty": 1,
+        "industry": "ind_bio",
+        "post": "post_bio_03"
+      },
+      {
+        "vid": "kp_bio_03_02",
+        "name": "环氧乙烷灭菌工艺",
+        "subject": "药品生物技术",
+        "difficulty": 2,
+        "industry": "ind_bio",
+        "post": "post_bio_03"
+      },
+      {
+        "vid": "kp_bio_03_03",
+        "name": "医疗器械生物相容性基础",
+        "subject": "药品生物技术",
+        "difficulty": 3,
+        "industry": "ind_bio",
+        "post": "post_bio_03"
+      },
+      {
+        "vid": "kp_bio_03_04",
+        "name": "产品追溯系统",
+        "subject": "药品生物技术",
+        "difficulty": 4,
+        "industry": "ind_bio",
+        "post": "post_bio_03"
+      },
+      {
+        "vid": "kp_bio_03_05",
+        "name": "装配工装使用",
+        "subject": "药品生物技术",
+        "difficulty": 5,
+        "industry": "ind_bio",
+        "post": "post_bio_03"
+      },
+      {
+        "vid": "kp_sat_01_01",
+        "name": "卫星通信频段与链路",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 1,
+        "industry": "ind_sat",
+        "post": "post_sat_01"
+      },
+      {
+        "vid": "kp_sat_01_02",
+        "name": "天线对星与跟踪",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 2,
+        "industry": "ind_sat",
+        "post": "post_sat_01"
+      },
+      {
+        "vid": "kp_sat_01_03",
+        "name": "射频收发模块调试",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 3,
+        "industry": "ind_sat",
+        "post": "post_sat_01"
+      },
+      {
+        "vid": "kp_sat_01_04",
+        "name": "卫星终端信号测试",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 4,
+        "industry": "ind_sat",
+        "post": "post_sat_01"
+      },
+      {
+        "vid": "kp_sat_01_05",
+        "name": "基带信号处理基础",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 5,
+        "industry": "ind_sat",
+        "post": "post_sat_01"
+      },
+      {
+        "vid": "kp_sat_02_01",
+        "name": "卫星结构总装工艺",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 1,
+        "industry": "ind_sat",
+        "post": "post_sat_02"
+      },
+      {
+        "vid": "kp_sat_02_02",
+        "name": "卫星热控多层(MLI)安装",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 2,
+        "industry": "ind_sat",
+        "post": "post_sat_02"
+      },
+      {
+        "vid": "kp_sat_02_03",
+        "name": "卫星综合电测试",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 3,
+        "industry": "ind_sat",
+        "post": "post_sat_02"
+      },
+      {
+        "vid": "kp_sat_02_04",
+        "name": "洁净室防静电操作",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 4,
+        "industry": "ind_sat",
+        "post": "post_sat_02"
+      },
+      {
+        "vid": "kp_sat_02_05",
+        "name": "振动试验基础",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 5,
+        "industry": "ind_sat",
+        "post": "post_sat_02"
+      },
+      {
+        "vid": "kp_sat_03_01",
+        "name": "地面站天线系统",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 1,
+        "industry": "ind_sat",
+        "post": "post_sat_03"
+      },
+      {
+        "vid": "kp_sat_03_02",
+        "name": "测控通信链路",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 2,
+        "industry": "ind_sat",
+        "post": "post_sat_03"
+      },
+      {
+        "vid": "kp_sat_03_03",
+        "name": "站控软件操作",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 3,
+        "industry": "ind_sat",
+        "post": "post_sat_03"
+      },
+      {
+        "vid": "kp_sat_03_04",
+        "name": "电源与UPS维护",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 4,
+        "industry": "ind_sat",
+        "post": "post_sat_03"
+      },
+      {
+        "vid": "kp_sat_03_05",
+        "name": "数据接收与记录",
+        "subject": "卫星通信与导航技术",
+        "difficulty": 5,
+        "industry": "ind_sat",
+        "post": "post_sat_03"
+      },
+      {
+        "vid": "kp_lowalt_01_01",
+        "name": "多旋翼无人机结构",
+        "subject": "无人机应用技术",
+        "difficulty": 1,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_01"
+      },
+      {
+        "vid": "kp_lowalt_01_02",
+        "name": "飞控系统参数配置",
+        "subject": "无人机应用技术",
+        "difficulty": 2,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_01"
+      },
+      {
+        "vid": "kp_lowalt_01_03",
+        "name": "电机与电调匹配",
+        "subject": "无人机应用技术",
+        "difficulty": 3,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_01"
+      },
+      {
+        "vid": "kp_lowalt_01_04",
+        "name": "遥控链路调试",
+        "subject": "无人机应用技术",
+        "difficulty": 4,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_01"
+      },
+      {
+        "vid": "kp_lowalt_01_05",
+        "name": "无人机电池管理",
+        "subject": "无人机应用技术",
+        "difficulty": 5,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_01"
+      },
+      {
+        "vid": "kp_lowalt_02_01",
+        "name": "无人机飞行原理",
+        "subject": "无人机应用技术",
+        "difficulty": 1,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_02"
+      },
+      {
+        "vid": "kp_lowalt_02_02",
+        "name": "起降与航线飞行操作",
+        "subject": "无人机应用技术",
+        "difficulty": 2,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_02"
+      },
+      {
+        "vid": "kp_lowalt_02_03",
+        "name": "空域与法规基础",
+        "subject": "无人机应用技术",
+        "difficulty": 3,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_02"
+      },
+      {
+        "vid": "kp_lowalt_02_04",
+        "name": "应急处置流程",
+        "subject": "无人机应用技术",
+        "difficulty": 4,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_02"
+      },
+      {
+        "vid": "kp_lowalt_02_05",
+        "name": "航拍数据采集",
+        "subject": "无人机应用技术",
+        "difficulty": 5,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_02"
+      },
+      {
+        "vid": "kp_lowalt_03_01",
+        "name": "飞控固件升级",
+        "subject": "无人机应用技术",
+        "difficulty": 1,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_03"
+      },
+      {
+        "vid": "kp_lowalt_03_02",
+        "name": "桨叶与机臂更换",
+        "subject": "无人机应用技术",
+        "difficulty": 2,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_03"
+      },
+      {
+        "vid": "kp_lowalt_03_03",
+        "name": "图传系统检修",
+        "subject": "无人机应用技术",
+        "difficulty": 3,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_03"
+      },
+      {
+        "vid": "kp_lowalt_03_04",
+        "name": "故障诊断与日志分析",
+        "subject": "无人机应用技术",
+        "difficulty": 4,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_03"
+      },
+      {
+        "vid": "kp_lowalt_03_05",
+        "name": "电池保养与检测",
+        "subject": "无人机应用技术",
+        "difficulty": 5,
+        "industry": "ind_lowalt",
+        "post": "post_lowalt_03"
+      },
+      {
+        "vid": "kp_sensor_01_01",
+        "name": "传感器敏感元件装配",
+        "subject": "智能传感器技术",
+        "difficulty": 1,
+        "industry": "ind_sensor",
+        "post": "post_sensor_01"
+      },
+      {
+        "vid": "kp_sensor_01_02",
+        "name": "信号调理电路调试",
+        "subject": "智能传感器技术",
+        "difficulty": 2,
+        "industry": "ind_sensor",
+        "post": "post_sensor_01"
+      },
+      {
+        "vid": "kp_sensor_01_03",
+        "name": "传感器标定与校准",
+        "subject": "智能传感器技术",
+        "difficulty": 3,
+        "industry": "ind_sensor",
+        "post": "post_sensor_01"
+      },
+      {
+        "vid": "kp_sensor_01_04",
+        "name": "温度补偿技术",
+        "subject": "智能传感器技术",
+        "difficulty": 4,
+        "industry": "ind_sensor",
+        "post": "post_sensor_01"
+      },
+      {
+        "vid": "kp_sensor_01_05",
+        "name": "传感器输出信号检测",
+        "subject": "智能传感器技术",
+        "difficulty": 5,
+        "industry": "ind_sensor",
+        "post": "post_sensor_01"
+      },
+      {
+        "vid": "kp_sensor_02_01",
+        "name": "仪表电路原理",
+        "subject": "智能传感器技术",
+        "difficulty": 1,
+        "industry": "ind_sensor",
+        "post": "post_sensor_02"
+      },
+      {
+        "vid": "kp_sensor_02_02",
+        "name": "仪表精度校验",
+        "subject": "智能传感器技术",
+        "difficulty": 2,
+        "industry": "ind_sensor",
+        "post": "post_sensor_02"
+      },
+      {
+        "vid": "kp_sensor_02_03",
+        "name": "人机界面(HMI)配置",
+        "subject": "智能传感器技术",
+        "difficulty": 3,
+        "industry": "ind_sensor",
+        "post": "post_sensor_02"
+      },
+      {
+        "vid": "kp_sensor_02_04",
+        "name": "通信接口调试(RS485)",
+        "subject": "智能传感器技术",
+        "difficulty": 4,
+        "industry": "ind_sensor",
+        "post": "post_sensor_02"
+      },
+      {
+        "vid": "kp_sensor_02_05",
+        "name": "仪表故障排查",
+        "subject": "智能传感器技术",
+        "difficulty": 5,
+        "industry": "ind_sensor",
+        "post": "post_sensor_02"
+      },
+      {
+        "vid": "kp_sensor_03_01",
+        "name": "工业相机选型与安装",
+        "subject": "智能传感器技术",
+        "difficulty": 1,
+        "industry": "ind_sensor",
+        "post": "post_sensor_03"
+      },
+      {
+        "vid": "kp_sensor_03_02",
+        "name": "光源配置与打光",
+        "subject": "智能传感器技术",
+        "difficulty": 2,
+        "industry": "ind_sensor",
+        "post": "post_sensor_03"
+      },
+      {
+        "vid": "kp_sensor_03_03",
+        "name": "图像处理算法基础",
+        "subject": "智能传感器技术",
+        "difficulty": 3,
+        "industry": "ind_sensor",
+        "post": "post_sensor_03"
+      },
+      {
+        "vid": "kp_sensor_03_04",
+        "name": "视觉系统标定",
+        "subject": "智能传感器技术",
+        "difficulty": 4,
+        "industry": "ind_sensor",
+        "post": "post_sensor_03"
+      },
+      {
+        "vid": "kp_sensor_03_05",
+        "name": "视觉检测系统调试",
+        "subject": "智能传感器技术",
+        "difficulty": 5,
+        "industry": "ind_sensor",
+        "post": "post_sensor_03"
+      },
+      {
+        "vid": "kp_power_01_01",
+        "name": "光刻工艺基础",
+        "subject": "微电子技术",
+        "difficulty": 1,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_01_02",
+        "name": "刻蚀工艺原理",
+        "subject": "微电子技术",
+        "difficulty": 2,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_01_03",
+        "name": "离子注入工艺",
+        "subject": "微电子技术",
+        "difficulty": 3,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_01_04",
+        "name": "薄膜沉积工艺",
+        "subject": "微电子技术",
+        "difficulty": 4,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_01_05",
+        "name": "洁净室操作规范",
+        "subject": "微电子技术",
+        "difficulty": 5,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_01_06",
+        "name": "晶圆缺陷检测",
+        "subject": "微电子技术",
+        "difficulty": 5,
+        "industry": "ind_power",
+        "post": "post_power_01"
+      },
+      {
+        "vid": "kp_power_02_01",
+        "name": "IGBT/SiC模块封装结构",
+        "subject": "微电子技术",
+        "difficulty": 1,
+        "industry": "ind_power",
+        "post": "post_power_02"
+      },
+      {
+        "vid": "kp_power_02_02",
+        "name": "键合线工艺",
+        "subject": "微电子技术",
+        "difficulty": 2,
+        "industry": "ind_power",
+        "post": "post_power_02"
+      },
+      {
+        "vid": "kp_power_02_03",
+        "name": "焊接空洞检测",
+        "subject": "微电子技术",
+        "difficulty": 3,
+        "industry": "ind_power",
+        "post": "post_power_02"
+      },
+      {
+        "vid": "kp_power_02_04",
+        "name": "模块绝缘测试",
+        "subject": "微电子技术",
+        "difficulty": 4,
+        "industry": "ind_power",
+        "post": "post_power_02"
+      },
+      {
+        "vid": "kp_power_02_05",
+        "name": "散热基板装配",
+        "subject": "微电子技术",
+        "difficulty": 5,
+        "industry": "ind_power",
+        "post": "post_power_02"
+      },
+      {
+        "vid": "kp_power_03_01",
+        "name": "晶圆测试(CP)流程",
+        "subject": "微电子技术",
+        "difficulty": 1,
+        "industry": "ind_power",
+        "post": "post_power_03"
+      },
+      {
+        "vid": "kp_power_03_02",
+        "name": "成品测试(FT)流程",
+        "subject": "微电子技术",
+        "difficulty": 2,
+        "industry": "ind_power",
+        "post": "post_power_03"
+      },
+      {
+        "vid": "kp_power_03_03",
+        "name": "测试探针卡使用",
+        "subject": "微电子技术",
+        "difficulty": 3,
+        "industry": "ind_power",
+        "post": "post_power_03"
+      },
+      {
+        "vid": "kp_power_03_04",
+        "name": "参数测试与分选",
+        "subject": "微电子技术",
+        "difficulty": 4,
+        "industry": "ind_power",
+        "post": "post_power_03"
+      },
+      {
+        "vid": "kp_power_03_05",
+        "name": "测试数据分析",
+        "subject": "微电子技术",
+        "difficulty": 5,
+        "industry": "ind_power",
+        "post": "post_power_03"
+      }
+    ]
+  },
+  "edges": [
+    {
+      "type": "belongs_to",
+      "from": "post_icv_01",
+      "to": "ind_icv",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_06",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_01",
+      "to": "kp_icv_01_07",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_01",
+      "to": "kp_icv_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_02",
+      "to": "kp_icv_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_03",
+      "to": "kp_icv_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_04",
+      "to": "kp_icv_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_05",
+      "to": "kp_icv_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_01_06",
+      "to": "kp_icv_01_07",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_icv_02",
+      "to": "ind_icv",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_02",
+      "to": "kp_icv_02_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_02_01",
+      "to": "kp_icv_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_02_02",
+      "to": "kp_icv_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_02_03",
+      "to": "kp_icv_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_02_04",
+      "to": "kp_icv_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_02_05",
+      "to": "kp_icv_02_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_01_01",
+      "to": "kp_icv_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_icv_03",
+      "to": "ind_icv",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_03",
+      "to": "kp_icv_03_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_03_01",
+      "to": "kp_icv_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_03_02",
+      "to": "kp_icv_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_03_03",
+      "to": "kp_icv_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_03_04",
+      "to": "kp_icv_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_03_05",
+      "to": "kp_icv_03_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_02_01",
+      "to": "kp_icv_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_icv_04",
+      "to": "ind_icv",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_04",
+      "to": "kp_icv_04_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_04_01",
+      "to": "kp_icv_04_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_04_02",
+      "to": "kp_icv_04_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_04_03",
+      "to": "kp_icv_04_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_04_04",
+      "to": "kp_icv_04_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_04_05",
+      "to": "kp_icv_04_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_03_01",
+      "to": "kp_icv_04_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_icv_05",
+      "to": "ind_icv",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_icv_05",
+      "to": "kp_icv_05_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_05_01",
+      "to": "kp_icv_05_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_05_02",
+      "to": "kp_icv_05_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_05_03",
+      "to": "kp_icv_05_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_05_04",
+      "to": "kp_icv_05_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_icv_05_05",
+      "to": "kp_icv_05_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_04_01",
+      "to": "kp_icv_05_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_ei_01",
+      "to": "ind_ei",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_01",
+      "to": "kp_ei_01_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_01_01",
+      "to": "kp_ei_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_01_02",
+      "to": "kp_ei_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_01_03",
+      "to": "kp_ei_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_01_04",
+      "to": "kp_ei_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_01_05",
+      "to": "kp_ei_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_ei_02",
+      "to": "ind_ei",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_02",
+      "to": "kp_ei_02_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_02_01",
+      "to": "kp_ei_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_02_02",
+      "to": "kp_ei_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_02_03",
+      "to": "kp_ei_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_02_04",
+      "to": "kp_ei_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_02_05",
+      "to": "kp_ei_02_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_ei_01_01",
+      "to": "kp_ei_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_ei_03",
+      "to": "ind_ei",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_03",
+      "to": "kp_ei_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_03",
+      "to": "kp_ei_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_03",
+      "to": "kp_ei_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_03",
+      "to": "kp_ei_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_03",
+      "to": "kp_ei_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_03_01",
+      "to": "kp_ei_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_03_02",
+      "to": "kp_ei_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_03_03",
+      "to": "kp_ei_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_03_04",
+      "to": "kp_ei_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_ei_02_01",
+      "to": "kp_ei_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_ei_04",
+      "to": "ind_ei",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_04",
+      "to": "kp_ei_04_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_04_01",
+      "to": "kp_ei_04_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_04_02",
+      "to": "kp_ei_04_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_04_03",
+      "to": "kp_ei_04_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_04_04",
+      "to": "kp_ei_04_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_04_05",
+      "to": "kp_ei_04_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_ei_03_01",
+      "to": "kp_ei_04_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_ei_05",
+      "to": "ind_ei",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_05",
+      "to": "kp_ei_05_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_05",
+      "to": "kp_ei_05_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_05",
+      "to": "kp_ei_05_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_05",
+      "to": "kp_ei_05_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_ei_05",
+      "to": "kp_ei_05_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_05_01",
+      "to": "kp_ei_05_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_05_02",
+      "to": "kp_ei_05_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_05_03",
+      "to": "kp_ei_05_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_ei_05_04",
+      "to": "kp_ei_05_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_ei_04_01",
+      "to": "kp_ei_05_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_am_01",
+      "to": "ind_am",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_01",
+      "to": "kp_am_01_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_01_01",
+      "to": "kp_am_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_01_02",
+      "to": "kp_am_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_01_03",
+      "to": "kp_am_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_01_04",
+      "to": "kp_am_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_01_05",
+      "to": "kp_am_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_am_02",
+      "to": "ind_am",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_02",
+      "to": "kp_am_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_02",
+      "to": "kp_am_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_02",
+      "to": "kp_am_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_02",
+      "to": "kp_am_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_02",
+      "to": "kp_am_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_02_01",
+      "to": "kp_am_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_02_02",
+      "to": "kp_am_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_02_03",
+      "to": "kp_am_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_02_04",
+      "to": "kp_am_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_am_01_01",
+      "to": "kp_am_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_am_03",
+      "to": "ind_am",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_03",
+      "to": "kp_am_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_03",
+      "to": "kp_am_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_03",
+      "to": "kp_am_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_03",
+      "to": "kp_am_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_03",
+      "to": "kp_am_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_03_01",
+      "to": "kp_am_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_03_02",
+      "to": "kp_am_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_03_03",
+      "to": "kp_am_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_03_04",
+      "to": "kp_am_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_am_02_01",
+      "to": "kp_am_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_am_04",
+      "to": "ind_am",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_am_04",
+      "to": "kp_am_04_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_04_01",
+      "to": "kp_am_04_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_04_02",
+      "to": "kp_am_04_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_04_03",
+      "to": "kp_am_04_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_04_04",
+      "to": "kp_am_04_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_am_04_05",
+      "to": "kp_am_04_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_am_03_01",
+      "to": "kp_am_04_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_im_01",
+      "to": "ind_im",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_01",
+      "to": "kp_im_01_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_01_01",
+      "to": "kp_im_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_01_02",
+      "to": "kp_im_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_01_03",
+      "to": "kp_im_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_01_04",
+      "to": "kp_im_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_01_05",
+      "to": "kp_im_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_im_02",
+      "to": "ind_im",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_02",
+      "to": "kp_im_02_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_02_01",
+      "to": "kp_im_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_02_02",
+      "to": "kp_im_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_02_03",
+      "to": "kp_im_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_02_04",
+      "to": "kp_im_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_02_05",
+      "to": "kp_im_02_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_01_01",
+      "to": "kp_im_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_im_03",
+      "to": "ind_im",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_03",
+      "to": "kp_im_03_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_03_01",
+      "to": "kp_im_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_03_02",
+      "to": "kp_im_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_03_03",
+      "to": "kp_im_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_03_04",
+      "to": "kp_im_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_03_05",
+      "to": "kp_im_03_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_02_01",
+      "to": "kp_im_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_im_04",
+      "to": "ind_im",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_04",
+      "to": "kp_im_04_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_04_01",
+      "to": "kp_im_04_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_04_02",
+      "to": "kp_im_04_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_04_03",
+      "to": "kp_im_04_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_04_04",
+      "to": "kp_im_04_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_04_05",
+      "to": "kp_im_04_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_03_01",
+      "to": "kp_im_04_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_im_05",
+      "to": "ind_im",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_im_05",
+      "to": "kp_im_05_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_05_01",
+      "to": "kp_im_05_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_05_02",
+      "to": "kp_im_05_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_05_03",
+      "to": "kp_im_05_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_05_04",
+      "to": "kp_im_05_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_im_05_05",
+      "to": "kp_im_05_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_04_01",
+      "to": "kp_im_05_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_fp_01",
+      "to": "ind_fp",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_01",
+      "to": "kp_fp_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_01",
+      "to": "kp_fp_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_01",
+      "to": "kp_fp_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_01",
+      "to": "kp_fp_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_01",
+      "to": "kp_fp_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_01_01",
+      "to": "kp_fp_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_01_02",
+      "to": "kp_fp_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_01_03",
+      "to": "kp_fp_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_01_04",
+      "to": "kp_fp_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_fp_02",
+      "to": "ind_fp",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_02",
+      "to": "kp_fp_02_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_02_01",
+      "to": "kp_fp_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_02_02",
+      "to": "kp_fp_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_02_03",
+      "to": "kp_fp_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_02_04",
+      "to": "kp_fp_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_02_05",
+      "to": "kp_fp_02_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_fp_01_01",
+      "to": "kp_fp_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_fp_03",
+      "to": "ind_fp",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_03",
+      "to": "kp_fp_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_03",
+      "to": "kp_fp_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_03",
+      "to": "kp_fp_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_03",
+      "to": "kp_fp_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_fp_03",
+      "to": "kp_fp_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_03_01",
+      "to": "kp_fp_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_03_02",
+      "to": "kp_fp_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_03_03",
+      "to": "kp_fp_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_fp_03_04",
+      "to": "kp_fp_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_fp_02_01",
+      "to": "kp_fp_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_si_01",
+      "to": "ind_si",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_01",
+      "to": "kp_si_01_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_01_01",
+      "to": "kp_si_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_01_02",
+      "to": "kp_si_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_01_03",
+      "to": "kp_si_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_01_04",
+      "to": "kp_si_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_01_05",
+      "to": "kp_si_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_si_02",
+      "to": "ind_si",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_02",
+      "to": "kp_si_02_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_02_01",
+      "to": "kp_si_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_02_02",
+      "to": "kp_si_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_02_03",
+      "to": "kp_si_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_02_04",
+      "to": "kp_si_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_02_05",
+      "to": "kp_si_02_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_si_01_01",
+      "to": "kp_si_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_si_03",
+      "to": "ind_si",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_03",
+      "to": "kp_si_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_03",
+      "to": "kp_si_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_03",
+      "to": "kp_si_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_03",
+      "to": "kp_si_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_03",
+      "to": "kp_si_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_03_01",
+      "to": "kp_si_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_03_02",
+      "to": "kp_si_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_03_03",
+      "to": "kp_si_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_03_04",
+      "to": "kp_si_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_si_02_01",
+      "to": "kp_si_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_si_04",
+      "to": "ind_si",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_si_04",
+      "to": "kp_si_04_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_04_01",
+      "to": "kp_si_04_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_04_02",
+      "to": "kp_si_04_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_04_03",
+      "to": "kp_si_04_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_04_04",
+      "to": "kp_si_04_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_si_04_05",
+      "to": "kp_si_04_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_si_03_01",
+      "to": "kp_si_04_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_moto_01",
+      "to": "ind_moto",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_01",
+      "to": "kp_moto_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_01",
+      "to": "kp_moto_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_01",
+      "to": "kp_moto_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_01",
+      "to": "kp_moto_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_01",
+      "to": "kp_moto_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_01_01",
+      "to": "kp_moto_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_01_02",
+      "to": "kp_moto_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_01_03",
+      "to": "kp_moto_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_01_04",
+      "to": "kp_moto_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_moto_02",
+      "to": "ind_moto",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_02",
+      "to": "kp_moto_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_02",
+      "to": "kp_moto_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_02",
+      "to": "kp_moto_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_02",
+      "to": "kp_moto_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_02",
+      "to": "kp_moto_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_02_01",
+      "to": "kp_moto_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_02_02",
+      "to": "kp_moto_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_02_03",
+      "to": "kp_moto_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_02_04",
+      "to": "kp_moto_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_moto_01_01",
+      "to": "kp_moto_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_moto_03",
+      "to": "ind_moto",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_03",
+      "to": "kp_moto_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_03",
+      "to": "kp_moto_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_03",
+      "to": "kp_moto_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_03",
+      "to": "kp_moto_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_moto_03",
+      "to": "kp_moto_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_03_01",
+      "to": "kp_moto_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_03_02",
+      "to": "kp_moto_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_03_03",
+      "to": "kp_moto_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_moto_03_04",
+      "to": "kp_moto_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_moto_02_01",
+      "to": "kp_moto_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_nes_01",
+      "to": "ind_nes",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_01",
+      "to": "kp_nes_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_01",
+      "to": "kp_nes_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_01",
+      "to": "kp_nes_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_01",
+      "to": "kp_nes_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_01",
+      "to": "kp_nes_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_01_01",
+      "to": "kp_nes_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_01_02",
+      "to": "kp_nes_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_01_03",
+      "to": "kp_nes_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_01_04",
+      "to": "kp_nes_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_nes_02",
+      "to": "ind_nes",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_02",
+      "to": "kp_nes_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_02",
+      "to": "kp_nes_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_02",
+      "to": "kp_nes_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_02",
+      "to": "kp_nes_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_02",
+      "to": "kp_nes_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_02_01",
+      "to": "kp_nes_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_02_02",
+      "to": "kp_nes_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_02_03",
+      "to": "kp_nes_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_02_04",
+      "to": "kp_nes_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_nes_01_01",
+      "to": "kp_nes_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_nes_03",
+      "to": "ind_nes",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_03",
+      "to": "kp_nes_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_03",
+      "to": "kp_nes_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_03",
+      "to": "kp_nes_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_03",
+      "to": "kp_nes_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_nes_03",
+      "to": "kp_nes_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_03_01",
+      "to": "kp_nes_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_03_02",
+      "to": "kp_nes_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_03_03",
+      "to": "kp_nes_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_nes_03_04",
+      "to": "kp_nes_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_nes_02_01",
+      "to": "kp_nes_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_rail_01",
+      "to": "ind_rail",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_01",
+      "to": "kp_rail_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_01",
+      "to": "kp_rail_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_01",
+      "to": "kp_rail_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_01",
+      "to": "kp_rail_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_01",
+      "to": "kp_rail_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_01_01",
+      "to": "kp_rail_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_01_02",
+      "to": "kp_rail_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_01_03",
+      "to": "kp_rail_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_01_04",
+      "to": "kp_rail_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_rail_02",
+      "to": "ind_rail",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_02",
+      "to": "kp_rail_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_02",
+      "to": "kp_rail_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_02",
+      "to": "kp_rail_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_02",
+      "to": "kp_rail_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_02",
+      "to": "kp_rail_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_02_01",
+      "to": "kp_rail_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_02_02",
+      "to": "kp_rail_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_02_03",
+      "to": "kp_rail_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_02_04",
+      "to": "kp_rail_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_rail_01_01",
+      "to": "kp_rail_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_rail_03",
+      "to": "ind_rail",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_03",
+      "to": "kp_rail_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_03",
+      "to": "kp_rail_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_03",
+      "to": "kp_rail_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_03",
+      "to": "kp_rail_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_rail_03",
+      "to": "kp_rail_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_03_01",
+      "to": "kp_rail_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_03_02",
+      "to": "kp_rail_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_03_03",
+      "to": "kp_rail_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_rail_03_04",
+      "to": "kp_rail_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_rail_02_01",
+      "to": "kp_rail_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_bio_01",
+      "to": "ind_bio",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_01",
+      "to": "kp_bio_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_01",
+      "to": "kp_bio_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_01",
+      "to": "kp_bio_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_01",
+      "to": "kp_bio_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_01",
+      "to": "kp_bio_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_01_01",
+      "to": "kp_bio_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_01_02",
+      "to": "kp_bio_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_01_03",
+      "to": "kp_bio_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_01_04",
+      "to": "kp_bio_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_bio_02",
+      "to": "ind_bio",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_02",
+      "to": "kp_bio_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_02",
+      "to": "kp_bio_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_02",
+      "to": "kp_bio_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_02",
+      "to": "kp_bio_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_02",
+      "to": "kp_bio_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_02_01",
+      "to": "kp_bio_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_02_02",
+      "to": "kp_bio_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_02_03",
+      "to": "kp_bio_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_02_04",
+      "to": "kp_bio_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_bio_01_01",
+      "to": "kp_bio_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_bio_03",
+      "to": "ind_bio",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_03",
+      "to": "kp_bio_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_03",
+      "to": "kp_bio_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_03",
+      "to": "kp_bio_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_03",
+      "to": "kp_bio_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_bio_03",
+      "to": "kp_bio_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_03_01",
+      "to": "kp_bio_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_03_02",
+      "to": "kp_bio_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_03_03",
+      "to": "kp_bio_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_bio_03_04",
+      "to": "kp_bio_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_bio_02_01",
+      "to": "kp_bio_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sat_01",
+      "to": "ind_sat",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_01",
+      "to": "kp_sat_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_01",
+      "to": "kp_sat_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_01",
+      "to": "kp_sat_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_01",
+      "to": "kp_sat_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_01",
+      "to": "kp_sat_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_01_01",
+      "to": "kp_sat_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_01_02",
+      "to": "kp_sat_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_01_03",
+      "to": "kp_sat_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_01_04",
+      "to": "kp_sat_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sat_02",
+      "to": "ind_sat",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_02",
+      "to": "kp_sat_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_02",
+      "to": "kp_sat_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_02",
+      "to": "kp_sat_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_02",
+      "to": "kp_sat_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_02",
+      "to": "kp_sat_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_02_01",
+      "to": "kp_sat_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_02_02",
+      "to": "kp_sat_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_02_03",
+      "to": "kp_sat_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_02_04",
+      "to": "kp_sat_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sat_01_01",
+      "to": "kp_sat_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sat_03",
+      "to": "ind_sat",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_03",
+      "to": "kp_sat_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_03",
+      "to": "kp_sat_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_03",
+      "to": "kp_sat_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_03",
+      "to": "kp_sat_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sat_03",
+      "to": "kp_sat_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_03_01",
+      "to": "kp_sat_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_03_02",
+      "to": "kp_sat_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_03_03",
+      "to": "kp_sat_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sat_03_04",
+      "to": "kp_sat_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sat_02_01",
+      "to": "kp_sat_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_lowalt_01",
+      "to": "ind_lowalt",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_01",
+      "to": "kp_lowalt_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_01",
+      "to": "kp_lowalt_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_01",
+      "to": "kp_lowalt_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_01",
+      "to": "kp_lowalt_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_01",
+      "to": "kp_lowalt_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_01_01",
+      "to": "kp_lowalt_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_01_02",
+      "to": "kp_lowalt_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_01_03",
+      "to": "kp_lowalt_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_01_04",
+      "to": "kp_lowalt_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_lowalt_02",
+      "to": "ind_lowalt",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_02",
+      "to": "kp_lowalt_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_02",
+      "to": "kp_lowalt_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_02",
+      "to": "kp_lowalt_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_02",
+      "to": "kp_lowalt_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_02",
+      "to": "kp_lowalt_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_02_01",
+      "to": "kp_lowalt_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_02_02",
+      "to": "kp_lowalt_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_02_03",
+      "to": "kp_lowalt_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_02_04",
+      "to": "kp_lowalt_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_lowalt_01_01",
+      "to": "kp_lowalt_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_lowalt_03",
+      "to": "ind_lowalt",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_03",
+      "to": "kp_lowalt_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_03",
+      "to": "kp_lowalt_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_03",
+      "to": "kp_lowalt_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_03",
+      "to": "kp_lowalt_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_lowalt_03",
+      "to": "kp_lowalt_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_03_01",
+      "to": "kp_lowalt_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_03_02",
+      "to": "kp_lowalt_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_03_03",
+      "to": "kp_lowalt_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_lowalt_03_04",
+      "to": "kp_lowalt_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_lowalt_02_01",
+      "to": "kp_lowalt_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sensor_01",
+      "to": "ind_sensor",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_01",
+      "to": "kp_sensor_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_01",
+      "to": "kp_sensor_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_01",
+      "to": "kp_sensor_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_01",
+      "to": "kp_sensor_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_01",
+      "to": "kp_sensor_01_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_01_01",
+      "to": "kp_sensor_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_01_02",
+      "to": "kp_sensor_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_01_03",
+      "to": "kp_sensor_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_01_04",
+      "to": "kp_sensor_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sensor_02",
+      "to": "ind_sensor",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_02",
+      "to": "kp_sensor_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_02",
+      "to": "kp_sensor_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_02",
+      "to": "kp_sensor_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_02",
+      "to": "kp_sensor_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_02",
+      "to": "kp_sensor_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_02_01",
+      "to": "kp_sensor_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_02_02",
+      "to": "kp_sensor_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_02_03",
+      "to": "kp_sensor_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_02_04",
+      "to": "kp_sensor_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sensor_01_01",
+      "to": "kp_sensor_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_sensor_03",
+      "to": "ind_sensor",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_03",
+      "to": "kp_sensor_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_03",
+      "to": "kp_sensor_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_03",
+      "to": "kp_sensor_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_03",
+      "to": "kp_sensor_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_sensor_03",
+      "to": "kp_sensor_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_03_01",
+      "to": "kp_sensor_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_03_02",
+      "to": "kp_sensor_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_03_03",
+      "to": "kp_sensor_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_sensor_03_04",
+      "to": "kp_sensor_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sensor_02_01",
+      "to": "kp_sensor_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_power_01",
+      "to": "ind_power",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_05",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_01",
+      "to": "kp_power_01_06",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_01_01",
+      "to": "kp_power_01_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_01_02",
+      "to": "kp_power_01_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_01_03",
+      "to": "kp_power_01_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_01_04",
+      "to": "kp_power_01_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_01_05",
+      "to": "kp_power_01_06",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_power_02",
+      "to": "ind_power",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_02",
+      "to": "kp_power_02_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_02",
+      "to": "kp_power_02_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_02",
+      "to": "kp_power_02_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_02",
+      "to": "kp_power_02_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_02",
+      "to": "kp_power_02_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_02_01",
+      "to": "kp_power_02_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_02_02",
+      "to": "kp_power_02_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_02_03",
+      "to": "kp_power_02_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_02_04",
+      "to": "kp_power_02_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_power_01_01",
+      "to": "kp_power_02_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "belongs_to",
+      "from": "post_power_03",
+      "to": "ind_power",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_03",
+      "to": "kp_power_03_01",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_03",
+      "to": "kp_power_03_02",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_03",
+      "to": "kp_power_03_03",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_03",
+      "to": "kp_power_03_04",
+      "props": {}
+    },
+    {
+      "type": "requires",
+      "from": "post_power_03",
+      "to": "kp_power_03_05",
+      "props": {}
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_03_01",
+      "to": "kp_power_03_02",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_03_02",
+      "to": "kp_power_03_03",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_03_03",
+      "to": "kp_power_03_04",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "prerequisite",
+      "from": "kp_power_03_04",
+      "to": "kp_power_03_05",
+      "props": {
+        "weight": 1.0
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_power_02_01",
+      "to": "kp_power_03_01",
+      "props": {
+        "weight": 0.6
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_01_05",
+      "to": "kp_im_05_06",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_icv_04_01",
+      "to": "kp_sensor_03_04",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_02_02",
+      "to": "kp_im_01_01",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_im_03_03",
+      "to": "kp_si_02_04",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_nes_03_02",
+      "to": "kp_icv_05_03",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_power_01_01",
+      "to": "kp_ei_04_01",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sensor_01_03",
+      "to": "kp_im_02_04",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_lowalt_01_03",
+      "to": "kp_moto_01_03",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_sat_01_03",
+      "to": "kp_sensor_02_04",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_rail_03_05",
+      "to": "kp_nes_01_04",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_bio_02_01",
+      "to": "kp_fp_02_03",
+      "props": {
+        "weight": 0.8
+      }
+    },
+    {
+      "type": "relates_to",
+      "from": "kp_si_04_03",
+      "to": "kp_si_02_06",
+      "props": {
+        "weight": 0.8
+      }
+    }
+  ]
+}

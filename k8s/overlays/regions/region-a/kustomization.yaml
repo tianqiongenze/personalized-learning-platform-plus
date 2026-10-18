@@ -1,0 +1,59 @@
+# =============================================================================
+# region-a overlay —— 多区域多活(主区域 / 承担更高流量)
+# 部署: kubectl apply -k k8s/overlays/regions/region-a   (指向 region-a 集群 context)
+# 单元化: tenant -> region 映射由 GSLB/接入层按 tenantId 哈希就近路由(见 regions/README.md)
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 注意: 不设置 `namespace:` —— base 跨 qianrenqianmian/infra/monitoring, 区域间以
+# 独立集群承载同名命名空间(单元化), 命名空间以各清单声明为准。
+resources:
+  - ../../../base
+
+# 区域副本基线(region-a 为主区, 基数高于 region-b; 仍受 HPA-100K 上限 60 约束)
+replicas:
+  - {name: tenant-service, count: 6}
+  - {name: iam-service, count: 6}
+  - {name: course-service, count: 8}
+  - {name: teaching-service, count: 6}
+  - {name: graphql-gateway, count: 6}
+  - {name: ai-service, count: 6}
+  - {name: agent-service, count: 6}
+  - {name: realtime-gateway, count: 6}
+  - {name: kt-service, count: 6}
+
+# 区域标签(便于调度/流量切分/监控分组)
+labels:
+  - includeSelectors: false
+    pairs:
+      environment: production
+      topology.kubernetes.io/region: region-a
+      topology.kubernetes.io/zone: az-a1
+      managed-by: kustomize
+
+# 区域参数注入: CRDB 本地性 / Pulsar 集群名 / 区域标识(应用读取)
+configMapGenerator:
+  - name: platform-plus-config
+    behavior: merge
+    literals:
+      - REGION=region-a
+      - CRDB_LOCALITY_REGION=region-a
+      - CRDB_LOCALITY_ZONE=az-a1
+      - PULSAR_CLUSTER=region-a
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  # CockroachDB 区域本地性: 让副本按 region/zone 感知, 跨区副本用于容灾
+  - target: {kind: StatefulSet, name: cockroachdb}
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: "--locality=region=region-a,zone=az-a1"
+  # Pulsar broker 区域集群名(多活下各区域独立集群, 跨区复制由 geo-replication 完成)
+  - target: {kind: StatefulSet, name: pulsar-broker}
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value: {name: PULSAR_PREFIX_clusterName, value: "region-a"}

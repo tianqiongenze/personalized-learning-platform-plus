@@ -1,0 +1,146 @@
+{
+  "uid": "host-resources",
+  "title": "网络发送",
+  "tags": [
+    "platform-plus"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU 负载 load1/load5",
+      "type": "timeseries",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "node_load1",
+          "refId": "A"
+        },
+        {
+          "expr": "node_load5",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 2,
+      "title": "内存使用率",
+      "type": "gauge",
+      "x": 12,
+      "y": 0,
+      "w": 6,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(1 - node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)*100",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      }
+    },
+    {
+      "id": 3,
+      "title": "磁盘使用率",
+      "type": "gauge",
+      "x": 18,
+      "y": 0,
+      "w": 6,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "(1 - node_filesystem_avail_bytes{fstype!~'tmpfs|overlay',mountpoint='/'}/node_filesystem_size_bytes{fstype!~'tmpfs|overlay',mountpoint='/'}) * 100",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "网络接收",
+      "type": "timeseries",
+      "x": 0,
+      "y": 8,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{device!~'lo|veth.*'}[5m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "网络发送",
+      "type": "timeseries",
+      "x": 12,
+      "y": 8,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_transmit_bytes_total{device!~'lo|veth.*'}[5m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ]
+}

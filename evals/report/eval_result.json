@@ -1,0 +1,431 @@
+{
+  "generatedAt": "2026-10-14 09:23:04",
+  "mode": "offline",
+  "generation": {
+    "total": 30,
+    "passed": 29,
+    "passRate": 0.967,
+    "avgRuleScore": 0.823,
+    "totalElapsedMin": 0.0,
+    "threshold": {
+      "passRate": 0.8,
+      "avgRuleScore": 0.8
+    },
+    "gate": true,
+    "byType": {
+      "EXERCISE_SET": {
+        "total": 5,
+        "passed": 5,
+        "passRate": 1.0,
+        "avgScore": 1.0
+      },
+      "EXPLANATION_DOC": {
+        "total": 5,
+        "passed": 4,
+        "passRate": 0.8,
+        "avgScore": 0.74
+      },
+      "TRAINING_TASK": {
+        "total": 5,
+        "passed": 5,
+        "passRate": 1.0,
+        "avgScore": 0.8
+      },
+      "MICRO_LESSON_SCRIPT": {
+        "total": 5,
+        "passed": 5,
+        "passRate": 1.0,
+        "avgScore": 0.8
+      },
+      "MICRO_VIDEO_SCRIPT": {
+        "total": 5,
+        "passed": 5,
+        "passRate": 1.0,
+        "avgScore": 0.8
+      },
+      "KNOWLEDGE_POINT_TALK": {
+        "total": 5,
+        "passed": 5,
+        "passRate": 1.0,
+        "avgScore": 0.8
+      }
+    },
+    "results": [
+      {
+        "id": "EQ-EX-01",
+        "type": "EXERCISE_SET",
+        "ruleScore": 1.0,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.001
+      },
+      {
+        "id": "EQ-EX-02",
+        "type": "EXERCISE_SET",
+        "ruleScore": 1.0,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-EX-03",
+        "type": "EXERCISE_SET",
+        "ruleScore": 1.0,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-EX-04",
+        "type": "EXERCISE_SET",
+        "ruleScore": 1.0,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-EX-05",
+        "type": "EXERCISE_SET",
+        "ruleScore": 1.0,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-DOC-01",
+        "type": "EXPLANATION_DOC",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-DOC-02",
+        "type": "EXPLANATION_DOC",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-DOC-03",
+        "type": "EXPLANATION_DOC",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-DOC-04",
+        "type": "EXPLANATION_DOC",
+        "ruleScore": 0.5,
+        "rulePassed": false,
+        "missed": [
+          "阀"
+        ],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-DOC-05",
+        "type": "EXPLANATION_DOC",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-TASK-01",
+        "type": "TRAINING_TASK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-TASK-02",
+        "type": "TRAINING_TASK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-TASK-03",
+        "type": "TRAINING_TASK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-TASK-04",
+        "type": "TRAINING_TASK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-TASK-05",
+        "type": "TRAINING_TASK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-LS-01",
+        "type": "MICRO_LESSON_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-LS-02",
+        "type": "MICRO_LESSON_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-LS-03",
+        "type": "MICRO_LESSON_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-LS-04",
+        "type": "MICRO_LESSON_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-LS-05",
+        "type": "MICRO_LESSON_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-VS-01",
+        "type": "MICRO_VIDEO_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-VS-02",
+        "type": "MICRO_VIDEO_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-VS-03",
+        "type": "MICRO_VIDEO_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-VS-04",
+        "type": "MICRO_VIDEO_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-VS-05",
+        "type": "MICRO_VIDEO_SCRIPT",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-KP-01",
+        "type": "KNOWLEDGE_POINT_TALK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-KP-02",
+        "type": "KNOWLEDGE_POINT_TALK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-KP-03",
+        "type": "KNOWLEDGE_POINT_TALK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-KP-04",
+        "type": "KNOWLEDGE_POINT_TALK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      },
+      {
+        "id": "EQ-KP-05",
+        "type": "KNOWLEDGE_POINT_TALK",
+        "ruleScore": 0.8,
+        "rulePassed": true,
+        "missed": [],
+        "elapsed": 0.0
+      }
+    ]
+  },
+  "rag": {
+    "n": 36,
+    "recall@5": 1.0,
+    "mrr": 0.7593,
+    "ndcg@5": 0.8242,
+    "passThreshold": {
+      "recall@5": 0.8,
+      "mrr": 0.6,
+      "ndcg@5": 0.75
+    },
+    "detail": [
+      {
+        "query": "PLC 梯形图 常开常闭触点 练习题",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "伺服电机 脉冲控制 编码器 习题",
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.631
+      },
+      {
+        "query": "新能源汽车电控 高压安全 练习题",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "传感器 信号采集 ADC 练习题",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "SMT 贴片 回流焊 工艺 习题",
+        "recall@5": 1.0,
+        "mrr": 0.333,
+        "ndcg@5": 0.5
+      },
+      {
+        "query": "工业机器人 示教编程 实训题",
+        "recall@5": 1.0,
+        "mrr": 0.333,
+        "ndcg@5": 0.5
+      },
+      {
+        "query": "变频器 调速原理 讲解",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "CAN 总线 帧结构 讲解文档",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "PID 控制 原理 讲解",
+        "recall@5": 1.0,
+        "mrr": 0.333,
+        "ndcg@5": 0.5
+      },
+      {
+        "query": "控制柜接线 工艺 讲解",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "工业视觉 检测 原理 讲解",
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.693
+      },
+      {
+        "query": "药品 GMP 洁净区 操作讲解",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "汽车总装线 PLC 联调 实训任务书",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "动力电池包装配 实训任务",
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.693
+      },
+      {
+        "query": "SMT 贴片机 操作 实训任务",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "数控机床 对刀 实训任务书",
+        "recall@5": 1.0,
+        "mrr": 0.333,
+        "ndcg@5": 0.5
+      },
+      {
+        "query": "AGV 调度 调试 实训任务",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "储能电站 集成 实训任务",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "电气控制 原理图 微课脚本",
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      {
+        "query": "步进电机 驱动 微课脚本",
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.631
+      }
+    ]
+  }
+}

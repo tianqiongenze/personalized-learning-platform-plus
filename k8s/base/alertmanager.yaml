@@ -1,0 +1,138 @@
+# =============================================================================
+# Alertmanager —— 告警路由 / 分组 / 抑制
+# 依赖: 无(独立 Deployment)。Prometheus 侧需将 alerting.alertmanagers 指向
+#       alertmanager.monitoring.svc.cluster.local:9093(已在 prometheus.yaml 配置)。
+# Receiver 为占位: 微信(企业微信机器人 webhook) 与 邮件 SMTP, 请替换真实地址/口令。
+# 建议生产: 用 external-secrets 注入 SMTP 口令, 或改用 AlertmanagerConfig CRD。
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.example.com:587'
+      smtp_from: 'alerts@platform.local'
+      smtp_auth_username: 'alerts@platform.local'
+      smtp_auth_password: 'CHANGE_ME_SMTP_PASSWORD'
+      smtp_require_tls: true
+
+    route:
+      receiver: 'default'
+      group_by: ['alertname', 'namespace', 'team']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        # 严重告警: 立即推送企业微信, 并继续匹配邮件
+        - matchers: ['severity="critical"']
+          receiver: 'wechat-critical'
+          group_wait: 10s
+          repeat_interval: 1h
+          continue: true
+        # AI / 数据团队按 team 标签分流邮件
+        - matchers: ['team="ai"']
+          receiver: 'email-ai'
+          continue: true
+        - matchers: ['team=~"data|middleware"']
+          receiver: 'email-infra'
+          continue: true
+        # 兜底
+        - matchers: ['severity="warning"']
+          receiver: 'email-default'
+
+    inhibit_rules:
+      # 同一告警对象已有 critical 时, 抑制其 warning
+      - source_matchers: ['severity="critical"']
+        target_matchers: ['severity="warning"']
+        equal: ['alertname', 'namespace', 'instance']
+      # 服务整体宕机时, 抑制其派生的延迟/错误率告警
+      - source_matchers: ['alertname="ServiceDown"']
+        target_matchers: ['alertname=~"High5xxRate|HighP99Latency"']
+        equal: ['namespace', 'application']
+
+    receivers:
+      - name: 'default'
+        webhook_configs:
+          - url: 'http://alert-relay.monitoring.svc.cluster.local:8060/hook'
+            send_resolved: true
+
+      # 企业微信机器人(占位: 实际用 wechat-webhook 网关或企业微信开放平台 key)
+      - name: 'wechat-critical'
+        webhook_configs:
+          - url: 'http://wechat-webhook.monitoring.svc.cluster.local:8060/send'
+            send_resolved: true
+
+      - name: 'email-ai'
+        email_configs:
+          - to: 'ai-team@platform.local'
+            send_resolved: true
+
+      - name: 'email-infra'
+        email_configs:
+          - to: 'infra-team@platform.local'
+            send_resolved: true
+
+      - name: 'email-default'
+        email_configs:
+          - to: 'sre@platform.local'
+            send_resolved: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels: {app: alertmanager}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: alertmanager}
+  template:
+    metadata:
+      labels: {app: alertmanager}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9093"
+    spec:
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.28.1
+          args:
+            - '--config.file=/etc/alertmanager/alertmanager.yml'
+            - '--storage.path=/alertmanager'
+            - '--web.listen-address=0.0.0.0:9093'
+            - '--cluster.listen-address=0.0.0.0:9094'
+          ports:
+            - {name: web, containerPort: 9093}
+            - {name: cluster, containerPort: 9094}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          readinessProbe:
+            httpGet: {path: /-/ready, port: 9093}
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: {path: /-/healthy, port: 9093}
+            initialDelaySeconds: 20
+          volumeMounts:
+            - {name: config, mountPath: /etc/alertmanager}
+            - {name: data, mountPath: /alertmanager}
+      volumes:
+        - {name: config, configMap: {name: alertmanager-config}}
+        - {name: data, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels: {app: alertmanager}
+spec:
+  selector: {app: alertmanager}
+  ports:
+    - {name: web, port: 9093, targetPort: 9093}
+    - {name: cluster, port: 9094, targetPort: 9094}

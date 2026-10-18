@@ -1,0 +1,74 @@
+# =============================================================================
+# 既有中间件复用声明(单一可信源)
+# 原则: 服务器 10.167.2.175 / 176 的 K3s 集群中【已存在】下列中间件,
+#       本平台一律复用, 不在 k8s/base 重复部署:
+#         • Redis Cluster  → dify-plus 命名空间 redis8-svc (3 主 3 从)
+#         • Pulsar / Milvus / NebulaGraph / CockroachDB → infra 命名空间
+#         • Prometheus / Grafana / Loki → monitoring 命名空间(kube-prometheus-stack)
+#         • LLM 推理(OpenAI 兼容)      → ai-platform 命名空间 ollama-master / litellm
+#      本 ConfigMap 作为"外联端点目录"被业务服务 envFrom 引用;
+#      密钥不写入本文件, 由 external-secrets.yaml 引用既有 Secret。
+# 变更纪律: 新增/调整任一中间件地址, 只改这里, 禁止在各服务 application.yml 硬编码。
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-existing-infra
+  namespace: qianrenqianmian
+  labels:
+    app.kubernetes.io/part-of: personalized-learning-platform-plus
+    app.kubernetes.io/component: infra-discovery
+data:
+  # ---- Redis(复用 dify-plus 既有 Redis Cluster, 经 K8s Service VIP 路由, standalone 协议连接) ----
+  REDIS_HOST: redis8-svc.dify-plus.svc.cluster.local
+  REDIS_PORT: "6379"
+  REDIS_STRATEGY: reuse-existing-cluster
+  REDIS_KEY_PATTERN: "hash tag {tenantId} 保证同租户 key 落同分片"
+
+  # ---- CockroachDB(复用 infra 既有 3 节点集群) ----
+  CRDB_JDBC_HOST_PORT: cockroachdb.infra.svc.cluster.local:26257
+  CRDB_SSLMODE: disable
+  CRDB_DIALECT: org.hibernate.dialect.CockroachDialect
+
+  # ---- Pulsar(复用 infra 既有 broker) ----
+  PULSAR_SERVICE_URL: pulsar://pulsar-broker.infra.svc.cluster.local:6650
+  PULSAR_HTTP_URL: http://pulsar-broker.infra.svc.cluster.local:8080
+  EVENT_TOPIC_PREFIX: "persistent://platform/edu/"
+
+  # ---- Milvus 向量库(复用 infra) ----
+  MILVUS_HOST: milvus.infra.svc.cluster.local
+  MILVUS_PORT: "19530"
+  MILVUS_COLLECTION_KG: kg33618
+  MILVUS_COLLECTION_RES: edu_resources
+
+  # ---- NebulaGraph 产业图谱(复用 infra) ----
+  NEBULA_GRAPH_HOST: nebula-graphd.infra.svc.cluster.local
+  NEBULA_GRAPH_PORT: "9669"
+  NEBULA_SPACE: kg33618
+
+  # ---- 可观测(复用 monitoring 既有栈) ----
+  PROMETHEUS_URL: http://prometheus.monitoring.svc.cluster.local:9090
+  GRAFANA_URL: http://grafana.monitoring.svc.cluster.local:3000
+  LOKI_URL: http://loki-stack.monitoring.svc.cluster.local:3100
+  JAEGER_URL: http://jaeger.monitoring.svc.cluster.local:16686
+
+  # ---- LLM 推理(复用 ai-platform, OpenAI 兼容) ----
+  LLM_BASE_URL: http://ollama-master.ai-platform.svc.cluster.local:11434/v1
+  LLM_MODEL: qwen2.5-7b-instruct
+  LLM_TIMEOUT_SECONDS: "60"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-existing-infra
+  namespace: infra
+  labels:
+    app.kubernetes.io/part-of: personalized-learning-platform-plus
+    app.kubernetes.io/component: infra-discovery
+data:
+  REDIS_HOST: redis8-svc.dify-plus.svc.cluster.local
+  REDIS_PORT: "6379"
+  CRDB_JDBC_HOST_PORT: cockroachdb.infra.svc.cluster.local:26257
+  PULSAR_SERVICE_URL: pulsar://pulsar-broker.infra.svc.cluster.local:6650
+  LLM_BASE_URL: http://ollama-master.ai-platform.svc.cluster.local:11434/v1
+  LLM_MODEL: qwen2.5-7b-instruct

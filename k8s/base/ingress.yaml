@@ -1,0 +1,186 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-plus-ingress
+  namespace: qianrenqianmian
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - platform.local
+    secretName: platform-plus-tls
+  rules:
+  - host: platform.local
+    http:
+      paths:
+      # Tenant Service
+      - path: /api/v1/tenants(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: tenant-service
+            port:
+              number: 8081
+      - path: /api/v1/users(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: tenant-service
+            port:
+              number: 8081
+
+      # IAM Service
+      - path: /api/v1/auth(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: iam-service
+            port:
+              number: 8082
+      - path: /api/v1/roles(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: iam-service
+            port:
+              number: 8082
+      - path: /api/v1/permissions(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: iam-service
+            port:
+              number: 8082
+      - path: /api/v1/admin(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: iam-service
+            port:
+              number: 8082
+
+      # Course Service
+      - path: /api/v1/courses(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: course-service
+            port:
+              number: 8083
+      - path: /api/v1/knowledge(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: course-service
+            port:
+              number: 8083
+      - path: /api/v1/resources(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: course-service
+            port:
+              number: 8083
+      - path: /api/v1/recommendations(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: course-service
+            port:
+              number: 8083
+
+      # Teaching Service
+      - path: /api/v1/paths(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/assignments(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/exams(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/discussions(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/live-sessions(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/kt(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/multimodal(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+      - path: /api/v1/analytics(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: teaching-service
+            port:
+              number: 8084
+
+      # Monitoring (internal only)
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus
+            port:
+              number: 9090
+      - path: /grafana(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+      - path: /jaeger(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: jaeger
+            port:
+              number: 16686
+      - path: /locust(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: locust-master
+            port:
+              number: 8089

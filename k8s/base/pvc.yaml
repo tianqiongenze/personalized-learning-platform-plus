@@ -1,0 +1,101 @@
+# =============================================================================
+# PVC —— 平台持久化卷声明(容量口径统一, 供容量规划引用 docs/CAPACITY_100K.md)
+# 说明:
+#   1. StatefulSet 型组件(CRDB/Milvus/Nebula/Pulsar-bookie/Loki)默认经
+#      volumeClaimTemplates 自动创建 PVC; 本文件中的同名 PVC 用于:
+#        (a) Prometheus / Grafana —— 原 Deployment 使用 emptyDir(重启即丢), 必须改为持久卷;
+#        (b) 采用静态绑定 / 预置容量的部署形态。
+#      容量与各 volumeClaimTemplates 保持一致, 便于统一配额与扩容核算。
+#   2. 迁移补丁见 k8s/base/pvc-mounts-patch.yaml(Prometheus/Grafana 挂载持久卷)。
+#   3. 扩容器步骤: 修改 requests.storage(StorageClass 已开 allowVolumeExpansion)
+#      或直接改 StatefulSet volumeClaimTemplates 后滚动。
+# =============================================================================
+# ---------- 中间件(infra) ----------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crdb-data
+  namespace: infra
+  labels: {app: cockroachdb, tier: database, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-ssd
+  resources: {requests: {storage: 100Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: milvus-data
+  namespace: infra
+  labels: {app: milvus, tier: vector-db, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-ssd
+  resources: {requests: {storage: 200Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nebula-storaged-data
+  namespace: infra
+  labels: {app: nebula, component: storaged, tier: graph-db, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-ssd
+  resources: {requests: {storage: 50Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pulsar-bookie-data
+  namespace: infra
+  labels: {app: pulsar, component: bookie, tier: mq, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-ssd
+  resources: {requests: {storage: 100Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-data
+  namespace: infra
+  labels: {app: minio, tier: object-store, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-standard
+  resources: {requests: {storage: 50Gi}}
+---
+# ---------- 监控(monitoring) ----------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data
+  namespace: monitoring
+  labels: {app: prometheus, tier: observability, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-standard
+  resources: {requests: {storage: 100Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: monitoring
+  labels: {app: grafana, tier: observability, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-standard
+  resources: {requests: {storage: 10Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: monitoring
+  labels: {app: loki, tier: logging, part-of: personalized-learning-platform-plus}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-standard
+  resources: {requests: {storage: 100Gi}}

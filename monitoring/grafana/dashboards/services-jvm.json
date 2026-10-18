@@ -1,0 +1,92 @@
+{
+  "uid": "services-jvm",
+  "title": "GC 暂停 P99",
+  "tags": [
+    "platform-plus"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "堆内存使用",
+      "type": "timeseries",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_memory_used_bytes{area=\"heap\"}) by (application)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 2,
+      "title": "JVM 线程数",
+      "type": "timeseries",
+      "x": 12,
+      "y": 0,
+      "w": 12,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 3,
+      "title": "GC 暂停 P99",
+      "type": "timeseries",
+      "x": 0,
+      "y": 8,
+      "w": 24,
+      "h": 8,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(jvm_gc_pause_seconds_bucket[5m])) by (le, application))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ]
+}

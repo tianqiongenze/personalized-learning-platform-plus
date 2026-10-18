@@ -1,0 +1,820 @@
+# =============================================================================
+# 网络策略 (NetworkPolicy, K8s 1.28 / networking.k8s.io/v1)
+# 修复记录:
+#   1. 原第 14-15 行存在重复空 `- from:`（tenant-service ingress 首条为空规则），
+#      会导致该规则匹配全部来源 —— 已删除空条目。
+#   2. 原全部策略命名空间为 `platform-plus`，而业务工作负载实际部署在
+#      `qianrenqianmian`（见 namespaces.yaml / tenant-service.yaml），
+#      策略因命名空间不匹配而完全失效 —— 已统一纠正为 `qianrenqianmian`。
+# 本次新增(最小权限基线):
+#   - 三个命名空间的 default-deny-all（默认拒绝 ingress+egress）
+#   - 白名单: 集群 DNS / ingress-nginx 入站 / monitoring 抓取 / 业务->infra 中间件出站
+# 命名空间约定: 业务=qianrenqianmian 中间件=infra 监控=monitoring
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tenant-service-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: tenant-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    - podSelector:
+        matchLabels:
+          app: course-service
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: tenant-postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: tenant-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: iam-service-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: iam-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    - podSelector:
+        matchLabels:
+          app: course-service
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 8082
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: iam-postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: iam-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: course-service-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: course-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 8083
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: course-postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: course-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: teaching-service-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: teaching-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    - podSelector:
+        matchLabels:
+          app: course-service
+    ports:
+    - protocol: TCP
+      port: 8084
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: teaching-postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: teaching-redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: tenant-postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: iam-database-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: iam-postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: course-database-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: course-postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: course-service
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: teaching-database-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: teaching-postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: tenant-redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: iam-redis-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: iam-redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: course-redis-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: course-redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: course-service
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: teaching-redis-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: teaching-redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-network-policy
+  namespace: qianrenqianmian
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: tenant-service
+    - podSelector:
+        matchLabels:
+          app: iam-service
+    - podSelector:
+        matchLabels:
+          app: course-service
+    - podSelector:
+        matchLabels:
+          app: teaching-service
+    ports:
+    - protocol: TCP
+      port: 9092
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-network-policy
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: qianrenqianmian
+    ports:
+    - protocol: TCP
+      port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grafana-network-policy
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: grafana
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jaeger-network-policy
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: jaeger
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: qianrenqianmian
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 16686
+    - protocol: UDP
+      port: 6831
+    - protocol: TCP
+      port: 14268
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: locust-network-policy
+  namespace: load-testing
+spec:
+  podSelector:
+    matchLabels:
+      app: locust-master
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8089
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: qianrenqianmian
+    ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: locust-worker-network-policy
+  namespace: load-testing
+spec:
+  podSelector:
+    matchLabels:
+      app: locust-worker
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: locust-master
+    ports:
+    - protocol: TCP
+      port: 5557
+    - protocol: TCP
+      port: 5558
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: qianrenqianmian
+    ports:
+    - protocol: TCP
+      port: 80
+---
+# =============================================================================
+# 默认拒绝基线 + 白名单 (最小权限)
+# 说明: NetworkPolicy 为叠加语义。以下 default-deny-all 拒绝命名空间内所有
+#       入站/出站, 再由 allow-* 白名单逐条放行必需流量。
+# =============================================================================
+# ---------- 默认拒绝: 业务命名空间 ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# ---------- 默认拒绝: 中间件命名空间 ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: infra
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# ---------- 默认拒绝: 监控命名空间 ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# ---------- 白名单: 允许集群 DNS 解析(所有业务命名空间) ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: infra
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# ---------- 白名单: 业务命名空间出站 -> infra 中间件 ----------
+# CRDB 26257 / PgBouncer 6432 / Pulsar 6650·8080 / Milvus 19530 / Nebula 9669 / Redis 6379
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-infra
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: infra
+    ports:
+    - protocol: TCP
+      port: 26257
+    - protocol: TCP
+      port: 6432
+    - protocol: TCP
+      port: 6650
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 19530
+    - protocol: TCP
+      port: 9669
+    - protocol: TCP
+      port: 6379
+---
+# ---------- 白名单: 允许 ingress-nginx 入站到业务命名空间 ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+---
+# ---------- 白名单: 允许 Prometheus 抓取(业务 + 中间件) ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring-scrape
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring-scrape
+  namespace: infra
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+---
+# ---------- 白名单: 允许 infra 内部与 monitoring 出站抓取/查询 ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring-egress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: qianrenqianmian
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: infra
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+---
+# ---------- 白名单: 命名空间内部互访(CRDB/Pulsar/Milvus/Nebula 集群内通信,
+#            业务服务互调如 graphql-gateway -> course-service) ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: qianrenqianmian
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+  egress:
+  - to:
+    - podSelector: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: infra
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+  egress:
+  - to:
+    - podSelector: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+  egress:
+  - to:
+    - podSelector: {}

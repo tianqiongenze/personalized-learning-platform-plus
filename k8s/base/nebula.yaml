@@ -1,0 +1,232 @@
+# =============================================================================
+# NebulaGraph 3.8 —— 图数据库（承载重庆 "33618" 产业知识图谱 / 课程-知识点-岗位-
+# 竞赛-证书关联网络，支撑推荐与学习路径规划）。若集群已有图数据库，脚本探测后跳过。
+# 拓扑: metad(元数据)x1 + graphd(查询接入)x1 + storaged(存储)x1, 教学规模够用。
+# 踩坑:
+#   1. storaged 首次需 ADD HOSTS 注册, 否则 SHOW HOSTS 全 OFFLINE —— init Job 处理。
+#   2. graphd 19669 / storaged 19779 为 Prometheus 指标端口。
+#   3. nGQL 无原生 REST; 运维平台用 SHOW STATS 需经 nebula-console Job 或
+#      nebula-http-gateway; 本平台采用运维平台后端经 JDBC(nebula-java)直连统计。
+#   4. 双节点: metad 单副本有单点风险, 扩容时将 metad replicas 调至 3。
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nebula-config
+  namespace: infra
+data:
+  graphd.conf: |
+    --meta_server_addrs=nebula-metad.infra:9559
+    --local_ip=$(POD_IP)
+    --port=9669
+    --enable_httpd=true
+    --ws_http_port=19669
+    --log_dir=/logs
+    --daemonize=false
+  metad.conf: |
+    --local_ip=$(POD_IP)
+    --port=9559
+    --ws_http_port=19559
+    --data_path=/data
+    --log_dir=/logs
+    --daemonize=false
+  storaged.conf: |
+    --meta_server_addrs=nebula-metad.infra:9559
+    --local_ip=$(POD_IP)
+    --port=9779
+    --ws_http_port=19779
+    --data_path=/data
+    --log_dir=/logs
+    --daemonize=false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebula-metad
+  namespace: infra
+spec:
+  clusterIP: None
+  selector: {app: nebula, component: metad}
+  ports:
+    - {name: thrift, port: 9559}
+    - {name: http, port: 19559}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebula-graphd
+  namespace: infra
+spec:
+  selector: {app: nebula, component: graphd}
+  ports:
+    - {name: thrift, port: 9669}
+    - {name: http, port: 19669}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nebula-storaged
+  namespace: infra
+spec:
+  clusterIP: None
+  selector: {app: nebula, component: storaged}
+  ports:
+    - {name: thrift, port: 9779}
+    - {name: http, port: 19779}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nebula-metad
+  namespace: infra
+spec:
+  serviceName: nebula-metad
+  replicas: 1
+  selector:
+    matchLabels: {app: nebula, component: metad}
+  template:
+    metadata:
+      labels: {app: nebula, component: metad}
+    spec:
+      containers:
+        - name: metad
+          image: vesoft/nebula-metad:v3.8.3
+          command: ["/bin/sh", "-ecx"]
+          args:
+            - >
+              export POD_IP=$(hostname -i | awk '{print $1}') &&
+              sed -e "s/\$(POD_IP)/$POD_IP/g" /etc/nebula/config/metad.conf > /etc/nebula/config/rendered.conf &&
+              exec /usr/local/nebula/bin/nebula-metad --flagfile=/etc/nebula/config/rendered.conf
+          ports:
+            - {containerPort: 9559, name: thrift}
+            - {containerPort: 19559, name: http}
+          resources:
+            requests: {cpu: 200m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1.5Gi}
+          readinessProbe:
+            tcpSocket: {port: 9559}
+            initialDelaySeconds: 15
+          volumeMounts:
+            - {name: config, mountPath: /etc/nebula/config}
+            - {name: data, mountPath: /data}
+      volumes:
+        - name: config
+          configMap: {name: nebula-config}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 5Gi}}}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nebula-storaged
+  namespace: infra
+spec:
+  serviceName: nebula-storaged
+  replicas: 1
+  selector:
+    matchLabels: {app: nebula, component: storaged}
+  template:
+    metadata:
+      labels: {app: nebula, component: storaged}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "19779"
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: storaged
+          image: vesoft/nebula-storaged:v3.8.3
+          command: ["/bin/sh", "-ecx"]
+          args:
+            - >
+              export POD_IP=$(hostname -i | awk '{print $1}') &&
+              sed -e "s/\$(POD_IP)/$POD_IP/g" /etc/nebula/config/storaged.conf > /etc/nebula/config/rendered.conf &&
+              exec /usr/local/nebula/bin/nebula-storaged --flagfile=/etc/nebula/config/rendered.conf
+          ports:
+            - {containerPort: 9779, name: thrift}
+            - {containerPort: 19779, name: http}
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "1", memory: 2Gi}
+          readinessProbe:
+            tcpSocket: {port: 9779}
+            initialDelaySeconds: 20
+          volumeMounts:
+            - {name: config, mountPath: /etc/nebula/config}
+            - {name: data, mountPath: /data}
+      volumes:
+        - name: config
+          configMap: {name: nebula-config}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], storageClassName: local-path, resources: {requests: {storage: 20Gi}}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nebula-graphd
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: nebula, component: graphd}
+  template:
+    metadata:
+      labels: {app: nebula, component: graphd}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "19669"
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: graphd
+          image: vesoft/nebula-graphd:v3.8.3
+          command: ["/bin/sh", "-ecx"]
+          args:
+            - >
+              export POD_IP=$(hostname -i | awk '{print $1}') &&
+              sed -e "s/\$(POD_IP)/$POD_IP/g" /etc/nebula/config/graphd.conf > /etc/nebula/config/rendered.conf &&
+              exec /usr/local/nebula/bin/nebula-graphd --flagfile=/etc/nebula/config/rendered.conf
+          ports:
+            - {containerPort: 9669, name: thrift}
+            - {containerPort: 19669, name: http}
+          resources:
+            requests: {cpu: 200m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          readinessProbe:
+            tcpSocket: {port: 9669}
+            initialDelaySeconds: 15
+          volumeMounts:
+            - {name: config, mountPath: /etc/nebula/config}
+      volumes:
+        - name: config
+          configMap: {name: nebula-config}
+---
+# 初始化: 注册 storage host + 创建知识图谱 space/schema
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nebula-init
+  namespace: infra
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: vesoft/nebula-console:v3.8.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              G="-addr nebula-graphd -port 9669 -u root -p nebula -e "
+              until nebula-console $G "SHOW HOSTS" >/dev/null 2>&1; do sleep 3; done
+              STOR=$(getent hosts nebula-storaged-0.nebula-storaged.infra.svc.cluster.local | awk '{print $1}')
+              nebula-console $G "ADD HOSTS \"$STOR\":9779" || true
+              nebula-console $G "CREATE SPACE IF NOT EXISTS kg33618 (partition_num=10, replica_factor=1, vid_type=FIXED_STRING(64))"
+              sleep 5
+              nebula-console $G -e "USE kg33618; CREATE TAG IF NOT EXISTS industry(name string, cluster string); CREATE TAG IF NOT EXISTS knowledge_point(name string, subject string, difficulty int); CREATE TAG IF NOT EXISTS resource(res_id string, type string); CREATE TAG IF NOT EXISTS post(name string); CREATE EDGE IF NOT EXISTS belongs_to(); CREATE EDGE IF NOT EXISTS prerequisite(weight double); CREATE EDGE IF NOT EXISTS relates_to(weight double); CREATE EDGE IF NOT EXISTS requires(); CREATE EDGE IF NOT EXISTS covers();"
+              nebula-console $G -e "USE kg33618; SUBMIT JOB STATS" || true

@@ -1,0 +1,228 @@
+# 千人千面平台 GraphQL 统一 Schema — 7 域聚合
+# 设计原则: 前端(App/小程序/PC)只对接本 Gateway; DataLoader 批量解析防 N+1;
+#           各域仍保留 REST(内部调用), 对外统一 GraphQL。
+
+# ========== Tenant 域 ==========
+type Tenant {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  status: String!
+  quota: JSON
+  branding: JSON
+  createdAt: String
+  updatedAt: String
+}
+
+# ========== User 域 ==========
+type User {
+  id: ID!
+  tenantId: ID!
+  username: String!
+  email: String!
+  phone: String
+  status: String!
+  roles: [Role!]!
+  createdAt: String
+}
+
+type Role {
+  id: ID!
+  code: String!
+  name: String!
+  permissions: [String!]!
+}
+
+# ========== Course 域 ==========
+type Course {
+  id: ID!
+  tenantId: ID!
+  code: String!
+  name: String!
+  description: String
+  subject: String
+  status: String!
+  chapters: [Chapter!]!
+  knowledgePoints: [KnowledgePoint!]!
+  resources(filter: ResourceFilter): [Resource!]!
+}
+
+type Chapter {
+  id: ID!
+  code: String!
+  name: String!
+  parentId: ID
+  order: Int
+  difficulty: Int
+}
+
+type KnowledgePoint {
+  id: ID!
+  code: String!
+  name: String!
+  chapterId: ID
+  difficulty: Int
+  mastery(studentId: ID!): Float
+}
+
+type Resource {
+  id: ID!
+  code: String!
+  type: String!
+  title: String!
+  difficulty: Int
+  status: String!
+}
+
+input ResourceFilter {
+  type: String
+  difficultyMax: Int
+  status: String
+}
+
+# ========== Teaching 域 ==========
+type LearningPath {
+  id: ID!
+  title: String!
+  description: String
+  status: String!
+  steps: [LearningPathStep!]!
+}
+
+type LearningPathStep {
+  id: ID!
+  sequence: Int!
+  stepType: String!
+  title: String!
+  isRequired: Boolean!
+  status: String!
+}
+
+type Assignment {
+  id: ID!
+  title: String!
+  status: String!
+  maxScore: Int!
+  dueAt: String
+}
+
+# ========== KT 域(知识追踪) ==========
+type Mastery {
+  studentId: ID!
+  skillId: String!
+  mastery: Float!
+  level: String!
+  source: String
+}
+
+type LearningRecommendation {
+  skillId: String!
+  skillName: String
+  action: String!
+  reason: String!
+  priority: Int!
+  targetMastery: Float!
+}
+
+type MemoryProfile {
+  studentId: ID!
+  l1EventCount: Int!
+  l2Summaries: Int!
+  l3ProfileVersion: Int!
+  learningStyle: LearningStyle
+}
+
+type LearningStyle {
+  visual: Float!
+  auditory: Float!
+  kinesthetic: Float!
+  reading: Float!
+  dominant: String!
+}
+
+type ReviewPlan {
+  skillId: String!
+  dueAt: String!
+  intervalDays: Int!
+  easeFactor: Float!
+  retention: Float!
+  zpdFit: Boolean!
+}
+
+type SkillGap {
+  skillId: String!
+  gapType: String!
+  severity: String!
+  description: String!
+}
+
+# ========== AI 域 ==========
+type GeneratedResource {
+  id: ID!
+  type: String!
+  title: String!
+  content: String!
+  qualityScore: Float
+  reviewStatus: String!
+}
+
+# ========== Ops 域 ==========
+type ServiceHealth {
+  name: String!
+  status: String!
+  readyReplicas: Int!
+  desiredReplicas: Int!
+  cpuUsage: Float
+  memoryUsage: Float
+}
+
+type CacheStats {
+  layer: String!
+  hitRate: Float!
+  size: Long!
+  evictions: Long!
+}
+
+union Entity = Tenant | User | Course
+
+# ========== 查询 ==========
+type Query {
+  tenant(id: ID!): Tenant
+  tenants(status: String, page: Int = 0, size: Int = 20): [Tenant!]!
+  user(id: ID!): User
+  users(tenantId: ID!, page: Int = 0, size: Int = 20): [User!]!
+  course(id: ID!): Course
+  courses(tenantId: ID!, subject: String, page: Int = 0, size: Int = 20): [Course!]!
+  learningPath(id: ID!): LearningPath
+  learningPaths(courseId: ID!): [LearningPath!]!
+  assignments(courseId: ID!): [Assignment!]!
+  mastery(studentId: ID!, skillId: String!): Mastery
+  masteryProfile(studentId: ID!, skillIds: [String!]!): [Mastery!]!
+  recommendations(studentId: ID!, limit: Int = 5): [LearningRecommendation!]!
+  memoryProfile(studentId: ID!): MemoryProfile
+  reviewPlan(studentId: ID!): [ReviewPlan!]!
+  skillGaps(studentId: ID!, courseId: ID): [SkillGap!]!
+  generatedResource(id: ID!): GeneratedResource
+  serviceHealth(name: String): [ServiceHealth!]!
+  cacheStats: [CacheStats!]!
+  nodes(ids: [ID!]!): [Entity!]!
+}
+
+# ========== 变更 ==========
+type Mutation {
+  createTenant(code: String!, name: String!, description: String): Tenant!
+  updateTenantStatus(id: ID!, status: String!): Tenant!
+  createUser(tenantId: ID!, username: String!, email: String!, password: String!, roleIds: [ID!]): User!
+  generateResource(courseId: ID!, type: String!, topic: String!, studentId: ID): GeneratedResource!
+  recordLearningEvent(studentId: ID!, skillId: String!, correct: Boolean!, bloomLevel: String): Mastery!
+}
+
+# ========== 订阅(实时推送, 经 realtime-gateway WS 通道) ==========
+type Subscription {
+  masteryUpdated(studentId: ID!): Mastery!
+  opsAlert(severity: String): ServiceHealth!
+}
+
+scalar JSON
+scalar Long

@@ -1,0 +1,17 @@
+# 高职(职业本科)档 — OpenMAIC 教育层级 profile(内置默认的显式化)
+id: vocational
+display: 高职(职业本科)
+bloomCeiling: apply
+scaffolding: high
+interaction:
+  maxTurns: 6
+  socraticLevel: guided
+  depthTarget: apply
+  breadthBranches: 2
+  giveAnswerOnMiss: true
+promptModifiers:
+  audience: 高职/职业本科学生, 重视动手与产业情境
+  style: 任务驱动, 案例先行, 理论够用为度, 深度嵌入 33618 产业场景
+workflow: standard
+slotOverrides: {}
+reviewWeights: {accuracy: 0.3, fit: 0.3, industry: 0.25, safety: 0.15}

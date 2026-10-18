@@ -1,0 +1,4 @@
+/* 全局基础样式(tokens 见 tokens.css, 由 tools/build_tokens.py 生成) */
+body { font-family: var(--font-family, 'PingFang SC', Roboto, sans-serif); color: var(--neutrals-text); }
+.card-mastery { border-left: 4px solid var(--mastery-mid); }
+.text-secondary { color: var(--neutrals-textSecondary); }

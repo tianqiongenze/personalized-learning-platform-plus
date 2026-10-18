@@ -1,0 +1,57 @@
+# =============================================================================
+# region-b overlay —— 多区域多活(备区域 / 承载分流与容灾)
+# 部署: kubectl apply -k k8s/overlays/regions/region-b   (指向 region-b 集群 context)
+# 与 region-a 差异: 副本基数更低(成本/容量按区域权重分配), 其余清单同构。
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 注意: 不设置 `namespace:` —— base 跨 qianrenqianmian/infra/monitoring, 区域间以
+# 独立集群承载同名命名空间(单元化), 命名空间以各清单声明为准。
+resources:
+  - ../../../base
+
+# 区域副本基线(region-b 为备区, 基数低于 region-a; 仍受 HPA-100K 上限 60 约束)
+replicas:
+  - {name: tenant-service, count: 3}
+  - {name: iam-service, count: 3}
+  - {name: course-service, count: 4}
+  - {name: teaching-service, count: 3}
+  - {name: graphql-gateway, count: 3}
+  - {name: ai-service, count: 3}
+  - {name: agent-service, count: 3}
+  - {name: realtime-gateway, count: 3}
+  - {name: kt-service, count: 3}
+
+# 区域标签
+labels:
+  - includeSelectors: false
+    pairs:
+      environment: production
+      topology.kubernetes.io/region: region-b
+      topology.kubernetes.io/zone: az-b1
+      managed-by: kustomize
+
+# 区域参数注入
+configMapGenerator:
+  - name: platform-plus-config
+    behavior: merge
+    literals:
+      - REGION=region-b
+      - CRDB_LOCALITY_REGION=region-b
+      - CRDB_LOCALITY_ZONE=az-b1
+      - PULSAR_CLUSTER=region-b
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - target: {kind: StatefulSet, name: cockroachdb}
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: "--locality=region=region-b,zone=az-b1"
+  - target: {kind: StatefulSet, name: pulsar-broker}
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value: {name: PULSAR_PREFIX_clusterName, value: "region-b"}

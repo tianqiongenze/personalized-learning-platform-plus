@@ -1,0 +1,48 @@
+server:
+  port: 8096
+  servlet:
+    context-path: /api/v1/ops
+
+spring:
+  application:
+    name: ops-service
+  data:
+    redis:
+      # 集群既有 Redis Cluster
+      # dify-plus redis8-svc (round-robin across 3 cluster nodes)
+      host: ${REDIS_HOST:redis8-svc.dify-plus.svc.cluster.local}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+app:
+  k8s:
+    namespaces: ${OPS_WATCH_NAMESPACES:platform-plus,middleware,monitoring}
+  endpoints:
+    prometheus: ${PROMETHEUS_URL:http://kube-prometheus-stack-prometheus.monitoring:9090}
+    grafana: ${GRAFANA_URL:http://kube-prometheus-stack-grafana.monitoring:80}
+    loki: ${LOKI_URL:http://loki-stack.monitoring:3100}
+    milvus: ${MILVUS_HOST:milvus.middleware}:${MILVUS_PORT:19530}
+    nebula-graphd: ${NEBULA_GRAPH_HOST:nebula-graphd.middleware}:${NEBULA_GRAPH_PORT:19669}
+    pulsar: ${PULSAR_HTTP_URL:http://pulsar-broker.middleware:8080}
+  grafana:
+    sa-token: ${GRAFANA_SA_TOKEN:}
+  security:
+    jwt-secret: ${JWT_SECRET:change-me-ops}
+
+logging:
+  level:
+    com.platform.ops: ${LOG_LEVEL:INFO}

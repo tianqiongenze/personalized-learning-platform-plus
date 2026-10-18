@@ -1,0 +1,166 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /api/v1
+  shutdown: graceful
+
+spring:
+  application:
+    name: iam-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    # 生产: 集群既有 CockroachDB (CRDB_JDBC_HOST_PORT 由 ConfigMap 注入)
+    # 开发: 本地 PostgreSQL
+    url: ${DATASOURCE_URL:jdbc:postgresql://${CRDB_JDBC_HOST_PORT:localhost:5432}/iam_db?sslmode=${CRDB_SSLMODE:disable}}
+    # TiDB 切换: 设 DATASOURCE_URL=jdbc:mysql://tidb.infra:4000/iam_db + DB_DRIVER=com.mysql.cj.jdbc.Driver + HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        # CRDB 与 PG 双兼容: 通过 profile 切换方言(dev=PostgreSQL / prod=Cockroach)
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.CockroachDialect}
+        jdbc.batch_size: 30
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+  data:
+    redis:
+      # 多级缓存 L2: 集群既有 Redis Cluster(6 节点); 本地开发回退单机
+      # dify-plus redis8-svc (round-robin across 3 cluster nodes)
+      host: ${REDIS_HOST:redis8-svc.dify-plus.svc.cluster.local}
+      port: ${REDIS_PORT:6379}
+      timeout: 3s
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true       # 拓扑自适应: 主从切换/moved 自动感知
+            period: 30s
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+    jpa:
+      repositories:
+        bootstrap-mode: lazy
+  pulsar:
+    client:
+      service-url: ${PULSAR_SERVICE_URL:pulsar://localhost:6650}
+    producer:
+      send-timeout: 5s
+    consumer:
+      subscription-name: ${spring.application.name}-sub
+
+# ---- 多级缓存(platform-common 自动装配): L1 Caffeine + L2 Redis Cluster ----
+# 以及事件总线、服务韧性开关、CORS —— 统一挂在 app: 之下
+app:
+  jwt:
+    secret: ${JWT_SECRET}   # 修复: 移除内置默认密钥(原默认值一旦带入生产即等于全站可被伪造 token); 未注入时启动即失败(fail-fast)
+    access-token-expiration: 86400000
+    refresh-token-expiration: 604800000
+  cache:
+    enabled: true
+    metrics: true
+    l1:
+      max-size: 10000
+      expire-after-write: 5m
+      expire-after-access: 10m
+    l2:
+      time-to-live: 30m
+      cache-null-values: false
+      key-prefix: "iam:"
+      invalidation-channel: "plp:cache:invalidate"
+    specs:
+      # 按业务缓存名精细化配置(示例)
+      courseDetail:
+        max-size: 20000
+        expire-after-write: 10m
+        redis-ttl: 60m
+  events:
+    enabled: true
+    default-topic: persistent://public/default/domain-events
+  resilience:
+    enabled: true
+  cors:
+    allowed-origins: ${CORS_ORIGINS:https://ops.example.edu,https://web.example.edu}   # 修复: 原默认通配 "*", 违反最小暴露面(等保2.0三级); 由运维按高校域名注入
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
+# ---- 服务韧性(Resilience4j): 状态由统一运维平台经 Micrometer 读取 ----
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+  ratelimiter:
+    instances:
+      default:
+        limit-for-period: 200
+        limit-refresh-period: 1s
+        timeout-duration: 500ms
+        register-health-indicator: true
+  retry:
+    instances:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+
+management:
+  health:
+    redis:
+      enabled: false   # L2 fail-open: 禁用 Redis 健康探测(否则 /health 挂起 2-3s, 压测下拖垮线程池)
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,caches,circuitbreakers,ratelimiters,archaius
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      namespace: ${POD_NAMESPACE:platform-plus}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,300ms,500ms,1s
+
+logging:
+  level:
+    com.platform.iam: ${LOG_LEVEL:INFO}
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [trace=%X{traceId:-}] - %msg%n"

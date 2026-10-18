@@ -1,0 +1,19 @@
+# 研究生(博士)档 — OpenMAIC 教育层级 profile
+id: graduate
+display: 研究生(硕博)
+bloomCeiling: create
+scaffolding: low
+interaction:
+  maxTurns: 10
+  socraticLevel: socratic
+  depthTarget: create
+  breadthBranches: 4
+  giveAnswerOnMiss: false
+promptModifiers:
+  audience: 研究生/博士, 面向学术前沿与原创研究
+  style: 探究驱动, 强调开放问题、方法论批判与文献综述, 鼓励提出可检验假设
+workflow: two_phase
+slotOverrides:
+  course.outline: qwen2.5-32b-instruct
+  exercise: qwen2.5-32b-instruct
+reviewWeights: {accuracy: 0.4, fit: 0.2, industry: 0.1, safety: 0.3}

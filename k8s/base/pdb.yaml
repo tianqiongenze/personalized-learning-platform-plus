@@ -1,0 +1,125 @@
+# =============================================================================
+# PodDisruptionBudget —— 保障滚动升级 / 节点排空 / 缩容时不损失可用性
+# 策略: 核心服务 minAvailable 50%(配合 HPA min>=4, 任意时刻至少一半在线);
+#       有状态中间件见各自清单(如 cockroachdb-pdb maxUnavailable: 1)。
+# 依赖: policy/v1 (K8s 1.28 稳定)。
+# =============================================================================
+# ---------- 核心业务服务(qianrenqianmian) ----------
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: tenant-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: tenant-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: iam-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: iam-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: course-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: course-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: teaching-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: teaching-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: graphql-gateway-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: graphql-gateway}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ai-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: ai-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: agent-service-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: agent-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: realtime-gateway-pdb
+  namespace: qianrenqianmian
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: realtime-gateway}}
+---
+# ---------- 中间件 / 推理(infra) ----------
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kt-service-pdb
+  namespace: infra
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: kt-service}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vector-reranker-pdb
+  namespace: infra
+spec:
+  minAvailable: 50%
+  selector: {matchLabels: {app: vector-reranker}}
+---
+# ---------- 中间件(infra): 高可用约束 ----------
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-cluster-pdb
+  namespace: infra
+spec:
+  minAvailable: 8            # 12 节点(6主6从), 至少保留 8 在线
+  selector: {matchLabels: {app: redis-cluster}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pulsar-broker-pdb
+  namespace: infra
+spec:
+  minAvailable: 1
+  selector: {matchLabels: {app: pulsar, component: broker}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: milvus-pdb
+  namespace: infra
+spec:
+  minAvailable: 1
+  selector: {matchLabels: {app: milvus, component: standalone}}

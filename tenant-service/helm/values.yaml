@@ -1,0 +1,187 @@
+# tenant-service Helm Values Template
+
+# Default values for tenant-service
+replicaCount: 2
+
+image:
+  repository: tenant-service
+  pullPolicy: IfNotPresent
+  tag: "1.0.0-SNAPSHOT"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8081
+  targetPort: 8081
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  hosts:
+    - host: tenant-api.platform.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tenant-service-tls
+      hosts:
+        - tenant-api.platform.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - tenant-service
+          topologyKey: kubernetes.io/hostname
+
+# Application configuration
+config:
+  spring:
+    profiles:
+      active: prod
+    datasource:
+      url: jdbc:postgresql://postgresql:5432/tenant_db
+      username: postgres
+      password: ${POSTGRES_PASSWORD}
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 5
+    redis:
+      host: redis
+      port: 6379
+      database: 0
+    jpa:
+      hibernate:
+        ddl-auto: validate
+      show-sql: false
+    flyway:
+      enabled: true
+      locations: classpath:db/migration
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 86400000
+  app:
+    cors:
+      allowed-origins: "https://platform.example.com"
+      allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      allowed-headers: "*"
+      allow-credentials: true
+
+# External dependencies (deployed separately)
+postgresql:
+  enabled: false
+  host: postgresql
+  port: 5432
+  database: tenant_db
+  username: postgres
+  password: ${POSTGRES_PASSWORD}
+
+redis:
+  enabled: false
+  host: redis
+  port: 6379
+  password: ${REDIS_PASSWORD}
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 8081
+    path: /actuator/prometheus
+  grafana:
+    enabled: true
+    dashboards:
+      - name: tenant-service-overview
+        file: dashboards/tenant-service-overview.json
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.platform.tenant: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8081
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /actuator/health/startup
+    port: 8081
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30

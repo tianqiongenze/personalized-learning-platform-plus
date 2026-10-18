@@ -1,0 +1,4 @@
+com.platform.common.cache.MultiLevelCacheAutoConfiguration
+com.platform.common.tenant.TenantWebAutoConfiguration
+com.platform.common.db.CrdbMigrationAutoConfiguration
+com.platform.common.web.WebErrorAutoConfiguration

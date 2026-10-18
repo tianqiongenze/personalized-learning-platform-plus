@@ -1,0 +1,19 @@
+[package]
+name = "vector-reranker"
+version = "1.0.0"
+edition = "2021"
+
+# 为什么用 Rust: 检索重排(RRF 融合 + MMR 多样性)是纯 CPU 密集计算,
+# 教学高峰并发检索时需要稳定尾延迟(P99), 无 GC 停顿; 单二进制 ~10MB, 内存占用极低,
+# 适合与 Milvus 同节点部署。选 axum(tokio)而非 actix: 生态与 tokio 统一。
+[dependencies]
+axum = "0.7"
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[profile.release]
+lto = true
+codegen-units = 1

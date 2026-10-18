@@ -1,0 +1,48 @@
+# ===== 构建产物 =====
+target/
+build/
+out/
+dist/
+.next/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ===== 依赖 =====
+node_modules/
+.pnpm-store/
+
+# ===== 运行期产物 =====
+*.log
+logs/
+*.pid
+*.hprof
+*.tmp
+
+# ===== 生成数据与模型（体积大，可由脚本重新生成）=====
+# data/scale100m   : 1 亿级交互合成数据（tools/datagen.py 生成）
+# data/reco_model  : ALS 训练产物（tools/train_recommender.py 生成）
+data/scale100m/
+data/reco_model/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# ===== IDE / OS =====
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ===== 压测临时产物 =====
+locust/reports/**/*.html
+
+# ===== 编译产物（平台相关二进制）=====
+realtime-gateway/realtime-gateway-linux
+realtime-gateway/realtime-gateway-windows.exe

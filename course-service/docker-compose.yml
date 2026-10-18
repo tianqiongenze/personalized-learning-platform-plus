@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: course-service-postgres
+    environment:
+      POSTGRES_DB: course_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d course_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - course-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: course-service-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - course-network
+    restart: unless-stopped
+
+  # Course Service
+  course-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: course-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/course_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - LOG_LEVEL=INFO
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - course-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Flyway Migration (optional, for manual migration)
+  flyway:
+    image: flyway/flyway:10-alpine
+    container_name: course-service-flyway
+    command: -url=jdbc:postgresql://postgres:5432/course_db -user=postgres -password=${POSTGRES_PASSWORD:-postgres} migrate
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - course-network
+    restart: "no"
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  course-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
