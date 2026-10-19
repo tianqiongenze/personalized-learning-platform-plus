@@ -4,7 +4,7 @@
 |---|---|
 | 编号 | ADR-005 |
 | 标题 | TiFlash 分析型读路径(HTAP 行转列) |
-| 状态 | Accepted(读路径设计)/ Partial(副本同步 DEFERRED, 见 §6) |
+| 状态 | Accepted(读路径设计 + 副本同步已修复, 见 §6) |
 | 日期 | 2026-10-18 |
 | 关联 | ADR-004(双存储切换)、docs/ANALYSIS_TIFLASH.md(逐模块适配性分析)、k8s/base/tidb.yaml |
 | Supersedes | 无 |
@@ -73,18 +73,33 @@ ALTER TABLE kt_answer_events SET TIFLASH REPLICA 1;
 
 ---
 
-## 6. 实测状态(2026-10-18, 诚实记录 / HSA 铁律)
+## 6. 实测状态(2026-10-19 终态, 诚实记录 / HSA 铁律)
 
 | 验证项 | 结果 |
 |---|---|
-| `SET TIFLASH REPLICA 1`(teaching_db 5 表) | ✅ 执行成功, `INFORMATION_SCHEMA.TIFLASH_REPLICA` 有记录(REPLICA_COUNT=1) |
-| replica AVAILABLE | ❌ **=0** — tiflash store(10057)Up 但 `Cannot lock file /data/status` 残留锁致历史实例反复 CrashLoop, PD 中积累 6 个 Down 态 tiflash store(8684/8694/8723/9001/10055/10057)未回收 |
-| `EXPLAIN ... GROUP BY` | `cop[tikv]`(预期, replica 不可用时优化器正确回退行存, 降级路径闭环) |
-| MPP 变量 | `tidb_allow_mpp=ON`, `tidb_enforce_mpp=OFF`, `tiflash_replica_read=all_replicas` ✅ |
+| `SET TIFLASH REPLICA 1`(teaching_db 5 表 + esp.users, 共 6 表) | ✅ 执行成功, `INFORMATION_SCHEMA.TIFLASH_REPLICA` REPLICA_COUNT=1 × 6 |
+| replica AVAILABLE | ✅ **=1 × 6** — store 10162 Up, `peer_address=<POD_IP>:20170`, `tiflash_proxy_tikv_raftstore_region_count{type="region"}=6` |
+| MPP 列存读 | ✅ `SELECT /*+ READ_FROM_STORAGE(TIFLASH[users]) */ COUNT(*) FROM esp.users` = 1000(经 TiFlash 副本返回) |
+| `EXPLAIN ... GROUP BY` | replica 不可用时优化器自动回退 `cop[tikv]`(降级路径闭环, 修复期间实证) |
+| MPP 变量 | `tidb_allow_mpp=ON`, `tidb_enforce_mpp=OFF` ✅ |
 
-**恢复步骤(DEFERRED, 操作时遵守 BRR 铁律: 先 backup / 单 pod 试点 / 每步可回滚)**:
+### 6.1 根因链复盘(AVAILABLE=0 → 1, 完整证据)
 
-1. `tiup ctl:v8.5.8 pd -u http://pd-0.infra:2379 store delete <id>` 回收 6 个 Down store(或等 PD max-store-down-time 自动置 Offline)。
-2. 核实 `tiflash-data` PVC 上无存活进程后, 清理 `/data/status` 锁文件(或直接重建 PVC — 表为空无数据损失)。
-3. 重启 tiflash pod, 观察 store 注册为 Up 且仅 1 个存活 store。
-4. `SELECT AVAILABLE, PROGRESS FROM INFORMATION_SCHEMA.TIFLASH_REPLICA` → AVAILABLE=1; `EXPLAIN` 复查 `cop[tiflash]`。
+1. **陈旧空文件挂载**: 早期 Deployment 在容器内以 subPath 挂载 `/data/proxy.toml`(指向 ConfigMap), 该挂载移除后 **PVC 上残留 0 字节 `/data/proxy.toml`**。
+2. **配置路径误导**: `[proxy].config` 指向 `/data/proxy.toml` → proxy 读到空文件 → 所有 addr 回退默认值。
+3. **127.0.0.1 注册**: proxy 以 `addr=127.0.0.1:20170` 向 PD 注册 `peer_address` → 其他节点 tikv leader 连 `127.0.0.1:20170` 全部 Connection refused → learner 收不到任何 raft 消息/快照 → `region_count=0` → AVAILABLE=0。
+4. **store-ID 漂移**: 每次重启因 "duplicated store address" FATAL 换新 store ID(10055→10057→…→10155), PD 积累 10+ 个 Offline/Down store。
+5. **死锁**: PD 拒绝 tombstone Offline store(region 上仍挂 learner peer), 而 learner 无法搬迁到新 store(tiflash 单副本且 pod 起不来)— **单副本 tiflash 的 placements-rule 死锁**。
+6. **gen8 修复关键**: 按 TiDB v8.5 官方文档, proxy 的 raft addr 必须写在**主 config.toml 的 `[flash.proxy]` 段**(键: `addr`/`advertise-addr`/`status-addr`), **不是** `[proxy]` 段、也**不消费**外部 proxy.toml 的这些键; `[proxy].config` 仅用于 proxy 其余参数。
+7. **placement 手术**: 临时 DELETE 全部 tiflash placement rules → PD 立即清掉 6 region 上的死 learner peer → 两个 Offline store 成功 tombstone → 恢复 rules → 新 store 10162 获得 6 个 learner → 快照回放 → AVAILABLE=1。
+8. **`/data/status` 锁**: CrashLoop 时残留 PID 锁, 需在 PVC 上 `rm /data/status` 后重启(已纳入 Deployment 收尾流程考量)。
+
+### 6.2 运维红线(写入 k8s/base/tidb.yaml 注释与本文)
+
+- 改 proxy raft addr 只改主 config.toml `[flash.proxy]` 段(gen-config initContainer 已固化该逻辑)。
+- tiflash pod 异常重启循环时: 先检查 `/data/status` 残留锁 → 再查 PD `duplicated store address` → 必要时 placement-rule 临时清空(操作顺序见 6.1 第 7 步, 遵守 BRR: 规则先 backup 再动)。
+- 多节点扩容时 tiflash replicas≥2 以消除单副本 placement 死锁模式。
+
+### 6.3 历史修复记录(过程证据, 备份于 10.167.2.175:/root/plpp-backup-20261019/)
+
+gen2→gen8 共 7 次 init 脚本迭代; 每次均先 `kubectl get deploy tiflash -o yaml` 落盘备份再 patch; 最终态已 DGO 回写 `k8s/base/tidb.yaml`(gen-config initContainer 生成 `[flash.proxy]` 段 + 移除 `/data/proxy.toml` subPath 挂载 + 移除失效 tiflash-proxy-config ConfigMap)。

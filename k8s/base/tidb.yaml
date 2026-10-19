@@ -204,7 +204,7 @@ data:
 
     [proxy]
 
-    addr = "PLACEHOLDER_POD_IP:3930"
+    addr = "0.0.0.0:3930"
 
     advertise-addr = "PLACEHOLDER_POD_IP:3930"
 
@@ -231,46 +231,13 @@ data:
 
     data-dir = "/data/proxy"
 
-    addr = "PLACEHOLDER_POD_IP:20170"
+    addr = "0.0.0.0:20170"
 
     advertise-addr = "PLACEHOLDER_POD_IP:20170"
 
-    status-addr = "0.0.0.0:20172"
+    status-addr = "0.0.0.0:20292"
 
-    advertise-status-addr = "PLACEHOLDER_POD_IP:20172"
-
-    [storage]
-
-    data-dir = "/data/proxy"
-
-    '
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tiflash-proxy-config
-  namespace: infra
-  labels: {}
-data:
-  proxy.toml: 'log-level = "info"
-
-    log-file = "/data/proxy.log"
-
-
-    [raft]
-
-    pd_addr = "pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379"
-
-    data-dir = "/data/proxy"
-
-    addr = "0.0.0.0:20171"
-
-    advertise-addr = "tiflash.infra.svc.cluster.local:20171"
-
-    status-addr = "0.0.0.0:20173"
-
-    advertise-status-addr = "tiflash.infra.svc.cluster.local:20173"
-
+    advertise-status-addr = "PLACEHOLDER_POD_IP:20292"
 
     [storage]
 
@@ -936,7 +903,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: pingcap/tiflash:v8.5.8-x86v1
+        image: 10.167.2.175:30500/base/pingcap/tiflash:v8.5.8-x86v1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 10
@@ -967,13 +934,10 @@ spec:
           name: data
         - mountPath: /etc/tiflash
           name: generated-config
-        - mountPath: /data/proxy.toml
-          name: proxy-config
-          subPath: proxy.toml
       dnsPolicy: ClusterFirst
       initContainers:
       - args:
-        - 'import os
+        - 'import os, re
 
           ip = os.environ.get("POD_IP", "127.0.0.1")
 
@@ -981,15 +945,41 @@ spec:
 
           out = tmpl.replace("PLACEHOLDER_POD_IP", ip)
 
+          # gen8 (ADR-005 §6): [proxy] bind addr must be 0.0.0.0 so tikv leaders on
+          # other nodes can reach the engine; per TiDB v8.5 docs the proxy raft addr
+          # MUST live under [flash.proxy] in the main config.toml (not [proxy] and
+          # not an external proxy.toml file) - keys: addr/advertise-addr/status-addr.
+          out = re.sub(r''(\[proxy\][^\[]*?)addr = "[^"]+:3930"'',
+          r''\1addr = "0.0.0.0:3930"'', out, flags=re.S)
+
+          out = out.replace(''config = "/data/proxy.toml"'', ''config = "/etc/tiflash/proxy.toml"'')
+
+          fp = (''\n[flash.proxy]\n''
+          ''addr = "0.0.0.0:20170"\n''
+          ''advertise-addr = "%s:20170"\n''
+          ''status-addr = "0.0.0.0:20292"\n''
+          ''advertise-status-addr = "%s:20292"\n''
+          ''config = "/etc/tiflash/proxy.toml"\n'') % (ip, ip)
+
+          out = out.rstrip() + "\n" + fp
+
           open("/gen/config.toml", "w").write(out)
 
-          pt = open("/tmpl/proxy.toml").read()
+          proxy = (''log-level = "info"\n''
+          ''log-file = "/data/proxy.log"\n''
+          ''addr = "0.0.0.0:20170"\n''
+          ''advertise-addr = "%s:20170"\n''
+          ''status-addr = "0.0.0.0:20292"\n''
+          ''advertise-status-addr = "%s:20292"\n''
+          ''\n[raft]\n''
+          ''pd_addr = "pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379"\n''
+          ''data-dir = "/data/proxy"\n''
+          ''\n[storage]\n''
+          ''data-dir = "/data/proxy"\n'') % (ip, ip)
 
-          pt2 = pt.replace("PLACEHOLDER_POD_IP", ip)
+          open("/gen/proxy.toml", "w").write(proxy)
 
-          open("/gen/proxy.toml", "w").write(pt2)
-
-          print("generated config with ip:", ip)
+          print("gen8: [flash.proxy] set, advertise=%s" % ip)
 
           '
         command:
@@ -1001,7 +991,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: python:3.11-alpine
+        image: 10.167.2.175:30500/base/python:3.11-alpine
         imagePullPolicy: IfNotPresent
         name: gen-config
         resources: {}
@@ -1026,7 +1016,3 @@ spec:
         name: config-template
       - emptyDir: {}
         name: generated-config
-      - configMap:
-          defaultMode: 420
-          name: tiflash-proxy-config
-        name: proxy-config

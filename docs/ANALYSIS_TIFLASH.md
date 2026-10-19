@@ -12,7 +12,7 @@
 |---|---|
 | 适合 TiFlash 行转列 | **5 类分析型读负载**: KT 知识追踪批量评测统计、学习行为时序聚合、教师端报表、租户级运营统计、考试/作业成绩分布 |
 | 不适合(保持 TiKV 行存) | 高频点写(签到/作答提交/SRS 复习/outbox relay)与强一致点查(登录鉴权/课程详情), **这些表不建 tiflash replica** |
-| 现状偏差 | 当前四库表几乎全空(仅 iam_db.users=61 行), TiFlash replica 同步(AVAILABLE=0)因 tiflash store 反复 CrashLoop(`Cannot lock file /data/status`)未能完成 — 见 §6 DEFERRED |
+| 现状偏差 | 当前四库表几乎全空(仅 esp.users=1000 行), TiFlash replica 已建立并 AVAILABLE=1(2026-10-19 修复, 见 §6 / ADR-005 §6) |
 
 **核心判断规则**(与 ESP ADR-24 复盘一致): TiFlash 的收益来自「少量列的聚合扫描 × 大行数」, 代价是额外一份列存副本的存储 + raft log 同步延迟(秒级, 不适合强一致读)。PLPP 的 OLTP 主路径(点写/点查)必须留在 TiKV; 只有**读放大明显、允许秒级陈旧的聚合查询**才值得行转列。
 
@@ -100,13 +100,15 @@
 
 ---
 
-## 6. DEFERRED 项(诚实记录, HSA 铁律)
+## 6. DEFERRED 项(诚实记录, HSA 铁律; 2026-10-19 终态更新)
 
 | 项 | 状态 | 原因 | 恢复步骤 |
 |---|---|---|---|
-| tiflash replica AVAILABLE=1 | **DEFERRED** | tiflash pod 反复 CrashLoop: 旧实例 `/data/status` 锁文件残留(`Cannot lock file /data/status`)导致新 pod 无法独占数据目录; store 10057 短暂 Up 后旧 store 心跳互踩; 且集群存在 6 个历史 Down 态 tiflash store(8684/8694/8723/9001/10055/10057)未被 PD 回收 | ① `tiup ctl pd` 下线/回收 Down store; ② 确认 PVC `tiflash-data` 上无残留进程后清 `/data/status`; ③ 重启 tiflash pod 单实例独占; ④ 复查 `INFORMATION_SCHEMA.TIFLASH_REPLICA.AVAILABLE=1` + `EXPLAIN` 出现 `cop[tiflash]` |
+| tiflash replica AVAILABLE=1 | ✅ **已修复(2026-10-19)** | 根因链: PVC 残留 0 字节 `/data/proxy.toml` → proxy 配置回退默认 → 以 `peer_address=127.0.0.1:20170` 注册 PD → 跨节点 tikv leader 连接全部被拒 → learner 收不到 raft 消息 → AVAILABLE=0; 叠加 store-ID 漂移 + 单副本 placement-rule 死锁。修复: gen8 init 脚本把 raft addr 写入主 config.toml `[flash.proxy]` 段(v8.5 官方文档口径)+ 临时清空 tiflash placement rules 解除死锁 + tombstone 残留 store + 清 `/data/status` 锁。完整复盘见 ADR-005 §6.1 | 已完成, 无需恢复 |
 | credit_transfer_records 建 replica | DEFERRED | 行数不足, 建了无收益 | 数据量 > 10 万行后执行 |
 | kt_answer_events 表 + replica | DEFERRED | 表本身未建(规划项) | ADR-005 路线图 Phase2 |
 | learning_events 分析窄表 | DEFERRED | PLPP 尚无该表 | 同上 |
+
+**修复后实测(2026-10-19)**: 6 表(esp.users + teaching_db 5 表)AVAILABLE=1; `tiflash_proxy_tikv_raftstore_region_count{type="region"}=6`; `SELECT /*+ READ_FROM_STORAGE(TIFLASH[users]) */ COUNT(*) FROM esp.users`=1000 经 TiFlash 副本返回。
 
 > 部署维度说明: 任务要求的"最小集群 pd×1+tikv×1"在执行时发现 infra 已存在 v8.5.8 三副本集群(8 天前部署), 且 TiFlash v8.5 与 TiDB v8.5.8 版本一致(符合 SVD 铁律: 版本三态对齐)。为避免与现有集群冲突(两个 PD 集群抢 port/资源), **不另建最小集群**, 改为"复用现有集群 + 把 live 清单固化进仓库(k8s/base/tidb.yaml)"满足 DGO 要求, 并如实记录。
