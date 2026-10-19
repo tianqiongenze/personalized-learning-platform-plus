@@ -30,6 +30,8 @@ spec:
         env:
         - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
           value: "true"
+        - name: APP_STORAGE_TYPE
+          value: "${APP_STORAGE_TYPE:cockroachdb}"   # ADR-004: cockroachdb(默认)|tidb; 切 tidb 需同步 SPRING_DATASOURCE_URL/DRIVER/HIBERNATE_DIALECT 组
         envFrom:
         - configMapRef:
             name: platform-plus-config

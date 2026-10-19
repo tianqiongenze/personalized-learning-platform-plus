@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/tokens.ts","./src/components/aiassistant.tsx","./src/pages/cache.tsx","./src/pages/logs.tsx","./src/pages/overview.tsx","./src/pages/pulsar.tsx","./src/pages/services.tsx"],"version":"6.0.2"}
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/tokens.ts","./src/components/aiassistant.tsx","./src/pages/cache.tsx","./src/pages/logs.tsx","./src/pages/overview.tsx","./src/pages/pulsar.tsx","./src/pages/services.tsx"],"version":"5.9.3"}

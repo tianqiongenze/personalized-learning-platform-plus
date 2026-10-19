@@ -1,0 +1,1032 @@
+# =====================================================================
+# PLPP TiDB + TiFlash 集群清单 (k8s/base/tidb.yaml)
+# 由 live cluster (infra ns, 2026-10-18) 固化回写 — DGO 铁律
+# 版本: v8.5.8 全组件一致 (SVD 铁律: spec image == pod image == runtime)
+# 镜像: pingcap/pd,tikv,tidb,tiflash:v8.5.8-x86v1 (节点经 daocloud mirror 拉取)
+# 集群形态: pd×3 + tikv×3 + tidb×1 + tiflash×1 (Deployment, 非 TiDB Operator)
+# 应用接入: jdbc:mysql://tidb.infra:4000/<db> (NodePort 30210 供集群外验证)
+# =====================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tidb
+  namespace: infra
+  labels:
+    app: tidb
+spec:
+  type: ClusterIP
+  selector:
+    app: tidb
+  ports:
+  - name: mysql
+    port: 4000
+    protocol: TCP
+    targetPort: 4000
+  - name: status
+    port: 10080
+    protocol: TCP
+    targetPort: 10080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tidb-np
+  namespace: infra
+  labels:
+    app: tidb
+spec:
+  type: NodePort
+  selector:
+    app: tidb
+  ports:
+  - name: mysql
+    nodePort: 30210
+    port: 4000
+    protocol: TCP
+    targetPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiflash
+  namespace: infra
+  labels:
+    app: tiflash
+spec:
+  type: ClusterIP
+  selector:
+    app: tiflash
+  ports:
+  - name: raft
+    port: 20170
+    protocol: TCP
+    targetPort: 20170
+  - name: proxy
+    port: 20171
+    protocol: TCP
+    targetPort: 20171
+  - name: status
+    port: 20292
+    protocol: TCP
+    targetPort: 20292
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tikv
+  namespace: infra
+  labels:
+    app: tikv
+spec:
+  type: ClusterIP
+  selector:
+    app: tikv
+  ports:
+  - name: tikv
+    port: 20160
+    protocol: TCP
+    targetPort: 20160
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tikv-0
+  namespace: infra
+  labels: {}
+spec:
+  type: ClusterIP
+  selector:
+    app: tikv
+    instance: tikv-0
+  ports:
+  - name: tikv
+    port: 20160
+    protocol: TCP
+    targetPort: 20160
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tikv-1
+  namespace: infra
+  labels: {}
+spec:
+  type: ClusterIP
+  selector:
+    app: tikv
+    instance: tikv-1
+  ports:
+  - name: tikv
+    port: 20160
+    protocol: TCP
+    targetPort: 20160
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tikv-2
+  namespace: infra
+  labels: {}
+spec:
+  type: ClusterIP
+  selector:
+    app: tikv
+    instance: tikv-2
+  ports:
+  - name: tikv
+    port: 20160
+    protocol: TCP
+    targetPort: 20160
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pd-config
+  namespace: infra
+  labels:
+    app: pd
+data:
+  start.sh: "#!/bin/sh\nexec /pd-server \\\n  --name=${PD_NAME} \\\n  --client-urls=http://0.0.0.0:2379\
+    \ \\\n  --peer-urls=http://0.0.0.0:2380 \\\n  --advertise-client-urls=http://${PD_HOST}.infra.svc.cluster.local:2379\
+    \ \\\n  --advertise-peer-urls=http://${PD_HOST}.infra.svc.cluster.local:2380 \\\
+    \n  --data-dir=/data \\\n  --initial-cluster=pd-0=http://pd-0.infra.svc.cluster.local:2380,pd-1=http://pd-1.infra.svc.cluster.local:2380,pd-2=http://pd-2.infra.svc.cluster.local:2380\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tikv-config
+  namespace: infra
+  labels: {}
+data:
+  tikv.toml: '[rocksdb]
+
+    max-open-files = 256
+
+    [raftdb]
+
+    max-open-files = 256
+
+    [server]
+
+    status-addr = "0.0.0.0:20180"
+
+    [storage.block-cache]
+
+    capacity = "1GB"
+
+    '
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tiflash-config-template
+  namespace: infra
+  labels: {}
+data:
+  config.toml.template: '[logger]
+
+    errorlog = "/data/err.log"
+
+    log = "/data/info.log"
+
+    log_level = "info"
+
+    [storage]
+
+    [storage.main]
+
+    dir = ["/data"]
+
+    [raft]
+
+    pd_addr = "pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379"
+
+    [proxy]
+
+    addr = "PLACEHOLDER_POD_IP:3930"
+
+    advertise-addr = "PLACEHOLDER_POD_IP:3930"
+
+    data-dir = "/data/proxy"
+
+    config = "/data/proxy.toml"
+
+    [flash]
+
+    tidb_status_addr = "tidb.infra.svc.cluster.local:10080"
+
+    service_addr = "PLACEHOLDER_POD_IP:3930"
+
+    [flash_proxy]
+
+    '
+  proxy.toml: 'log-level = "info"
+
+    log-file = "/data/proxy.log"
+
+    [raft]
+
+    pd_addr = "pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379"
+
+    data-dir = "/data/proxy"
+
+    addr = "PLACEHOLDER_POD_IP:20170"
+
+    advertise-addr = "PLACEHOLDER_POD_IP:20170"
+
+    status-addr = "0.0.0.0:20172"
+
+    advertise-status-addr = "PLACEHOLDER_POD_IP:20172"
+
+    [storage]
+
+    data-dir = "/data/proxy"
+
+    '
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tiflash-proxy-config
+  namespace: infra
+  labels: {}
+data:
+  proxy.toml: 'log-level = "info"
+
+    log-file = "/data/proxy.log"
+
+
+    [raft]
+
+    pd_addr = "pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379"
+
+    data-dir = "/data/proxy"
+
+    addr = "0.0.0.0:20171"
+
+    advertise-addr = "tiflash.infra.svc.cluster.local:20171"
+
+    status-addr = "0.0.0.0:20173"
+
+    advertise-status-addr = "tiflash.infra.svc.cluster.local:20173"
+
+
+    [storage]
+
+    data-dir = "/data/proxy"
+
+    '
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pd-0-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pd-1-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pd-2-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tikv-0-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tikv-1-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tikv-2-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tiflash-data
+  namespace: infra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pd-0
+  namespace: infra
+  labels:
+    app: pd
+    component: pd
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pd
+      instance: pd-0
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pd
+        component: pd
+        instance: pd-0
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - /start.sh
+        env:
+        - name: PD_NAME
+          value: pd-0
+        - name: PD_HOST
+          value: pd-0
+        image: pingcap/pd:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 20
+          periodSeconds: 30
+          successThreshold: 1
+          tcpSocket:
+            port: 2379
+          timeoutSeconds: 1
+        name: pd
+        ports:
+        - containerPort: 2379
+          protocol: TCP
+        - containerPort: 2380
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /start.sh
+          name: start
+          subPath: start.sh
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pd-0-data
+      - configMap:
+          defaultMode: 493
+          name: pd-config
+        name: start
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pd-1
+  namespace: infra
+  labels:
+    app: pd
+    component: pd
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pd
+      instance: pd-1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pd
+        component: pd
+        instance: pd-1
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - /start.sh
+        env:
+        - name: PD_NAME
+          value: pd-1
+        - name: PD_HOST
+          value: pd-1
+        image: pingcap/pd:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 20
+          periodSeconds: 30
+          successThreshold: 1
+          tcpSocket:
+            port: 2379
+          timeoutSeconds: 1
+        name: pd
+        ports:
+        - containerPort: 2379
+          protocol: TCP
+        - containerPort: 2380
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /start.sh
+          name: start
+          subPath: start.sh
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pd-1-data
+      - configMap:
+          defaultMode: 493
+          name: pd-config
+        name: start
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pd-2
+  namespace: infra
+  labels:
+    app: pd
+    component: pd
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pd
+      instance: pd-2
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pd
+        component: pd
+        instance: pd-2
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - /start.sh
+        env:
+        - name: PD_NAME
+          value: pd-2
+        - name: PD_HOST
+          value: pd-2
+        image: pingcap/pd:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 20
+          periodSeconds: 30
+          successThreshold: 1
+          tcpSocket:
+            port: 2379
+          timeoutSeconds: 1
+        name: pd
+        ports:
+        - containerPort: 2379
+          protocol: TCP
+        - containerPort: 2380
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /start.sh
+          name: start
+          subPath: start.sh
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pd-2-data
+      - configMap:
+          defaultMode: 493
+          name: pd-config
+        name: start
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tikv-0
+  namespace: infra
+  labels:
+    app: tikv
+    component: tikv
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tikv
+      instance: tikv-0
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tikv
+        component: tikv
+        instance: tikv-0
+    spec:
+      containers:
+      - args:
+        - --addr=0.0.0.0:20160
+        - --advertise-addr=tikv-0.infra.svc.cluster.local:20160
+        - --data-dir=/data
+        - --pd=pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379
+        - --config=/etc/tikv/tikv.toml
+        command:
+        - /tikv-server
+        image: pingcap/tikv:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          periodSeconds: 15
+          successThreshold: 1
+          tcpSocket:
+            port: 20160
+          timeoutSeconds: 1
+        name: tikv
+        ports:
+        - containerPort: 20160
+          protocol: TCP
+        resources:
+          limits:
+            cpu: '6'
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /etc/tikv
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: tikv-0-data
+      - configMap:
+          defaultMode: 420
+          name: tikv-config
+        name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tikv-1
+  namespace: infra
+  labels:
+    app: tikv
+    component: tikv
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tikv
+      instance: tikv-1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tikv
+        component: tikv
+        instance: tikv-1
+    spec:
+      containers:
+      - args:
+        - --addr=0.0.0.0:20160
+        - --advertise-addr=tikv-1.infra.svc.cluster.local:20160
+        - --data-dir=/data
+        - --pd=pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379
+        - --config=/etc/tikv/tikv.toml
+        command:
+        - /tikv-server
+        image: pingcap/tikv:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          periodSeconds: 15
+          successThreshold: 1
+          tcpSocket:
+            port: 20160
+          timeoutSeconds: 1
+        name: tikv
+        ports:
+        - containerPort: 20160
+          protocol: TCP
+        resources:
+          limits:
+            cpu: '6'
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /etc/tikv
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: tikv-1-data
+      - configMap:
+          defaultMode: 420
+          name: tikv-config
+        name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tikv-2
+  namespace: infra
+  labels:
+    app: tikv
+    component: tikv
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tikv
+      instance: tikv-2
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tikv
+        component: tikv
+        instance: tikv-2
+    spec:
+      containers:
+      - args:
+        - --addr=0.0.0.0:20160
+        - --advertise-addr=tikv-2.infra.svc.cluster.local:20160
+        - --data-dir=/data
+        - --pd=pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379
+        - --config=/etc/tikv/tikv.toml
+        command:
+        - /tikv-server
+        image: pingcap/tikv:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          periodSeconds: 15
+          successThreshold: 1
+          tcpSocket:
+            port: 20160
+          timeoutSeconds: 1
+        name: tikv
+        ports:
+        - containerPort: 20160
+          protocol: TCP
+        resources:
+          limits:
+            cpu: '6'
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /etc/tikv
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: tikv-2-data
+      - configMap:
+          defaultMode: 420
+          name: tikv-config
+        name: config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tidb
+  namespace: infra
+  labels:
+    app: tidb
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tidb
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tidb
+    spec:
+      containers:
+      - args:
+        - --store=tikv
+        - --path=pd-0.infra.svc.cluster.local:2379,pd-1.infra.svc.cluster.local:2379,pd-2.infra.svc.cluster.local:2379
+        - --host=0.0.0.0
+        - -P=4000
+        - --status=10080
+        command:
+        - /tidb-server
+        image: pingcap/tidb:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          periodSeconds: 15
+          successThreshold: 1
+          tcpSocket:
+            port: 4000
+          timeoutSeconds: 1
+        name: tidb
+        ports:
+        - containerPort: 4000
+          protocol: TCP
+        - containerPort: 10080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 10080
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: '8'
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiflash
+  namespace: infra
+  labels: {}
+  annotations:
+    plpp.io/origin: live-cluster-2026-10-18 (DGO 回写)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tiflash
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2026-10-19T15:49:53+08:00'
+      creationTimestamp: null
+      labels:
+        app: tiflash
+    spec:
+      containers:
+      - command:
+        - /tiflash/tiflash
+        - server
+        - --config-file=/etc/tiflash/config.toml
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: pingcap/tiflash:v8.5.8-x86v1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          periodSeconds: 30
+          successThreshold: 1
+          tcpSocket:
+            port: 3930
+          timeoutSeconds: 1
+        name: tiflash
+        ports:
+        - containerPort: 3930
+          protocol: TCP
+        - containerPort: 20170
+          protocol: TCP
+        - containerPort: 20292
+          protocol: TCP
+        resources:
+          limits:
+            cpu: '2'
+            memory: 8Gi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /etc/tiflash
+          name: generated-config
+        - mountPath: /data/proxy.toml
+          name: proxy-config
+          subPath: proxy.toml
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - 'import os
+
+          ip = os.environ.get("POD_IP", "127.0.0.1")
+
+          tmpl = open("/tmpl/config.toml.template").read()
+
+          out = tmpl.replace("PLACEHOLDER_POD_IP", ip)
+
+          open("/gen/config.toml", "w").write(out)
+
+          pt = open("/tmpl/proxy.toml").read()
+
+          pt2 = pt.replace("PLACEHOLDER_POD_IP", ip)
+
+          open("/gen/proxy.toml", "w").write(pt2)
+
+          print("generated config with ip:", ip)
+
+          '
+        command:
+        - python3
+        - -c
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: python:3.11-alpine
+        imagePullPolicy: IfNotPresent
+        name: gen-config
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmpl
+          name: config-template
+        - mountPath: /gen
+          name: generated-config
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: tiflash-data
+      - configMap:
+          defaultMode: 420
+          name: tiflash-config-template
+        name: config-template
+      - emptyDir: {}
+        name: generated-config
+      - configMap:
+          defaultMode: 420
+          name: tiflash-proxy-config
+        name: proxy-config
