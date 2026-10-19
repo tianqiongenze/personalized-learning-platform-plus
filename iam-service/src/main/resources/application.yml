@@ -3,6 +3,11 @@ server:
   servlet:
     context-path: /api/v1
   shutdown: graceful
+  undertow:
+    io-threads: 8
+    worker-threads: 200
+    buffer-size: 16384
+    direct-buffers: true
   tomcat:
     threads:
       max: 200

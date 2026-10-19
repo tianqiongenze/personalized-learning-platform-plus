@@ -2,6 +2,11 @@ server:
   port: 8096
   servlet:
     context-path: /api/v1/ops
+  undertow:
+    io-threads: 8
+    worker-threads: 200
+    buffer-size: 16384
+    direct-buffers: true
   tomcat:
     threads:
       max: 200
