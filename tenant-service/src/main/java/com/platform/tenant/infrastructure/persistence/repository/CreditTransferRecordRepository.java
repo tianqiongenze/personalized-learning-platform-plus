@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
  * 学分互认记录仓储（JPA 写入口）
  */
 @Repository
-public class CreditTransferRecordRepository {
+public class CreditTransferRecordRepository implements com.platform.tenant.domain.repository.CreditTransferRecordRepository {
 
     private final SpringDataCreditTransferRecordRepository jpaRepository;
 

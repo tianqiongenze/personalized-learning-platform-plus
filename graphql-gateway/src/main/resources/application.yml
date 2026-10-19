@@ -1,8 +1,16 @@
 server:
   port: 8097
   shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    max-connections: 8192
+    accept-count: 200
 
 spring:
+  main:
+    lazy-initialization: ${SPRING_MAIN_LAZY:false}
   application:
     name: graphql-gateway
   data:

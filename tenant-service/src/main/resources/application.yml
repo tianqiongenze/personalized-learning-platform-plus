@@ -3,10 +3,18 @@ server:
   servlet:
     context-path: /api/v1
   shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    max-connections: 8192
+    accept-count: 200
 
 spring:
   application:
     name: tenant-service
+  main:
+    lazy-initialization: ${SPRING_MAIN_LAZY:false}
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   lifecycle:

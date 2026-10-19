@@ -49,5 +49,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # JVM options for containerized environment
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+UseStringDeduplication"
 
+# Dev-only startup flags (default empty; e.g. JAVA_OPTS_DEV="-XX:TieredStopAtLevel=1 -noverify")
+ENV JAVA_OPTS_DEV=""
+
 # Run application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS $JAVA_OPTS_DEV -jar app.jar"]
