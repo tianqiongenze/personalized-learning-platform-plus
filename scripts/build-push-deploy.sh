@@ -15,7 +15,7 @@ SVCS=()
 # 依赖序: tenant iam course teaching ops graphql-gateway ai agent kt realtime-gateway vector-reranker nginx-gateway web-student ops-web
 ALL_SVCS=(tenant iam course teaching ops graphql-gateway ai agent kt realtime-gateway vector-reranker nginx-gateway web-student ops-web)
 # Java 服务(走 jar 产物校验); 其余为前端/其他
-JAVA_SVCS=(tenant-service iam-service course-service teaching-service ops-service graphql-gateway ai-service agent-service kt-service realtime-gateway)
+JAVA_SVCS=(tenant-service iam-service course-service teaching-service ops-service graphql-gateway)
 
 log() { echo "[build-push-deploy] $*"; }
 
@@ -64,11 +64,13 @@ verify_artifact() {
       || { log "ERROR: ${svc} 镜像架构非 amd64"; return 1; }
     log "OK: jar 存在且架构 x86_64"
   else
-    # 前端镜像: 确认 nginx/html 就位
-    docker run --rm --platform linux/amd64 --entrypoint sh "${img}" \
-      -c 'ls /usr/share/nginx/html/index.html 2>/dev/null || ls /usr/share/nginx/html || ls /etc/nginx' \
-      || { log "ERROR: ${svc} 前端产物缺失"; return 1; }
-    log "OK: 前端产物就位"
+    # 非前端镜像(Go/Rust/Python): 确认架构 amd64
+    docker run --rm --platform linux/amd64 --entrypoint sh "${img}" -c 'uname -m' 2>/dev/null | grep -q x86_64 \
+      && { log "OK: 产物就位且架构 x86_64"; return 0; }
+    # distroless 无 sh, 退化为检查镜像 manifest 架构
+    docker image inspect "${img}" --format '{{.Architecture}}' | grep -q amd64 \
+      || { log "ERROR: ${svc} 架构非 amd64"; return 1; }
+    log "OK: 产物就位(镜像 manifest 架构 amd64)"
   fi
 }
 

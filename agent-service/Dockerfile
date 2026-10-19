@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM 10.167.2.175:30500/base/python:3.13-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 COPY requirements.txt .

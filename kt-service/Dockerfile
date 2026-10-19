@@ -1,4 +1,4 @@
-FROM m.daocloud.io/docker.io/library/python:3.13
+FROM 10.167.2.175:30500/base/python:3.13
 ENV PYTHONUNBUFFERED=1 OPENBLAS_CORETYPE=HASWELL NPY_BLAS_ORDER=generic NPY_LAPACK_ORDER=generic
 WORKDIR /app
 COPY requirements.txt .

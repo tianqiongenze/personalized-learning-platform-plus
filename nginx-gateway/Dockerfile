@@ -1,7 +1,7 @@
 # Dockerfile for nginx-gateway
 # Uses nginx:alpine as base image
 
-FROM nginx:alpine
+FROM 10.167.2.175:30500/base/nginx:alpine
 
 # Install curl for health checks
 RUN apk add --no-cache curl
