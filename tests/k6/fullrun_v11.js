@@ -8,8 +8,8 @@
 //   写(kt/predict 为无持久化主写 + 少量 LP create 持久化写):
 //     W1 POST /api/v1/kt/predict                    (gateway -> teaching, 200)
 //     W2 POST /api/v1/learning-paths                (teaching NodePort, 201)
-// 登录: iam login 已知缺陷(TiDB unnest)→ 403, 仅以探测 tag 计入, 不作为失败依据。
-// 运行: BASE_URL=http://10.167.2.175:30081 k6 run tests/k6/fullrun_v11.js
+// 登录修复后(2026-10-22 e2e 51绿), TOKEN 以环境变量注入(k6 无法做 bcrypt 登录响应解析依赖, 由外层 shell 先取)。
+// 运行: TOKEN=<access> BASE_URL=http://10.167.2.175:30081 k6 run tests/k6/fullrun_v11.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate, Trend, Counter } from 'k6/metrics';
@@ -59,7 +59,7 @@ export const options = {
 };
 
 export default function () {
-  const H = { 'X-Tenant-Id': TENANT, 'Content-Type': 'application/json', ...HOST_HDR };
+  const H = { 'X-Tenant-Id': TENANT, 'Content-Type': 'application/json', ...HOST_HDR, Authorization: `Bearer ${__ENV.TOKEN}` };
   const r = Math.random();
 
   if (r < 0.30) {
@@ -75,14 +75,14 @@ export default function () {
     appErrors.add(res.status >= 500);
     check(res, { 'ops 200': (x) => x.status === 200 });
   } else if (r < 0.60) {
-    // R3 资源列表(course NodePort; 课程列表因 11.0.2+TiDB v8.5.8 x'' 二进制绑定回归 500, 见压测报告)
-    const res = http.get(`${NP_COURSE}/api/v1/resources?page=0&size=20&courseId=10000000-0000-0000-0000-000000000001`, { headers: { 'X-Tenant-Id': TENANT }, tags: { name: 'read-np' } });
+    // R3 资源列表(网关, UUID 绑定已 String 化修复)
+    const res = http.get(`${GW}/api/v1/resources?page=0&size=20&courseId=10000000-0000-0000-0000-000000000001`, { headers: H, tags: { name: 'read-gw' } });
     bizLatency.add(res.timings.duration);
     appErrors.add(res.status >= 500);
     check(res, { 'resources 200': (x) => x.status === 200 });
   } else if (r < 0.70) {
     // R4 学习路径列表(teaching NodePort, 网关路由缺口)
-    const res = http.get(`${NP_TEACH}/api/v1/learning-paths?page=0&size=20`, { headers: { 'X-Tenant-Id': TENANT }, tags: { name: 'read-np' } });
+    const res = http.get(`${GW}/api/v1/learning-paths?page=0&size=20`, { headers: H, tags: { name: 'read-gw' } });
     bizLatency.add(res.timings.duration);
     appErrors.add(res.status >= 500);
     check(res, { 'lp 200': (x) => x.status === 200 });
@@ -97,13 +97,13 @@ export default function () {
     appErrors.add(res.status >= 500);
     check(res, { 'predict 200': (x) => x.status === 200 });
   } else {
-    // W2 学习路径创建(低频持久化写, teaching NodePort)
-    const res = http.post(`${NP_TEACH}/api/v1/learning-paths`, JSON.stringify({
+    // W2 学习路径创建(低频持久化写, 网关)
+    const res = http.post(`${GW}/api/v1/learning-paths`, JSON.stringify({
       tenantId: TENANT,
       courseId: '10000000-0000-0000-0000-000000000001',
       title: `lt-${__VU}-${__ITER}-${Date.now()}`,
       totalSteps: 2,
-    }), { headers: { 'X-Tenant-Id': TENANT, 'Content-Type': 'application/json' }, tags: { name: 'write' } });
+    }), { headers: H, tags: { name: 'write' } });
     writeLatency.add(res.timings.duration);
     appErrors.add(res.status >= 500);
     check(res, { 'lp-create 2xx': (x) => x.status === 201 || x.status === 200 });

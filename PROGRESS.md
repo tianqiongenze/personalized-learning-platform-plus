@@ -54,3 +54,10 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - DGO 待回写: live tenant imagePullPolicy=Always patch 未回写 k8s/base/tenant-service.yaml(该文件 image 标签本就漂移,留待统一回写);iam LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG 临时 env 待回滚。
 - TiDB 全程零改动(仅 admin 行 password_hash 前缀 UPDATE)。
 - 下一步: 阶段5 K6+Locust 压测 → 阶段6 报告融合收口。
+
+## 2026-10-23 阶段5 压测收口
+
+- K6 双通道压测完成: 限流档 279.5 r/s, 读 p95 11.9ms/写 p95 18.3ms, 失败 11.5%(nginx limit_req 503, 预期防护); 放宽限流档后端 ≥1400r/s/源无饱和, 读 p95 7.8ms。热点 teaching-service CPU 331%/2.9核, 全组件内存 limits 内无 OOM。
+- 报告: report/2026-10-23-loadtest-report.md; 原始数据 report/loadtest-raw/。
+- 网关压测镜像已回滚正式 11.0.2(验证 200)。gateway.conf 新增 /api/v1/learning-paths 路由(部署验证 200)。
+- 遗留: k6-loadgen Job 化+no-thresholds 回写待做; Locust 未装(K6 覆盖同场景); iam DEBUG env 待回滚; tenant imagePullPolicy 待回写仓库 yaml。
