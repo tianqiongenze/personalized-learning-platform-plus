@@ -18,14 +18,15 @@ public interface SpringDataCreditTransferRuleRepository
         extends JpaRepository<CreditTransferRuleEntity, UUID> {
 
     @Query(value = "SELECT r.* FROM credit_transfer_rules r WHERE r.source_tenant_id = :tenantId", nativeQuery = true)
-    List<CreditTransferRuleEntity> findBySourceTenantId(@Param("tenantId") UUID tenantId);
+    // D-03 v2: native UUID 绑定 VARBINARY 撞 char(36), 统一传 String
+    List<CreditTransferRuleEntity> findBySourceTenantId(@Param("tenantId") String tenantId);
 
     @Query(value = "SELECT r.* FROM credit_transfer_rules r WHERE r.target_tenant_id = :tenantId", nativeQuery = true)
-    List<CreditTransferRuleEntity> findByTargetTenantId(@Param("tenantId") UUID tenantId);
+    List<CreditTransferRuleEntity> findByTargetTenantId(@Param("tenantId") String tenantId);
 
     @Query(value = "SELECT r.* FROM credit_transfer_rules r " +
            "WHERE r.source_tenant_id = :tenantId AND r.source_course_code = :courseCode " +
            "AND r.status = 'ACTIVE' LIMIT 1", nativeQuery = true)
-    Optional<CreditTransferRuleEntity> findActiveBySource(@Param("tenantId") UUID tenantId,
+    Optional<CreditTransferRuleEntity> findActiveBySource(@Param("tenantId") String tenantId,
                                                           @Param("courseCode") String courseCode);
 }

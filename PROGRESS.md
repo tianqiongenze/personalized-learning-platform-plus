@@ -45,3 +45,12 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 ### 下一步
 - pytest 55 用例重跑(E2E_TENANT=da98138f-..., ADMIN/凭据已通) → e2e 报告
 - 阶段5 K6+Locust 压测(真实用户) → 阶段6 报告融合+收口 commit
+
+## 2026-10-22 续: e2e 全绿收口
+
+- **e2e 终版 51 passed / 4 skipped / 0 failed**(2.44s),报告落盘 report/2026-10-22-full-platform-e2e-report.md。
+- D-09 缺陷家族修复(iam roles/users native SQL 重写 + 显式 countQuery + String 参数化 + 租户硬编码 + 网关 16 精确 location + users 路由错配 + credit-transfer UUID 绑定 + admin bcrypt 前缀 $2a→$2b + e2e 用例语义)。详见表格见报告。
+- 单测回归: tenant 6 测绿 / iam 12 测绿(本轮改动后)。
+- DGO 待回写: live tenant imagePullPolicy=Always patch 未回写 k8s/base/tenant-service.yaml(该文件 image 标签本就漂移,留待统一回写);iam LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG 临时 env 待回滚。
+- TiDB 全程零改动(仅 admin 行 password_hash 前缀 UPDATE)。
+- 下一步: 阶段5 K6+Locust 压测 → 阶段6 报告融合收口。

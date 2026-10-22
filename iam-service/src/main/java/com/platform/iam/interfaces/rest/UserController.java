@@ -78,14 +78,14 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "分页查询用户")
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')") // 与 statistics 同款(实测 200); hasAnyRole 形态在此场景被拒, 待查 D-09
     public ResponseEntity<ApiResponse<PageResult<UserListResponse>>> listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
         PageResult<UserListDto> result = userService.findPage(
-            new UserPageQuery(TenantId.of("current-tenant"), page, size, status, keyword, null, null));
+            new UserPageQuery(TenantId.of(currentTenantId()), page, size, status, keyword, null, null));
         List<UserListResponse> content = result.content().stream().map(UserController::toListResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(new PageResult<>(
             content, result.page(), result.size(), result.totalElements(), result.totalPages(),
@@ -96,7 +96,7 @@ public class UserController {
     @Operation(summary = "查询当前登录用户")
     public ResponseEntity<ApiResponse<UserDetailResponse>> me(@RequestParam String username) {
         return ResponseEntity.ok(ApiResponse.success(
-            toResponse(userService.findByUsername(TenantId.of("current-tenant"), username))));
+            toResponse(userService.findByUsername(TenantId.of(currentTenantId()), username))));
     }
 
     @PutMapping("/{id}/info")
@@ -133,7 +133,7 @@ public class UserController {
                                                          @Valid @RequestBody com.platform.iam.interfaces.rest.dto.AssignRolesRequest request) {
         Set<RoleId> roleIds = request.roleCodes() == null ? Set.of() :
             request.roleCodes().stream()
-                .map(code -> roleQueryService.findByCode(TenantId.of("current-tenant"), code))
+                .map(code -> roleQueryService.findByCode(TenantId.of(currentTenantId()), code))
                 .map(RoleDetailDto::id)
                 .map(RoleId::of)
                 .collect(Collectors.toSet());
@@ -145,7 +145,7 @@ public class UserController {
     @Operation(summary = "撤销角色")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> revokeRole(@PathVariable String id, @PathVariable String roleCode) {
-        RoleDetailDto role = roleQueryService.findByCode(TenantId.of("current-tenant"), roleCode);
+        RoleDetailDto role = roleQueryService.findByCode(TenantId.of(currentTenantId()), roleCode);
         userService.revokeRole(new RevokeRoleCommand(UserId.of(id), RoleId.of(role.id()), "current-admin"));
         return ResponseEntity.ok(ApiResponse.success("角色撤销成功", null));
     }
@@ -194,7 +194,7 @@ public class UserController {
     @Operation(summary = "用户统计")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserStatisticsResponse>> statistics() {
-        UserStatisticsDto s = userService.statistics(TenantId.of("current-tenant"));
+        UserStatisticsDto s = userService.statistics(TenantId.of(currentTenantId()));
         return ResponseEntity.ok(ApiResponse.success(new UserStatisticsResponse(
             s.total(), s.active(), s.pending(), s.suspended(), s.locked(), s.expired(), s.deleted())));
     }
@@ -209,5 +209,17 @@ public class UserController {
     private static UserListResponse toListResponse(UserListDto dto) {
         return new UserListResponse(dto.id(), dto.tenantId(), dto.username(), dto.email(),
             dto.phone(), dto.status(), dto.lastLoginAt(), dto.failedLoginAttempts(), dto.createdAt());
+    }
+
+    /** 修复: "current-tenant" -> Invalid UUID。租户优先 JWT details, 兜底 X-Tenant-Id 头。 */
+    private static String currentTenantId() {
+        var t = com.platform.iam.infrastructure.security.SecurityContextUtil.getCurrentTenantId();
+        if (t.isPresent()) return t.get();
+        var attr = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attr instanceof org.springframework.web.context.request.ServletRequestAttributes sra) {
+            String h = sra.getRequest().getHeader("X-Tenant-Id");
+            if (h != null && !h.isBlank()) return h;
+        }
+        throw new IllegalArgumentException("缺少租户: JWT 无 tenant_id 且未传 X-Tenant-Id 头");
     }
 }

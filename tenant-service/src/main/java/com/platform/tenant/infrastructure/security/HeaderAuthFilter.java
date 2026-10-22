@@ -39,7 +39,10 @@ public class HeaderAuthFilter extends OncePerRequestFilter {
         String userId = request.getHeader(USER_ID_HEADER);
         String rolesHeader = request.getHeader(USER_ROLES_HEADER);
 
-        if (rolesHeader != null && !rolesHeader.isBlank()) {
+        // 安全: 仅信任网关注入(网关 auth_request 已校验 JWT 并覆盖这些头);
+        // NodePort 直连可伪造 X-User-Roles, 必须凭 X-Gateway-Verified 防伪。
+        boolean gatewayVerified = "1".equals(request.getHeader("X-Gateway-Verified"));
+        if (gatewayVerified && rolesHeader != null && !rolesHeader.isBlank()) {
             List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesHeader.split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())

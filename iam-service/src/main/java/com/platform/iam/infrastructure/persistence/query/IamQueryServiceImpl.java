@@ -59,9 +59,11 @@ public class IamQueryServiceImpl implements UserQueryService, RoleQueryService {
 
     @Override
     public PageResult<UserListDto> findPage(UserPageQuery query) {
-        Page<UserEntity> page = userRepository.findWithFilters(query.tenantId().getValue(),
-                null, query.keyword(),
-                PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1)));
+        var upageable = PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1));
+        String ukw = query.keyword();
+        Page<UserEntity> page = (ukw == null || ukw.isBlank())
+                ? userRepository.findWithFiltersNoKeyword(query.tenantId().getValue().toString(), UserStatus.ACTIVE.name(), upageable)
+                : userRepository.findWithFiltersKeyword(query.tenantId().getValue().toString(), UserStatus.ACTIVE.name(), ukw, upageable);
         List<UserListDto> items = page.getContent().stream()
                 .map(IamQueryServiceImpl::toList).collect(Collectors.toList());
         return new PageResult<>(items, page.getNumber(), page.getSize(),
@@ -103,9 +105,12 @@ public class IamQueryServiceImpl implements UserQueryService, RoleQueryService {
 
     @Override
     public PageResult<RoleListDto> findPage(RolePageQuery query) {
-        Page<RoleEntity> page = roleRepository.findWithFilters(query.tenantId().getValue(),
-                null, query.keyword(), query.systemOnly(),
-                PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1)));
+        // 修复: findWithFilters(带 systemOnly/null 可选参数)已按 D-04 v2 拆为 keyword 分支
+        var pageable = PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1));
+        String kw = query.keyword();
+        Page<RoleEntity> page = (kw == null || kw.isBlank())
+                ? roleRepository.findWithFiltersNoKeyword(query.tenantId().getValue().toString(), RoleStatus.ACTIVE.name(), pageable)
+                : roleRepository.findWithFiltersKeyword(query.tenantId().getValue().toString(), RoleStatus.ACTIVE.name(), kw, pageable);
         List<RoleListDto> items = page.getContent().stream()
                 .map(IamQueryServiceImpl::toRoleList).collect(Collectors.toList());
         return new PageResult<>(items, page.getNumber(), page.getSize(),

@@ -28,27 +28,40 @@ public interface SpringDataRoleRepository extends JpaRepository<RoleEntity, UUID
 
     List<RoleEntity> findByIsSystemTrue();
 
-    @Query(value="SELECT r FROM roles r WHERE r.tenantId = :tenantId " +
-           "AND (:status IS NULL OR r.status = :status) " +
-           "AND (:keyword IS NULL OR LOWER(r.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+    // 修复: 原写 JPQL 语法却标 nativeQuery=true, TiDB 把 r.tenantId/r.createdAt
+    // 当字面驼峰列报 Unknown column。改真实原生 SQL(下划线列名)。
+    // 可选过滤(:status/:keyword null 二元绑定)沿用 course D-04 v2 教训: TiDB 对
+    // null 绑定按 binary 处理会撞 utf8mb4 —— 移除可选参数, 由调用方按空值分支。
+    @Query(value="SELECT r.* FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status " +
+           "AND (LOWER(r.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "AND (:systemOnly = false OR r.isSystem = true) " +
-           "ORDER BY r.createdAt DESC", nativeQuery=true)
-    Page<RoleEntity> findWithFilters(@Param("tenantId") UUID tenantId,
-                                      @Param("status") RoleStatus status,
-                                      @Param("keyword") String keyword,
-                                      @Param("systemOnly") boolean systemOnly,
-                                      Pageable pageable);
+           "ORDER BY r.created_at DESC",
+           countQuery="SELECT COUNT(*) FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status " +
+           "AND (LOWER(r.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%')))", nativeQuery=true)
+    Page<RoleEntity> findWithFiltersKeyword(@Param("tenantId") String tenantId,
+                                            @Param("status") String status,
+                                            @Param("keyword") String keyword,
+                                            Pageable pageable);
 
-    @Query(value="SELECT COUNT(r) FROM roles r WHERE r.tenantId = :tenantId " +
-           "AND (:status IS NULL OR r.status = :status) " +
-           "AND (:keyword IS NULL OR LOWER(r.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "AND (:systemOnly = false OR r.isSystem = true)", nativeQuery=true)
-    long countWithFilters(@Param("tenantId") UUID tenantId,
-                           @Param("status") RoleStatus status,
-                           @Param("keyword") String keyword,
-                           @Param("systemOnly") boolean systemOnly);
+    @Query(value="SELECT r.* FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status " +
+           "ORDER BY r.created_at DESC",
+           countQuery="SELECT COUNT(*) FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status", nativeQuery=true)
+    Page<RoleEntity> findWithFiltersNoKeyword(@Param("tenantId") String tenantId,
+                                              @Param("status") String status,
+                                              Pageable pageable);
+
+    @Query(value="SELECT COUNT(*) FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status " +
+           "AND (LOWER(r.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%')))", nativeQuery=true)
+    long countWithFiltersKeyword(@Param("tenantId") String tenantId,
+                                 @Param("status") String status,
+                                 @Param("keyword") String keyword);
+
+    @Query(value="SELECT COUNT(*) FROM roles r WHERE r.tenant_id = :tenantId AND r.status = :status", nativeQuery=true)
+    long countWithFiltersNoKeyword(@Param("tenantId") String tenantId,
+                                   @Param("status") String status);
+
 
     // D-03 修复: 原 native SQL "unnest(u.role_ids)" 为 PG 专有函数, TiDB 报
     // FUNCTION iam_db.unnest does not exist 导致登录 403。

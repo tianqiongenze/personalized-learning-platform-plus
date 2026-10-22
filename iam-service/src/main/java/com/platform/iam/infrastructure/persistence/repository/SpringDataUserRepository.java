@@ -35,23 +35,39 @@ public interface SpringDataUserRepository extends JpaRepository<UserEntity, UUID
 
     List<UserEntity> findByTenantIdAndStatus(UUID tenantId, UserStatus status);
 
-    @Query(value="SELECT u FROM users u WHERE u.tenantId = :tenantId " +
-           "AND (:status IS NULL OR u.status = :status) " +
-           "AND (:keyword IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+    // D-09 修复: 原 JPQL 语法标 nativeQuery=true -> TiDB 报 Unknown column 'u.createdAt'
+    // (错误页 403)。改真原生 SQL; 可选过滤按 D-04 v2 拆 keyword 分支; UUID/status
+    // 传 String 避免 VARBINARY/ordinal 绑定陷阱; 显式 countQuery 防 Spring 生成
+    // TiDB 不支持的 count(u.*)。
+    @Query(value="SELECT u.* FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status " +
+           "AND (LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY u.createdAt DESC", nativeQuery=true)
-    Page<UserEntity> findWithFilters(@Param("tenantId") UUID tenantId,
-                                      @Param("status") UserStatus status,
-                                      @Param("keyword") String keyword,
-                                      Pageable pageable);
-
-    @Query(value="SELECT COUNT(u) FROM users u WHERE u.tenantId = :tenantId " +
-           "AND (:status IS NULL OR u.status = :status) " +
-           "AND (:keyword IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "ORDER BY u.created_at DESC",
+           countQuery="SELECT COUNT(*) FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status " +
+           "AND (LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')))", nativeQuery=true)
-    long countWithFilters(@Param("tenantId") UUID tenantId,
-                           @Param("status") UserStatus status,
-                           @Param("keyword") String keyword);
+    Page<UserEntity> findWithFiltersKeyword(@Param("tenantId") String tenantId,
+                                            @Param("status") String status,
+                                            @Param("keyword") String keyword,
+                                            Pageable pageable);
+
+    @Query(value="SELECT u.* FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status " +
+           "ORDER BY u.created_at DESC",
+           countQuery="SELECT COUNT(*) FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status", nativeQuery=true)
+    Page<UserEntity> findWithFiltersNoKeyword(@Param("tenantId") String tenantId,
+                                              @Param("status") String status,
+                                              Pageable pageable);
+
+    @Query(value="SELECT COUNT(*) FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status " +
+           "AND (LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')))", nativeQuery=true)
+    long countWithFiltersKeyword(@Param("tenantId") String tenantId,
+                                 @Param("status") String status,
+                                 @Param("keyword") String keyword);
+
+    @Query(value="SELECT COUNT(*) FROM users u WHERE u.tenant_id = :tenantId AND u.status = :status", nativeQuery=true)
+    long countWithFiltersNoKeyword(@Param("tenantId") String tenantId,
+                                   @Param("status") String status);
 
     @Query(value = "SELECT * FROM users WHERE :roleId = ANY(role_ids)", nativeQuery = true)
     List<UserEntity> findByRoleIdsContaining(@Param("roleId") UUID roleId);

@@ -105,9 +105,13 @@ public class UserRepositoryImpl implements UserRepository {
     public List<User> findByTenantId(TenantId tenantId, int page, int size, String status, String keyword) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
-        UserStatus statusEnum = status != null ? UserStatus.valueOf(status.toUpperCase()) : null;
-        Page<UserEntity> result = jpaRepository.findWithFilters(tenantId.getValue(), statusEnum, keyword, pageable);
-        
+        UserStatus statusEnum = status != null ? UserStatus.valueOf(status.toUpperCase()) : UserStatus.ACTIVE;
+        Page<UserEntity> result;
+        if (keyword == null || keyword.isBlank()) {
+            result = jpaRepository.findWithFiltersNoKeyword(tenantId.getValue().toString(), statusEnum.name(), pageable);
+        } else {
+            result = jpaRepository.findWithFiltersKeyword(tenantId.getValue().toString(), statusEnum.name(), keyword, pageable);
+        }
         return result.getContent().stream()
             .map(mapper::toDomain)
             .collect(Collectors.toList());
@@ -115,8 +119,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public long countByTenantId(TenantId tenantId, String status, String keyword) {
-        UserStatus statusEnum = status != null ? UserStatus.valueOf(status.toUpperCase()) : null;
-        return jpaRepository.countWithFilters(tenantId.getValue(), statusEnum, keyword);
+        UserStatus statusEnum = status != null ? UserStatus.valueOf(status.toUpperCase()) : UserStatus.ACTIVE;
+        if (keyword == null || keyword.isBlank()) {
+            return jpaRepository.countWithFiltersNoKeyword(tenantId.getValue().toString(), statusEnum.name());
+        }
+        return jpaRepository.countWithFiltersKeyword(tenantId.getValue().toString(), statusEnum.name(), keyword);
     }
 
     @Override

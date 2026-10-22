@@ -15,7 +15,7 @@ import requests
 
 GW = os.getenv("E2E_GW", "http://10.167.2.175:30081")          # nginx-gateway 80
 GWS = os.getenv("E2E_GW_SSL", "https://10.167.2.175:30444")     # nginx-gateway 443
-TENANT = os.getenv("E2E_TENANT", "f4f85538-0a3a-4638-810e-3c9015cbee02")  # 真实租户 UUID(见 iam_db.users)
+TENANT = os.getenv("E2E_TENANT", "da98138f-486f-42db-944c-219a5a44bf52")  # TEN0001 赵伟实验学校(160k 用户所在租户)
 ADMIN_USER = os.getenv("E2E_USER", "admin")
 ADMIN_PASS = os.getenv("E2E_PASS", "Admin@12345")               # DB bcrypt 哈希本地验证匹配
 H = {"X-Tenant-Id": TENANT, "Content-Type": "application/json"}
@@ -50,6 +50,11 @@ GW_ROUTES = {
     "/api/v1/admin/": "iam",
     "/api/v1/ops/": "ops",
 }
+
+
+def gw(path):
+    """鉴权业务路径经网关(30081): X-Gateway-Verified 仅网关注入, NodePort 直连按安全设计 403。"""
+    return f"{GW}{path}"
 
 
 def req(method, url, headers=None, **kw):
@@ -123,10 +128,9 @@ def test_l1_actuator_health(svc):
 
 
 def test_l1_web_student_homepage():
-    """web-student 静态端 NodePort 30090。已知缺陷: k8s/base/new-services.yaml 声明了
-    Service(web-student, nodePort 30090), 但集群 live 无该 Service -> 连接拒绝(接线遗漏)。"""
-    r = requests.get(f"http://{HOST}:30090/", timeout=10)
-    assert r.status_code == 200, f"web-student 30090: {r.status_code}"
+    """web-student 静态端 NodePort 30096(live svc web-student 8080:30096)。"""
+    r = requests.get(f"http://{HOST}:30096/", timeout=10)
+    assert r.status_code == 200, f"web-student 30096: {r.status_code}"
 
 
 def test_l1_ops_web_clusterip_only():
@@ -186,15 +190,15 @@ def test_l2_tenant_crud_with_token(token):
         pytest.skip("iam 登录缺陷(TiDB 不支持 unnest)导致无 token, 鉴权链路整体跳过")
     a = ah(token)
     code = f"E{uuid.uuid4().hex[:6].upper()}"
-    r = req("POST", f"{np('tenant-service')}/api/v1/tenants", headers=a, json={
+    r = req("POST", gw("/api/v1/tenants"), headers=a, json={
         "code": code, "name": "E2E 高校", "description": "自动化",
         "quota": {"maxUsers": 100, "maxCourses": 10, "maxStorageGB": 5,
                   "maxApiCallsPerMin": 100, "maxConcurrentSessions": 50},
         "branding": {}, "config": {}, "adminUserId": "e2e-admin"})
     assert r.status_code in (200, 201), r.text[:200]
     tid = r.json()["data"]["id"]
-    assert req("GET", f"{np('tenant-service')}/api/v1/tenants/{tid}", headers=a).status_code == 200
-    assert req("GET", f"{np('tenant-service')}/api/v1/tenants/{tid}",
+    assert req("GET", gw(f"/api/v1/tenants/{tid}"), headers=a).status_code == 200
+    assert req("GET", gw(f"/api/v1/tenants/{tid}"),
                headers=dict(a, **{"X-Tenant-Id": TENANT})).status_code == 200
 
 
@@ -232,16 +236,16 @@ def test_l2_iam_user_lifecycle_with_token(token):
         pytest.skip("无 token(登录缺陷), 鉴权用例跳过")
     a = ah(token)
     username = f"e2e-{uuid.uuid4().hex[:6]}"
-    r = req("POST", f"{np('iam-service')}/api/v1/users", headers=a, json={
+    r = req("POST", gw("/api/v1/users"), headers=a, json={
         "username": username, "email": f"{username}@e2e.test",
-        "password": "Passw0rd!234", "phone": "", "roleCodes": ["STUDENT"]})
+        "password": "Passw0rd!234", "phone": "13" + uuid.uuid4().hex[:9], "roleCodes": ["STUDENT"]})
     assert r.status_code in (200, 201), r.text[:300]
     uid = r.json()["data"]["id"]
-    assert req("GET", f"{np('iam-service')}/api/v1/users/{uid}", headers=a).status_code == 200
-    assert req("GET", f"{np('iam-service')}/api/v1/users", headers=a,
+    assert req("GET", gw(f"/api/v1/users/{uid}"), headers=a).status_code == 200
+    assert req("GET", gw("/api/v1/users"), headers=a,
                params={"page": 0, "size": 10}).status_code == 200
     assert req("POST", f"{np('iam-service')}/api/v1/users/{uid}/activate", headers=a).status_code == 200
-    assert req("DELETE", f"{np('iam-service')}/api/v1/users/{uid}", headers=a,
+    assert req("DELETE", gw(f"/api/v1/users/{uid}"), headers=a,
                params={"reason": "e2e"}).status_code == 200
 
 
@@ -365,12 +369,12 @@ def test_l2_credit_transfer_full_flow_with_token(token):
         pytest.skip("无 token(登录缺陷): 规则创建/apply 均需 TENANT_ADMIN/SUPER_ADMIN, 无法测")
     a = ah(token)
     tgt = "00000000-0000-0000-0000-0000000000fe"
-    r = req("POST", f"{np('tenant-service')}/api/v1/credit-transfer/rules", headers=a, json={
+    r = req("POST", gw("/api/v1/credit-transfer/rules"), headers=a, json={
         "sourceTenantId": TENANT, "targetTenantId": tgt,
         "sourceCourseCode": f"CS{uuid.uuid4().hex[:4].upper()}",
         "targetCourseCode": "CS201", "creditRatio": 0.8, "minScore": 60})
     assert r.status_code == 201, r.text[:200]
-    lst = req("GET", f"{np('tenant-service')}/api/v1/credit-transfer/rules",
+    lst = req("GET", gw("/api/v1/credit-transfer/rules"),
               headers=a, params={"tenantId": TENANT})
     assert lst.status_code == 200 and isinstance(lst.json()["data"], list)
 
@@ -477,7 +481,8 @@ def test_l3_gateway_https_course_redirect():
     """443 入口: 业务路由可达(证书自签, verify=False)。observed 301(重定向), 证明 443 活"""
     r = requests.get(f"{GWS}/api/v1/courses?page=0&size=1", headers=H,
                      verify=False, allow_redirects=False, timeout=15)
-    assert r.status_code in (200, 301), f"443 入口异常: {r.status_code}"
+    # D-05/D-06 后: 无 Bearer 请求被 auth_request 拒(401/403), 带 Bearer 则 200/301
+    assert r.status_code in (200, 301, 401, 403), f"443 入口异常: {r.status_code}"
 
 
 def test_l3_outbox_events_no_error():

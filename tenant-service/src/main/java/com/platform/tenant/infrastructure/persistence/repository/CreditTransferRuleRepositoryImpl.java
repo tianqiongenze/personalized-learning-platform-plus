@@ -37,21 +37,21 @@ public class CreditTransferRuleRepositoryImpl implements CreditTransferRuleRepos
 
     @Override
     public List<CreditTransferRule> findBySourceTenantId(String sourceTenantId) {
-        return jpaRepository.findBySourceTenantId(UUID.fromString(sourceTenantId)).stream()
+        return jpaRepository.findBySourceTenantId(sourceTenantId).stream()
             .map(this::toDomain)
             .collect(Collectors.toList());
     }
 
     @Override
     public List<CreditTransferRule> findByTargetTenantId(String targetTenantId) {
-        return jpaRepository.findByTargetTenantId(UUID.fromString(targetTenantId)).stream()
+        return jpaRepository.findByTargetTenantId(targetTenantId).stream()
             .map(this::toDomain)
             .collect(Collectors.toList());
     }
 
     @Override
     public Optional<CreditTransferRule> findActiveBySource(String sourceTenantId, String sourceCourseCode) {
-        return jpaRepository.findActiveBySource(UUID.fromString(sourceTenantId), sourceCourseCode)
+        return jpaRepository.findActiveBySource(sourceTenantId, sourceCourseCode)
             .map(this::toDomain);
     }
 

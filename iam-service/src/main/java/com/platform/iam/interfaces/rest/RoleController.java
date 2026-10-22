@@ -42,7 +42,7 @@ class RoleController {
             Set.of();
         
         RoleId roleId = roleService.createRole(new CreateRoleCommand(
-            TenantId.of("current-tenant"), request.code(), request.name(),
+            TenantId.of(currentTenantId()), request.code(), request.name(),
             request.description(), request.isSystem(), permissions
         ));
         
@@ -70,8 +70,12 @@ class RoleController {
             @Parameter(description = "关键词搜索") @RequestParam(required = false) String keyword,
             @Parameter(description = "仅系统角色") @RequestParam(defaultValue = "false") boolean systemOnly) {
         
+        // 修复: 硬编码 "current-tenant" -> TenantId.of 抛 Invalid UUID 500(错误页 403)。
+        // 租户取 JWT details(登录按用户所属租户签发), 兜底 X-Tenant-Id 头。
+        String tenantRaw = com.platform.iam.infrastructure.security.SecurityContextUtil.getCurrentTenantId()
+            .orElseGet(this::currentTenantHeader);
         RolePageQuery query = new RolePageQuery(
-            TenantId.of("current-tenant"), page, size, status, keyword, systemOnly, "createdAt", "desc"
+            TenantId.of(tenantRaw), page, size, status, keyword, systemOnly, "createdAt", "desc"
         );
         
         PageResponse<RoleListResponse> response = RoleDtoAssembler.fromPage(roleService.findPage(query));
@@ -158,5 +162,23 @@ class RoleController {
             @Valid @RequestBody DeleteRoleRequest request) {
         roleService.deleteRole(new DeleteRoleCommand(RoleId.of(id), "current-user", request.reason()));
         return ResponseEntity.ok(ApiResponse.success("角色删除成功", null));
+    }
+
+    /**
+     * 修复: 硬编码 "current-tenant" 使 TenantId.of 抛 Invalid UUID(500→错误页403)。
+     * 租户优先取 JWT details, 兜底 X-Tenant-Id 请求头。
+     */
+    private String currentTenantId() {
+        return com.platform.iam.infrastructure.security.SecurityContextUtil.getCurrentTenantId()
+            .orElseGet(this::currentTenantHeader);
+    }
+
+    private String currentTenantHeader() {
+        var attr = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attr instanceof org.springframework.web.context.request.ServletRequestAttributes sra) {
+            String h = sra.getRequest().getHeader("X-Tenant-Id");
+            if (h != null && !h.isBlank()) return h;
+        }
+        throw new IllegalArgumentException("缺少租户: JWT 无 tenant_id 且未传 X-Tenant-Id 头");
     }
 }

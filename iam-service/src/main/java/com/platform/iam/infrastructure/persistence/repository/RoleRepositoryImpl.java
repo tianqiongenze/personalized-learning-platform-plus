@@ -64,9 +64,14 @@ public class RoleRepositoryImpl implements RoleRepository {
     public List<Role> findByTenantId(TenantId tenantId, int page, int size, String status, String keyword) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
-        RoleStatus statusEnum = status != null ? RoleStatus.valueOf(status.toUpperCase()) : null;
-        Page<RoleEntity> result = jpaRepository.findWithFilters(tenantId.getValue(), statusEnum, keyword, false, pageable);
-        
+        // status 必填语义: 控制器未传时默认 ACTIVE(原 SQL "status IS NULL" 分支已删, 见 D-04 v2)
+        RoleStatus statusEnum = status != null ? RoleStatus.valueOf(status.toUpperCase()) : RoleStatus.ACTIVE;
+        Page<RoleEntity> result;
+        if (keyword == null || keyword.isBlank()) {
+            result = jpaRepository.findWithFiltersNoKeyword(tenantId.getValue().toString(), statusEnum.name(), pageable);
+        } else {
+            result = jpaRepository.findWithFiltersKeyword(tenantId.getValue().toString(), statusEnum.name(), keyword, pageable);
+        }
         return result.getContent().stream()
             .map(mapper::toDomain)
             .collect(Collectors.toList());
@@ -74,8 +79,11 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public long countByTenantId(TenantId tenantId, String status, String keyword) {
-        RoleStatus statusEnum = status != null ? RoleStatus.valueOf(status.toUpperCase()) : null;
-        return jpaRepository.countWithFilters(tenantId.getValue(), statusEnum, keyword, false);
+        RoleStatus statusEnum = status != null ? RoleStatus.valueOf(status.toUpperCase()) : RoleStatus.ACTIVE;
+        if (keyword == null || keyword.isBlank()) {
+            return jpaRepository.countWithFiltersNoKeyword(tenantId.getValue().toString(), statusEnum.name());
+        }
+        return jpaRepository.countWithFiltersKeyword(tenantId.getValue().toString(), statusEnum.name(), keyword);
     }
 
     @Override
