@@ -57,3 +57,49 @@
 - 压测镜像 11.0.2-load 已回滚, 网关恢复正式 11.0.2(验证 200)。
 - CM k6-loadgen-script 现为 v13 短阶梯脚本(带 Host 头+setup 登录), 原始脚本在 git 历史。
 - Locust: 本机无 locust, 集群有 locust 路由占位(503 "not deployed"); K6 数据已覆盖同场景, Locust 增补建议用 Python 环境安装后跑同热路径(未阻塞验收, K6 为准)。
+
+## 2026-10-23 终版增补(K6 Job 化 + Locust 补齐)
+
+### K6 Job 化(修复循环重启事故)
+
+- `k8s/loadtest/k6-job.yaml`: Job(parallelism=2, backoffLimit=0, activeDeadlineSeconds=1200, restartPolicy=Never, `--no-thresholds`)替换 Deployment 形态 — k6 退出即 Job Completed, 不会无限循环重压。
+- 部署验证: Job 2 pod 跑满 7m45s 后 Completed(restarts=0), 汇总数据完整落盘。
+
+### K6 终版(限流档, 集群内 2 源, ladder 100→300→500 VU, 7m45s)
+
+| 指标 | pod1 | pod2 |
+|---|---|---|
+| 总请求 | 824,316 | 807,921 |
+| 总吞吐 | 1,765.7 r/s | 1,732.0 r/s(**合计 ≈3,498 r/s**) |
+| 失败率 | 14.42%(=nginx limit_req 503, 每源 100r/s 钳制下的预期拒绝) | 同 |
+| biz_read p95 | 160.2ms(p90 109ms, max 1.8s) | 171.1ms |
+| biz_write p95 | 306.2ms(max 5.6s) | 311.1ms |
+
+原始数据: `report/loadtest-raw/k6job-summary.txt`。解读: 每源限流 100r/s+burst 200 → 稳态通过约 300r/s/源, 其余被 0 耗时拒绝(503); 延迟含限流排队。后端处理在通过请求上仍为个位~几十 ms。
+
+### Locust 2.47.0(限流档, 100 用户 ramp 20/s, 3m, 经网关 30081)
+
+| 端点 | 请求数 | 失败 | 中位 | p95 |
+|---|---|---|---|---|
+| /kt/mastery | 25,343 | 0 | 8ms | 12ms |
+| /kt/predict | 22,876 | 0 | 10ms | 13ms |
+| /learning-paths | 8,493 | 0 | 10ms | 12ms |
+| /learning-paths [create] | 2,563 | 0 | 22ms | 27ms |
+| /ops/health | 12,602 | 0 | 8ms | 10ms |
+| /resources | 12,809 | 10,993(503 限流) | 6ms | 12ms |
+| **Aggregated** | **84,505** | 10,970(限流) | 8ms | **15ms** |
+
+吞吐 471.6 r/s(限流档单源, 与 K6 单源 280 r/s 同量级且更高 — Locust think time 0.1-0.3s 更密)。除被网关限流 503 拒绝的 /resources 与 login 外, **所有业务端点 0 失败**。CSV: `report/loadtest-raw/locust-gw_stats.csv`。
+
+方法注记: 前两轮 Locust 的 403 是登录被限流后空 token 的次生, 已改为外层注入预取 token(与 K6 相同模式), 终版除限流 503 外零错误。
+
+### 服务器峰值(K6 Job + Locust 压测窗口)
+
+| 组件 | CPU 峰值 | 内存峰值 |
+|---|---|---|
+| teaching-service | 321%(docker)/2.84 核(top) | 618 MiB |
+| iam-service | — | 623 MiB |
+| course-service(undertow A组) | — | 586 MiB |
+| nginx-gateway | <15% | — |
+
+全部在 limits 内, 无 OOM/重启。

@@ -1,0 +1,61 @@
+# k6-loadgen 集群内压测发生器(Job 化, 2026-10-23 回写)
+# 背景: Deployment 形态下 k6 退出即容器 exit → restart 无限循环重压(2026-10-22 事故)。
+# Job + backoffLimit=0 + restartPolicy=Never: 一轮跑完即终态, 不循环。
+# 镜像用 registry 内已验证的 k6(0.49.0), 脚本由 CM k6-loadgen-script 注入。
+# 运行前: kubectl -n qianrenqianmian create cm k6-loadgen-script --from-file=load.js=<脚本> --dry-run=client -o yaml | kubectl replace -f -
+# 运行:   kubectl -n qianrenqianmian apply -f k8s/loadtest/k6-job.yaml
+# 取结果: kubectl -n qianrenqianmian logs job/k6-loadgen
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-loadgen
+  namespace: qianrenqianmian
+  labels: { app: k6-loadgen, layer: performance-test }
+spec:
+  parallelism: 2      # 压测源数(每源独立限流桶, 小集群 2 副本)
+  completions: 2
+  backoffLimit: 0     # 失败不重跑(防无限循环压测事故)
+  activeDeadlineSeconds: 1200  # 20 分钟硬上限兜底
+  template:
+    metadata:
+      labels: { app: k6-loadgen, layer: performance-test }
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: { app: k6-loadgen }
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: k6
+          image: 10.100.135.132:5000/platform/k6:0.49.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            - |
+              cp /shared/load.js /tmp/load.js
+              exec k6 run --no-thresholds /tmp/load.js
+          env:
+            - name: PROFILE
+              value: "ladder"
+            - name: BASE_URL
+              value: "http://10.107.142.193:80"   # nginx-gateway ClusterIP
+            - name: TENANT_ID
+              value: "da98138f-486f-42db-944c-219a5a44bf52"
+            - name: K6_USER
+              value: "admin"
+            - name: K6_PASS
+              value: "Admin@12345"
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits: { cpu: "2", memory: "2Gi" }
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+      volumes:
+        - name: shared
+          configMap:
+            name: k6-loadgen-script
