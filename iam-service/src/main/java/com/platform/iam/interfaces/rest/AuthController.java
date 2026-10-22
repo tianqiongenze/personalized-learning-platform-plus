@@ -68,6 +68,34 @@ public class AuthController {
                         user.getEmail(), user.getPhone(), roles))));
     }
 
+    /**
+     * D-05/D-06 网关鉴权子请求: 校验 Bearer JWT, 有效则回显 200 +
+     * X-User-Id / X-User-Roles 响应头, 供 nginx auth_request 捕获注入下游。
+     * 无/无效 token 返回 401, nginx 即拒绝上游请求。
+     */
+    @RequestMapping(value="/verify", method={org.springframework.web.bind.annotation.RequestMethod.GET,
+            org.springframework.web.bind.annotation.RequestMethod.POST})
+    @Operation(summary = "网关鉴权子请求", description = "校验 JWT 并回显用户身份头")
+    public ResponseEntity<Void> verify(jakarta.servlet.http.HttpServletRequest httpRequest) {
+        String auth = httpRequest.getHeader("Authorization");
+        if (auth == null || !auth.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = auth.substring(7).trim();
+        try {
+            String[] roles = jwtTokenService.getRoles(token);
+            if (!"access".equals(jwtTokenService.getTokenType(token)) || roles.length == 0) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            return ResponseEntity.ok()
+                    .header("X-User-Id", jwtTokenService.getUserId(token))
+                    .header("X-User-Roles", String.join(",", roles))
+                    .build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
     @PostMapping("/refresh")
     @Operation(summary = "刷新访问令牌", description = "使用刷新令牌获取新的访问令牌")
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {

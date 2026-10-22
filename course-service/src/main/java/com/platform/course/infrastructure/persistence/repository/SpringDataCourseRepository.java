@@ -31,9 +31,14 @@ public interface SpringDataCourseRepository extends JpaRepository<CourseEntity, 
 
     List<CourseEntity> findByTenantIdAndStatus(UUID tenantId, CourseStatus status);
 
+    // D-04 修复(v2): TiDB 下 null 绑定参数即使用 SpEL 三元仍按 binary 发送, 与
+    // utf8mb4 列比较报 "Cannot convert string from binary to utf8mb4"。
+    // 彻底移除可选参数: 无过滤用 findByTenantId(Pageable), 有过滤才走 LIKE 版本, 全 ANSI。
+    Page<CourseEntity> findByTenantId(UUID tenantId, Pageable pageable);
+
     @Query(value="SELECT c.* FROM courses c WHERE c.tenant_id = :tenantId " +
-           "AND (CAST(:status AS char) IS NULL OR c.status = :status) " +
-           "AND (CAST(:keyword AS char) IS NULL OR LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND c.status = :status " +
+           "AND (LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(c.subject) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY c.created_at DESC", nativeQuery=true)
@@ -44,9 +49,11 @@ public interface SpringDataCourseRepository extends JpaRepository<CourseEntity, 
                                         @Param("gradeLevel") String gradeLevel,
                                         Pageable pageable);
 
+    long countByTenantId(UUID tenantId);
+
     @Query(value="SELECT COUNT(c) FROM courses c WHERE c.tenant_id = :tenantId " +
-           "AND (CAST(:status AS char) IS NULL OR c.status = :status) " +
-           "AND (CAST(:keyword AS char) IS NULL OR LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND c.status = :status " +
+           "AND (LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(c.subject) LIKE LOWER(CONCAT('%', :keyword, '%')))", nativeQuery=true)
     long countWithFilters(@Param("tenantId") UUID tenantId,

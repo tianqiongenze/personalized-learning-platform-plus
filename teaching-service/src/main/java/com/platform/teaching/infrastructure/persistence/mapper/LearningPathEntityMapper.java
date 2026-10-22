@@ -45,6 +45,46 @@ public class LearningPathEntityMapper {
         return entity;
     }
 
+    /**
+     * D-06 修复配套: 把领域聚合状态拷贝到【受管】持久化实体上(save 前由仓储取出)。
+     * 不拷贝 id 与 version —— id 已一致, version 由 @Version 乐观锁机制自行递增,
+     * 领域侧的手写 version++(addStep/publish 等)仅作为领域版本语义, 不再灌入持久化层,
+     * 避免 detached merge 时应用版本与库内版本错位触发 StaleObjectStateException。
+     */
+    public void copyToEntity(LearningPath domain, LearningPathEntity entity) {
+        if (domain == null || entity == null) return;
+
+        entity.setTenantId(domain.getTenantId());
+        entity.setCourseId(domain.getCourseId());
+        entity.setTitle(domain.getTitle());
+        entity.setDescription(domain.getDescription());
+        entity.setStatus(domain.getStatus().name());
+        entity.setCreatedBy(domain.getCreatedBy());
+        entity.setCreatedAt(domain.getCreatedAt());
+        entity.setUpdatedAt(domain.getUpdatedAt());
+        entity.setPublishedAt(domain.getPublishedAt());
+
+        // 步骤集合: 受管实体上做差量同步(新增/移除/重排序), 保留已有步骤的受管状态
+        if (domain.getSteps() != null) {
+            var existing = new java.util.HashMap<UUID, LearningPathStepEntity>();
+            entity.getSteps().forEach(s -> existing.put(s.getId(), s));
+            List<LearningPathStepEntity> synced = new java.util.ArrayList<>();
+            for (LearningPathStep step : domain.getSteps()) {
+                LearningPathStepEntity stepEntity = existing.get(step.getId());
+                if (stepEntity == null) {
+                    stepEntity = toStepEntity(step);
+                } else {
+                    copyStepToEntity(step, stepEntity);
+                    existing.remove(step.getId());
+                }
+                stepEntity.setLearningPath(entity);
+                synced.add(stepEntity);
+            }
+            entity.getSteps().clear();
+            entity.getSteps().addAll(synced);
+        }
+    }
+
     public LearningPath toDomain(LearningPathEntity entity) {
         if (entity == null) return null;
 
@@ -89,6 +129,26 @@ public class LearningPathEntityMapper {
         entity.setCreatedAt(step.getCreatedAt());
         entity.setUpdatedAt(step.getUpdatedAt());
         return entity;
+    }
+
+    /**
+     * D-06 修复配套: 把领域步骤状态拷贝到受管的步骤实体(不拷 id, 保留受管身份)。
+     */
+    private void copyStepToEntity(LearningPathStep step, LearningPathStepEntity entity) {
+        entity.setSequence(step.getSequence());
+        entity.setStepType(step.getStepType().name());
+        entity.setTitle(step.getTitle());
+        entity.setDescription(step.getDescription());
+        entity.setContentId(step.getContentId());
+        entity.setContentType(step.getContentType());
+        entity.setEstimatedMinutes(step.getEstimatedMinutes());
+        entity.setIsRequired(step.getIsRequired());
+        entity.setPrerequisiteStepId(step.getPrerequisiteStepId());
+        entity.setStatus(step.getStatus().name());
+        entity.setStartedAt(step.getStartedAt());
+        entity.setCompletedAt(step.getCompletedAt());
+        entity.setCreatedAt(step.getCreatedAt());
+        entity.setUpdatedAt(step.getUpdatedAt());
     }
 
     private LearningPathStep toStepDomain(LearningPathStepEntity entity) {

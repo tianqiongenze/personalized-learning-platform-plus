@@ -37,7 +37,11 @@ public class SecurityConfig {
         } catch (NumberFormatException ignore) {
             // 非法值回退默认强度
         }
-        return new BCryptPasswordEncoder(strength);
+        // D-03 终因修复: 种子/历史口令哈希为 $2b$ 前缀(bcrypt 开源实现), Spring
+        // BCryptPasswordEncoder 默认只匹配 $2a$。自定义 BcryptVersion 接受 $2b$/,
+        // 新哈希仍按 $2a$ 生成(向后兼容)。
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(
+                org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2B, strength);
     }
 
     @Bean
@@ -47,6 +51,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh",
+                                 "/api/v1/auth/verify",
                                  "/auth/login", "/auth/refresh").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated())

@@ -50,12 +50,32 @@ public interface SpringDataRoleRepository extends JpaRepository<RoleEntity, UUID
                            @Param("keyword") String keyword,
                            @Param("systemOnly") boolean systemOnly);
 
-    @Query(value="SELECT r FROM roles r WHERE r.id IN (SELECT (unnest(u.role_ids)) FROM users u WHERE u.id = :userId)", nativeQuery=true)
-    List<RoleEntity> findByUserId(@Param("userId") UUID userId);
+    // D-03 修复: 原 native SQL "unnest(u.role_ids)" 为 PG 专有函数, TiDB 报
+    // FUNCTION iam_db.unnest does not exist 导致登录 403。
+    // role_ids 为 JSON 数组列(实体侧 UuidArrayJsonConverter 已解析为 UUID[]),
+    // 拆为两步: 先取用户实体读 roleIds, 再按 id 列表查角色 —— 全 ANSI, PG/CRDB/TiDB 三存储兼容。
+    // 见 RoleRepositoryImpl.findByUserId。
 
-    @Query(value="SELECT r FROM roles r WHERE r.id IN :ids", nativeQuery=true)
-    List<RoleEntity> findByIds(@Param("ids") List<UUID> ids);
+    // D-03 修复(v2): native IN 里传 List<UUID> 时 Hibernate 绑定为 VARBINARY,
+    // 与 char(36) 列比较在 TiDB 下不匹配静默返空(角色丢失)。改绑 String。
+    @Query(value="SELECT r.* FROM roles r WHERE r.id IN (:ids)", nativeQuery=true)
+    List<RoleEntity> findByIds(@Param("ids") List<String> ids);
 
+    /**
+     * D-03 修复: 原 native SQL unnest(u.role_ids) 为 PG 专有, TiDB 不支持致登录 403。
+     * 改为 ANSI 两步: 先读用户的 role_ids(JSON 列, 实体转换器已解析为 UUID[]), 再按 id 查角色。
+     * IamQueryServiceImpl.findByUserId 直接经此入口取角色(全 ANSI, PG/CRDB/TiDB 三存储兼容)。
+     * 见 RoleRepositoryImpl.findByUserId。
+     */
+    default List<RoleEntity> findByUserId(UUID userId,
+            com.platform.iam.infrastructure.persistence.repository.SpringDataUserRepository userRepo) {
+        var user = userRepo.findById(userId).orElse(null);
+        if (user == null || user.getRoleIds() == null || user.getRoleIds().length == 0) {
+            return List.of();
+        }
+        return findByIds(java.util.Arrays.stream(user.getRoleIds())
+            .map(UUID::toString).collect(java.util.stream.Collectors.toList()));
+    }
 
     long countByTenantId(UUID tenantId);
 

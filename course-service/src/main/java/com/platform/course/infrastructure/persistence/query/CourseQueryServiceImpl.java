@@ -48,9 +48,12 @@ public class CourseQueryServiceImpl implements CourseQueryService {
 
     @Override
     public PageResult<CourseListDto> findPage(CoursePageQuery query) {
-        Page<CourseEntity> page = courseRepository.findWithFilters(UUID.fromString(query.tenantId()),
-                null, query.keyword(), null, null,
-                PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1)));
+        UUID tenantUuid = UUID.fromString(query.tenantId());
+        PageRequest pr = PageRequest.of(Math.max(query.page(), 0), Math.max(query.size(), 1));
+        // D-04 修复(v2): 无过滤条件时不传可选参数, 避免 TiDB 下 null 绑定参数 binary 转换错误
+        Page<CourseEntity> page = (query.keyword() == null || query.keyword().isBlank())
+                ? courseRepository.findByTenantId(tenantUuid, pr)
+                : courseRepository.findWithFilters(tenantUuid, null, query.keyword(), null, null, pr);
         List<CourseListDto> items = page.getContent().stream()
                 .map(CourseQueryServiceImpl::toList).collect(Collectors.toList());
         return new PageResult<>(items, page.getNumber(), page.getSize(),

@@ -27,6 +27,8 @@ public class TenantSecurityConfig {
             @Value("${app.security.trust-internal:true}") boolean trustInternal) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(tenantHeaderAuthFilter(),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> {
                 if (trustInternal) {
                     auth.requestMatchers("/actuator/**").permitAll()
@@ -37,5 +39,14 @@ public class TenantSecurityConfig {
                 }
             });
         return http.build();
+    }
+
+    /**
+     * D-05 配套: 网关 auth_request 校验 JWT 后注入 X-User-Id/X-User-Roles,
+     * 本过滤器将其转换为 Spring Security Authentication, 使 @PreAuthorize 生效。
+     */
+    @org.springframework.context.annotation.Bean
+    public HeaderAuthFilter tenantHeaderAuthFilter() {
+        return new HeaderAuthFilter();
     }
 }

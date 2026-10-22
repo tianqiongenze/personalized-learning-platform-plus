@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export DOCKER_HOST=unix:///Users/joelgong/.rd/docker.sock
 # build-push-deploy.sh — amd64 镜像构建 + 推送 + 滚动部署到 10.167.2.175/176 K8S
 # 用法:
 #   ./scripts/build-push-deploy.sh --svc course-service,tenant-service [--skip-deploy]
@@ -6,7 +7,7 @@
 set -euo pipefail
 
 REG="10.167.2.175:30500"
-TAG="11.0.0"
+TAG="11.0.2"
 NAMESPACE="qianrenqianmian"
 SSH_HOST="10.167.2.175"
 SSH_OPTS="-o BatchMode=yes"
@@ -78,7 +79,7 @@ push_one() {
   local svc="$1"
   local img="${REG}/platform/${svc}:${TAG}"
   log "push ${img}"
-  docker push "${img}"
+  DOCKER_CONFIG=/tmp/dockercfg docker push "${img}"
 }
 
 deploy_one() {

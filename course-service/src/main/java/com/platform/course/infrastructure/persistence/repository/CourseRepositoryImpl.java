@@ -58,9 +58,13 @@ public class CourseRepositoryImpl implements CourseRepository {
     public List<Course> findByTenantId(String tenantId, int page, int size, String status, String keyword) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
-        CourseStatus statusEnum = status != null ? CourseStatus.valueOf(status.toUpperCase()) : null;
-        Page<CourseEntity> result = jpaRepository.findWithFilters(
-            UUID.fromString(tenantId), statusEnum, keyword, null, null, pageable);
+        UUID tenantUuid = UUID.fromString(tenantId);
+        // D-04 修复(v2): 无过滤走派生查询, 避免 TiDB null 绑定参数 binary 错误
+        Page<CourseEntity> result = (status == null && (keyword == null || keyword.isBlank()))
+                ? jpaRepository.findByTenantId(tenantUuid, pageable)
+                : jpaRepository.findWithFilters(tenantUuid,
+                    status != null ? CourseStatus.valueOf(status.toUpperCase()) : null,
+                    keyword, null, null, pageable);
         
         return result.getContent().stream()
             .map(mapper::toDomain)
@@ -69,8 +73,12 @@ public class CourseRepositoryImpl implements CourseRepository {
 
     @Override
     public long countByTenantId(String tenantId, String status, String keyword) {
-        CourseStatus statusEnum = status != null ? CourseStatus.valueOf(status.toUpperCase()) : null;
-        return jpaRepository.countWithFilters(UUID.fromString(tenantId), statusEnum, keyword, null, null);
+        UUID tenantUuid = UUID.fromString(tenantId);
+        if (status == null && (keyword == null || keyword.isBlank())) {
+            return jpaRepository.countByTenantId(tenantUuid);
+        }
+        return jpaRepository.countWithFilters(tenantUuid,
+            status != null ? CourseStatus.valueOf(status.toUpperCase()) : null, keyword, null, null);
     }
 
     @Override

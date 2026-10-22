@@ -5,6 +5,7 @@ import com.platform.iam.domain.model.valueobjects.*;
 import com.platform.iam.domain.model.valueobjects.RoleStatus;
 import com.platform.iam.domain.repository.RoleRepository;
 import com.platform.iam.infrastructure.persistence.entity.RoleEntity;
+import com.platform.iam.infrastructure.persistence.entity.UserEntity;
 import com.platform.iam.infrastructure.persistence.mapper.RoleEntityMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,10 +25,14 @@ import java.util.stream.Collectors;
 public class RoleRepositoryImpl implements RoleRepository {
 
     private final SpringDataRoleRepository jpaRepository;
+    private final com.platform.iam.infrastructure.persistence.repository.SpringDataUserRepository jpaUserRepository;
     private final RoleEntityMapper mapper;
 
-    public RoleRepositoryImpl(SpringDataRoleRepository jpaRepository, RoleEntityMapper mapper) {
+    public RoleRepositoryImpl(SpringDataRoleRepository jpaRepository,
+                              com.platform.iam.infrastructure.persistence.repository.SpringDataUserRepository jpaUserRepository,
+                              RoleEntityMapper mapper) {
         this.jpaRepository = jpaRepository;
+        this.jpaUserRepository = jpaUserRepository;
         this.mapper = mapper;
     }
 
@@ -75,7 +80,15 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public List<Role> findByUserId(UserId userId) {
-        return jpaRepository.findByUserId(userId.getValue()).stream()
+        // D-03 修复: 原 native SQL unnest(u.role_ids) 为 PG 专有, TiDB 不支持致登录 403。
+        // 改为 ANSI 两步: 先读用户的 role_ids(JSON 列, 实体转换器已解析为 UUID[]), 再按 id 查角色。
+        UserEntity user = jpaUserRepository.findById(userId.getValue()).orElse(null);
+        if (user == null || user.getRoleIds() == null || user.getRoleIds().length == 0) {
+            return List.of();
+        }
+        List<String> roleIds = java.util.Arrays.stream(user.getRoleIds())
+            .map(UUID::toString).collect(java.util.stream.Collectors.toList());
+        return jpaRepository.findByIds(roleIds).stream()
             .map(mapper::toDomain)
             .collect(Collectors.toList());
     }

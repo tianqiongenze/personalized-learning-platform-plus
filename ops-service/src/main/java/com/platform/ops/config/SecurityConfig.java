@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, HeaderAuthFilter headerAuthFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -33,6 +33,10 @@ public class SecurityConfig {
         http.exceptionHandling(ex -> ex
             .authenticationEntryPoint((req, res, e) -> res.sendError(401, "缺少有效凭证"))
             .accessDeniedHandler((req, res, e) -> res.sendError(403, "权限不足")));
+        // D-05 修复: 接线 HeaderAuthFilter, 把网关注入的 X-User-Roles 头转换为
+        // Authentication(此前该过滤器缺失, 角色头注入无效, 业务端点全部 401)
+        http.addFilterBefore(headerAuthFilter,
+            org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

@@ -116,8 +116,7 @@ class CourseQueryServiceImplTest {
     void shouldFindPage() {
         UUID id = UUID.randomUUID();
         Page<CourseEntity> page = new PageImpl<>(List.of(entity(id)));
-        when(courseRepository.findWithFilters(eq(TENANT_ID), isNull(), isNull(), isNull(), isNull(),
-                any(Pageable.class))).thenReturn(page);
+        when(courseRepository.findByTenantId(eq(TENANT_ID), any(Pageable.class))).thenReturn(page);
 
         CoursePageQuery query = new CoursePageQuery(TENANT_ID.toString(), 0, 20, null, null, null, null,
                 "createdAt", "desc");

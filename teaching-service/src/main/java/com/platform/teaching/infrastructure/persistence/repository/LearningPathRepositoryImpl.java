@@ -28,9 +28,28 @@ public class LearningPathRepositoryImpl implements LearningPathRepository {
     private final SpringDataLearningPathRepository springDataRepository;
     private final LearningPathEntityMapper mapper;
 
+    /**
+     * D-06 修复: 原 save 直接把 mapper.toEntity 造出的 detached 实体交给 save()。
+     * 实体带 @Version(version 由应用层 addStep/publish 等手动 ++),
+     * Spring Data 对非新实体(persistable 判定: version 非 null 即视为已存在)走 merge,
+     * merge 读取库内当前 version 再比对 detached 版本 —— 领域侧自增与 @Version 机制叠加,
+     * 新建路径后立即 addStep 时 detached version(1) 与库内 version(0, create 落库时
+     * Hibernate 未将手写 version++ 同步生效路径一致)不一致 → StaleObjectStateException 500。
+     * 改为: 已有 id 的实体先 findById 取受管实体, 把领域状态拷到受管实例再 save
+     * (受管实体走 dirty-checking 增量 UPDATE, @Version 自动递增, 不再冲突);
+     * 新实体(库中不存在)保持原 save 走 INSERT。
+     */
     @Override
     public LearningPath save(LearningPath learningPath) {
-        LearningPathEntity entity = mapper.toEntity(learningPath);
+        LearningPathEntity entity;
+        if (learningPath.getId() != null && springDataRepository.existsById(learningPath.getId())) {
+            entity = springDataRepository.findById(learningPath.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "学习路径实体消失: " + learningPath.getId()));
+            mapper.copyToEntity(learningPath, entity);
+        } else {
+            entity = mapper.toEntity(learningPath);
+        }
         LearningPathEntity saved = springDataRepository.save(entity);
         return mapper.toDomain(saved);
     }

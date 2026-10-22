@@ -29,3 +29,19 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - **P2-B**(2b4f849) KT 评测去泄漏 + BKT 评测; 诚实数字 DKT AUC 0.4713 / BKT 0.5127(合成数据下≈随机, 替代虚高 0.7708; 提升需扩数据/轮次, DEFERRED)。
 - **P2-C**(f7a732c) 学分互认规则引擎(tenant-service), 119 测全绿。DEFERRED: 网关路由核实/多规则优先级策略/apply 领域事件 outbox/集成测试。
 - 遗留(低优先): k8s ConfigMap 明文占位口令(JWT_SECRET/GRAFANA_PASSWORD/MINIO)→ external-secrets.yaml Vault 方案待评估; outbox 生产者侧业务事务内 save() 调用点补齐; relay 已投递行清理/死信 DLQ。
+
+## 2026-10-22 恢复会话: TiDB 保留+登录链路打通(进行中)
+
+约束: 用户指令"TiDB 已彻底恢复, 不要删除或重建, 使用已有数据"——TiDB 集群(sts pd×3/tikv×3/tidb×2)与 160k 用户数据全程零改动, 仅 INSERT admin 用户行与 SUPER_ADMIN 角色行(iam_db), 可逆 L1。
+
+### 已完成(均有可复现证据)
+1. admin 用户: tidb-seed pod INSERT `iam_db.users` id=00000000-...aaaa, tenant=da98138f-486f-42db-944c-219a5a44bf52(TEN0001 赵伟实验学校), bcrypt(Admin@12345)。登录 `POST :31826/api/v1/auth/login` 200, token 361 字符, roles=[ADMIN,SUPER_ADMIN]。
+2. D-04 v2(course): TiDB 下 native IN/可选参数 UUID 绑定为 VARBINARY 致 "Cannot convert string from binary to utf8mb4" → findWithFilters 移除可选参数, 无过滤走 findByTenantId 派生查询; course-service 96 测绿; 镜像 11.0.2 部署; `GET /courses` 200 返真实数据(C00003 三年级英语...)。BVV: javap 校验镜像内 class 含 findByTenantId(UUID,Pageable)。
+3. D-03 v2(iam): findByUserId 两步查里 findByIds(:ids) 传 List<UUID> 同样 binary 绑定静默返空 → 改 List<String>; iam 95 测绿; roles 从 [] → [ADMIN]。
+4. 网关鉴权链(D-05/D-06): iam 新增 `/api/v1/auth/verify`(GET/POST 双支持, 校验 JWT 回显 X-User-Id/X-User-Roles, SecurityConfig permitAll); nginx-gateway auth_request /_auth_verify + auth_request_set 注入 16 个受保护 location; tenant-service 加 HeaderAuthFilter(ops 模式, ROLE_ 前缀授予) → tenant 119 测绿。
+5. 全链路 200: 网关 30081 → auth_request(iam verify) → tenant(course/teaching 直连) 全部 200; `tenants/{uuid}` 返 TEN0001 赵伟实验学校详情。
+6. 运维教训(铁律印证): ① worker1/master 节点 docker 镜像缓存 + IfNotPresent 导致新版滚动不动 → imagePullPolicy=Always + rmi 旧 digest + 循环删 pod; ② tidb-seed sleep 到期 Succeeded 后 exec 报错假象(UIM); ③ shell $ 变量吞 bcrypt 哈希 → hex 字面量 UPDATE。
+
+### 下一步
+- pytest 55 用例重跑(E2E_TENANT=da98138f-..., ADMIN/凭据已通) → e2e 报告
+- 阶段5 K6+Locust 压测(真实用户) → 阶段6 报告融合+收口 commit

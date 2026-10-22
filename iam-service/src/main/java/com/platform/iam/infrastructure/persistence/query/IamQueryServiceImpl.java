@@ -114,7 +114,7 @@ public class IamQueryServiceImpl implements UserQueryService, RoleQueryService {
 
     @Override
     public List<RoleSimpleDto> findByUserId(UserId userId) {
-        return roleRepository.findByUserId(userId.getValue()).stream()
+        return roleRepository.findByUserId(userId.getValue(), userRepository).stream()
                 .map(r -> new RoleSimpleDto(r.getId().toString(), r.getCode(), r.getName()))
                 .collect(Collectors.toList());
     }

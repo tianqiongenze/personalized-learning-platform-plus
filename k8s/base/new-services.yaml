@@ -320,7 +320,12 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: web-student, namespace: qianrenqianmian}
+metadata:
+  name: web-student
+  namespace: qianrenqianmian
+  annotations:
+    note: "D-02 fix: 原 nodePort 30090 与 dify-plus redis8-node-0 冲突, 改 30096; 容器实际监听 80(nginx)"
 spec:
+  type: NodePort
   selector: {app: web-student}
-  ports: [{port: 8080, nodePort: 30090, type: NodePort}]
+  ports: [{port: 8080, targetPort: 80, nodePort: 30096}]
