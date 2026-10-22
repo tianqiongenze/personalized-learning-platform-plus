@@ -68,3 +68,12 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - 局域网指南同步: docs/LAN_TESTING_GUIDE.md 附录 A(登录双头/网关安全语义/30096/限流提示), aff63b8。
 - 全链任务状态: ①Tomcat→Undertow A/B 与转正材料(历史, 见 docs/ADR-006) ②CRDB/TiDB 双栈动态切换(此前已交付, TiDB 本次全程零改动) ③TiFlash 分析(docs/ANALYSIS_TIFLASH.md) ④全端功能测试 e2e 51绿 ⑤K6 压测完成, Locust 待装(K6 覆盖) ⑥报告+指南齐备。
 - 待用户决策: Undertow 组转正决策; k6-loadgen Job 化回写; iam DEBUG env 回滚; tenant imagePullPolicy 回写仓库 yaml(均为低风险遗留)。
+
+## 2026-10-23 遗留全清 + 终版全链路测试
+
+- 遗留清理: ①iam security DEBUG env 已回滚(rollout 完成) ②仓库 yaml 全量回写: 5 服务镜像 platform/x:2.0.0→registry 11.0.2 + imagePullPolicy Always + graphql-gateway docker.io→registry(DGO 漂移清零, yaml safe_load_all 校验通过) ③k6-loadgen Job 化 k8s/loadtest/k6-job.yaml(backoffLimit=0 防循环事故, 实测 Completed restarts=0)。
+- Locust 2.47.0 补齐(venv /tmp/locustenv): 84,505 请求 471.6 r/s, 业务端点除限流 503 外 0 失败, Aggregated p95 15ms; 脚本 tests/locust/locust_plpp.py(token 预注入模式)。
+- K6 Job 终版: 2 源合计 163 万请求 / 3,498 r/s, 读 p95 160-171ms(限流排队), 失败 14.42% 全为限流 503。
+- e2e 全量终跑(服务回正式镜像后): **51 passed / 4 skipped / 0 failed**(4.52s)。
+- 服务器峰值: teaching 2.84核/618MiB, iam 623MiB, 无 OOM。数据 report/loadtest-raw/(k8stop3/dockercpu3/k6job-summary/locust-gw_stats)。
+- 收口 commit: f419573。
