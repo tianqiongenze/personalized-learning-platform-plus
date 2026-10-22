@@ -61,3 +61,10 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - 报告: report/2026-10-23-loadtest-report.md; 原始数据 report/loadtest-raw/。
 - 网关压测镜像已回滚正式 11.0.2(验证 200)。gateway.conf 新增 /api/v1/learning-paths 路由(部署验证 200)。
 - 遗留: k6-loadgen Job 化+no-thresholds 回写待做; Locust 未装(K6 覆盖同场景); iam DEBUG env 待回滚; tenant imagePullPolicy 待回写仓库 yaml。
+
+## 2026-10-23 阶段6 收口
+
+- 测试报告融合: PERFORMANCE_TEST_REPORT.md 顶部索引到最新 K6 报告; e2e(51绿)与压测(限流档/放宽档)双报告齐备。
+- 局域网指南同步: docs/LAN_TESTING_GUIDE.md 附录 A(登录双头/网关安全语义/30096/限流提示), aff63b8。
+- 全链任务状态: ①Tomcat→Undertow A/B 与转正材料(历史, 见 docs/ADR-006) ②CRDB/TiDB 双栈动态切换(此前已交付, TiDB 本次全程零改动) ③TiFlash 分析(docs/ANALYSIS_TIFLASH.md) ④全端功能测试 e2e 51绿 ⑤K6 压测完成, Locust 待装(K6 覆盖) ⑥报告+指南齐备。
+- 待用户决策: Undertow 组转正决策; k6-loadgen Job 化回写; iam DEBUG env 回滚; tenant imagePullPolicy 回写仓库 yaml(均为低风险遗留)。

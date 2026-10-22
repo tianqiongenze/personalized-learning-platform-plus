@@ -1,3 +1,8 @@
+# PLPP 性能压测总报告(融合)
+
+> 最新: 2026-10-23 K6 双通道压测(经网关真实链路)见 `report/2026-10-23-loadtest-report.md`;
+> 原始数据 `report/loadtest-raw/`。本文保留历史 A/B(Tomcat/Undertow)与阶梯压测记录。
+
 # 个性化学习平台 Plus - 性能测试与优化报告
 
 ## 1. 测试概述
