@@ -83,7 +83,7 @@
 
 ### 2.2 学生端页面(30096)说明
 
-学生端为单页应用,业务数据依赖后端 API。**当前 IAM 登录 token 无法签发(已知 P0 缺陷 D-03)**,学生端内需登录的功能(个人画像、作业提交等)会受影响;课程浏览等匿名接口正常。修复进展以最新缺陷清单为准。
+学生端为单页应用,业务数据依赖后端 API。**登录链路已修复(2026-10-22, e2e 51 绿)**: IAM 登录正常签发 JWT, 全链路(网关 auth_request → 服务)已通; 需登录功能(个人画像、作业提交等)正常。
 
 ---
 
@@ -195,7 +195,7 @@ TOKEN=$(curl -s -X POST http://10.167.2.175:30081/api/v1/auth/login \
 
 | 接口 | 方法 | Body | 预期 | 实测 |
 |---|---|---|---|---|
-| 登录 | POST | `{"username":"admin","password":"Admin@12345"}` | 200 + `data.accessToken`(当前 403,D-03) | ✅ 复现 403 |
+| 登录 | POST | `{"username":"admin","password":"Admin@12345"}` | 200 + `data.accessToken`(D-03 已修复) | ✅ 200 |
 | 错误口令 | POST | 口令改错 | 401 `用户名或密码错误` | ✅ |
 
 ### 5.3 租户域(tenant-service,31965 / 网关 `/api/v1/tenants|users|credit-transfer/*`)
@@ -368,3 +368,15 @@ kubectl -n infra get svc | grep -E 'kt|vector'        # infra 域服务
 | D-08 | P3 | 非法租户头 500/400 波动 | 输入需保证 UUID 格式 |
 
 > 本指南由平台组维护;发现与实际不符的条目,请以你实测结果为准并反馈更新。
+
+## 附录 A: 2026-10-22 修订(登录链路修复后)
+
+登录链路修复后, 局域网测试须知:
+
+1. **登录必须带 X-Tenant-Id 头**(经网关或 NodePort 均需): 
+   `X-Tenant-Id: da98138f-486f-42db-944c-219a5a44bf52`(TEN0001 赵伟实验学校)
+2. **鉴权业务 API 必须走网关 30081**: 服务仅信任网关注入的 `X-Gateway-Verified` 头, NodePort 直连业务路径返回 403(防伪造, 属安全设计)。仅 `POST /api/v1/auth/login` 与健康检查可直连。
+3. **业务请求需带 `Authorization: Bearer <token>` + `X-Tenant-Id` 双头**; 列表端点(如 `/api/v1/users`, `/api/v1/roles`)现在无尾斜杠也可访问(网关已加精确匹配块)。
+4. **web-student 端口为 30096**(非 30090)。
+5. **压测限流提示**: 网关对单源 IP 限流 100 r/s(burst 200), 自动化压测会被 503 限流拒绝, 属预期; 压测走集群内 k6-loadgen(见 report/2026-10-23-loadtest-report.md)。
+6. e2e 用例: `pytest tests/e2e/test_full_platform.py`(51 passed/4 skipped, 2026-10-22)。
