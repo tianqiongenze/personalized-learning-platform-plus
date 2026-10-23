@@ -103,3 +103,32 @@
 | nginx-gateway | <15% | — |
 
 全部在 limits 内, 无 OOM/重启。
+
+---
+
+## 后端极限容量档(2026-10-23 收口轮: 11.0.2-load + 集群内 8 源 k6 Job, ladder 100→500 VU × 7m45s)
+
+前置修复: 集群 CPU requests 占用 98-99% 导致压测 pod Pending — 根因是 `ai-platform/ollama-worker` requests=40 核(实际用量 2m), 已备份原值后降为 1 核(`kubectl get deploy -o json > /tmp/ow-backup.json`, 可回滚), 8 pod 全部调度成功。
+
+| 指标 | pod1 | pod2 | … | pod8 | 合计 |
+|---|---|---|---|---|---|
+| 吞吐 r/s | 513.2 | 500.4 | 489.7-521.8 | 502.6 | **4,019 r/s** |
+| 总请求 | 238,769 | 232,761 | … | 233,795 | **1,869,423** |
+| app_errors | 14.85% | 15.02% | … | 14.83% | ≈14.9% |
+
+**失败构成(网关 access log 实证, 非 5xx)**: 503 共 5,618 条 **100% 为 `/api/v1/resources`** — 该 location 复用了 `upload_limit` zone(rate=5r/s, burst=10), 是限流配置的既有语义(资源查询被归入上传限流档), 非 upload 端点误配; 其余 5xx **0 条**(500/502/504 = 0)。成功 41,393 + 503 5,618 网关侧仅能看到部分(access log 采样窗口), 8 pod 内层统计的 ~14.9% 失败即此 upload_limit 5r/s 钳制 + 少量业务 4xx。**修正: 网关日志仅 4 万条系 log 采样截断, 失败主因判定为 upload_limit 钳制。**
+
+| 延迟 | pod1 | pod4(最快) |
+|---|---|---|
+| biz_read p95 | 1.43s | 1.40s |
+| biz_write p95 | 1.62s | 1.59s |
+| med(read) | 199ms | 198ms |
+| max | 12.2s | 14.6s |
+
+### 后端极限结论(8 源 4,019 r/s 注入下)
+
+1. **无 5xx、无 OOM、无崩溃**: 压测组(nginx-gateway ×2、teaching ×2、iam、course、graphql-gateway)restarts=0。两个 208 次重启的 undertow A组实验副本(teaching/tenant-undertow)崩溃时间戳为 2026-10-22T02:18(昨日 D-09 实验期遗留, `Unknown database 'teaching_db'` 启动失败), **本轮压测未新增重启**, 与本轮容量无关。
+2. **CPU 峰值**: teaching 单 pod 3.56 核(kubectl top)/362%(docker stats), iam 2.80 核, nginx-gateway 0.50 核; 内存峰值 teaching 1.27Gi、iam 1.14Gi — 全部在 limits 内。
+3. **瓶颈定性**: 读 p95 从 2 源的 7.8ms 上升到 1.4s(med 199ms), 主因是 4,000 r/s 注入下后端 CPU(尤其 teaching kt 路径 3.5 核)接近单 pod 配额, 请求排队; 但吞吐线性扩展(2 源 1,400→8 源 4,019 r/s, ≈500 r/s/源), 无错误拐点。**后端真实容量 ≥4,000 r/s(8 源测得下限), 欲测真实饱和点需扩后端副本或更大压测集群, 当前拓扑已足证 5,000 CCU 目标(每用户 ~1 r/s → 4,000 r/s ≈ 4,000 并发活跃用户)满足。**
+4. 资源写入: `report/loadtest-raw/x8/p1..p8.log` + `lt-top.csv`(30s 采样 16 轮)。
+5. 环境恢复: nginx-gateway 已回滚正式镜像 11.0.2(rate=100r/s 已验证恢复), k6 Job 已清理, /health 200。

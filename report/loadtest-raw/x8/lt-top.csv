@@ -1,0 +1,832 @@
+1792736931
+teaching-service-599b7ccf95-pk4wc            3561m        762Mi           
+iam-service-5c69ddd488-hmfpz                 2226m        942Mi           
+teaching-service-599b7ccf95-sp2kt            2105m        686Mi           
+nginx-gateway-5d68dbfccd-55jkk               499m         94Mi            
+nginx-gateway-5d68dbfccd-mjcnq               490m         95Mi            
+iam-service-5c69ddd488-kdrzc                 464m         668Mi           
+course-service-694db7874d-576z2              145m         587Mi           
+course-service-694db7874d-twkj5              32m          478Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           319Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+course-service-undertow-f89566cd8-d989r      1m           587Mi           
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 134.57% 930.5MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 16.29% 583.8MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 259.04% 687.4MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.07% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.07% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+k8s_iam-service_iam-service-undertow-5f578699d6-b7587_qianrenqianmian_91ee4beb-fe11-41dc-b486-271e5e072883_0 0.05% 504.5MiB / 4GiB
+k8s_POD_iam-service-undertow-5f578699d6-b7587_qianrenqianmian_91ee4beb-fe11-41dc-b486-271e5e072883_0 0.00% 1.996MiB / 126.8GiB
+---
+1792736965
+teaching-service-599b7ccf95-sp2kt            2122m        685Mi           
+iam-service-5c69ddd488-7tb9j                 1999m        466Mi           
+iam-service-5c69ddd488-msggw                 1943m        468Mi           
+teaching-service-599b7ccf95-nrt92            1936m        503Mi           
+teaching-service-599b7ccf95-ncs49            1648m        483Mi           
+teaching-service-599b7ccf95-pk4wc            1645m        768Mi           
+iam-service-5c69ddd488-kdrzc                 1635m        668Mi           
+iam-service-5c69ddd488-hmfpz                 575m         942Mi           
+nginx-gateway-5d68dbfccd-55jkk               426m         96Mi            
+nginx-gateway-5d68dbfccd-mjcnq               400m         97Mi            
+course-service-694db7874d-576z2              150m         587Mi           
+course-service-694db7874d-twkj5              29m          478Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           319Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.31% 491.5MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 126.15% 930.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 14.66% 583.8MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 214.23% 684MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.09% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.04% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792736999
+teaching-service-599b7ccf95-sp2kt            3009m        687Mi           
+teaching-service-599b7ccf95-pk4wc            1545m        767Mi           
+iam-service-5c69ddd488-kdrzc                 1224m        668Mi           
+iam-service-5c69ddd488-hmfpz                 977m         942Mi           
+nginx-gateway-5d68dbfccd-55jkk               431m         96Mi            
+nginx-gateway-5d68dbfccd-mjcnq               401m         96Mi            
+course-service-694db7874d-576z2              155m         587Mi           
+course-service-694db7874d-twkj5              18m          478Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           319Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+teaching-service-599b7ccf95-nrt92            3m           499Mi           
+teaching-service-599b7ccf95-ncs49            3m           483Mi           
+iam-service-5c69ddd488-msggw                 3m           468Mi           
+iam-service-5c69ddd488-7tb9j                 2m           466Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.21% 491.6MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 115.29% 930.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 16.84% 583.8MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 287.00% 687.6MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.08% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737034
+iam-service-5c69ddd488-msggw                 2795m        708Mi           
+teaching-service-599b7ccf95-nrt92            2693m        578Mi           
+teaching-service-599b7ccf95-pk4wc            2382m        1038Mi          
+teaching-service-599b7ccf95-ncs49            2340m        519Mi           
+teaching-service-599b7ccf95-9qwp6            1969m        490Mi           
+teaching-service-599b7ccf95-r2vcg            1927m        496Mi           
+teaching-service-599b7ccf95-c5z7g            1842m        504Mi           
+iam-service-5c69ddd488-r68t8                 1759m        358Mi           
+iam-service-5c69ddd488-4p84k                 1690m        342Mi           
+teaching-service-599b7ccf95-mwnlg            1636m        492Mi           
+iam-service-5c69ddd488-9sp7j                 1559m        352Mi           
+teaching-service-599b7ccf95-sp2kt            1527m        684Mi           
+iam-service-5c69ddd488-7tb9j                 1504m        735Mi           
+iam-service-5c69ddd488-pkk8t                 1435m        353Mi           
+iam-service-5c69ddd488-kdrzc                 1207m        829Mi           
+iam-service-5c69ddd488-hmfpz                 852m         943Mi           
+nginx-gateway-5d68dbfccd-55jkk               442m         97Mi            
+nginx-gateway-5d68dbfccd-mjcnq               417m         97Mi            
+course-service-694db7874d-576z2              136m         587Mi           
+course-service-694db7874d-twkj5              75m          478Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           319Mi           
+teaching-service-undertow-65dc997975-gbwgg   2m           472Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 362.40% 686.6MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 97.99% 931.2MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 9.74% 584.3MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 144.38% 684.1MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.27% 465.8MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.08% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737069
+teaching-service-599b7ccf95-nrt92            2768m        710Mi           
+teaching-service-599b7ccf95-ncs49            2294m        614Mi           
+teaching-service-599b7ccf95-pk4wc            1391m        1035Mi          
+teaching-service-599b7ccf95-sp2kt            1209m        685Mi           
+iam-service-5c69ddd488-hmfpz                 1034m        944Mi           
+iam-service-5c69ddd488-7tb9j                 830m         971Mi           
+iam-service-5c69ddd488-msggw                 794m         710Mi           
+iam-service-5c69ddd488-kdrzc                 772m         830Mi           
+nginx-gateway-5d68dbfccd-mjcnq               498m         111Mi           
+nginx-gateway-5d68dbfccd-55jkk               498m         109Mi           
+course-service-694db7874d-576z2              104m         588Mi           
+course-service-694db7874d-twkj5              97m          478Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           319Mi           
+iam-service-5c69ddd488-9sp7j                 3m           461Mi           
+teaching-service-599b7ccf95-c5z7g            3m           479Mi           
+iam-service-5c69ddd488-pkk8t                 3m           461Mi           
+teaching-service-599b7ccf95-r2vcg            3m           480Mi           
+iam-service-5c69ddd488-r68t8                 3m           467Mi           
+iam-service-5c69ddd488-4p84k                 3m           458Mi           
+teaching-service-599b7ccf95-9qwp6            3m           473Mi           
+teaching-service-599b7ccf95-mwnlg            2m           468Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 197.58% 790.8MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 137.31% 932.2MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 12.19% 585.6MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 164.35% 687.7MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.08% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.04% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737104
+teaching-service-599b7ccf95-nrt92            1838m        800Mi           
+teaching-service-599b7ccf95-r2vcg            1523m        705Mi           
+teaching-service-599b7ccf95-ncs49            1309m        1262Mi          
+teaching-service-599b7ccf95-sp2kt            1304m        760Mi           
+teaching-service-599b7ccf95-c5z7g            1201m        561Mi           
+teaching-service-599b7ccf95-mwnlg            1192m        658Mi           
+teaching-service-599b7ccf95-pk4wc            1158m        1065Mi          
+teaching-service-599b7ccf95-9qwp6            999m         519Mi           
+iam-service-5c69ddd488-hmfpz                 981m         944Mi           
+iam-service-5c69ddd488-9sp7j                 950m         568Mi           
+teaching-service-599b7ccf95-mx4r8            947m         426Mi           
+iam-service-5c69ddd488-msggw                 934m         945Mi           
+teaching-service-599b7ccf95-6rcdt            932m         444Mi           
+teaching-service-599b7ccf95-z6977            906m         413Mi           
+iam-service-5c69ddd488-mlzd4                 885m         290Mi           
+iam-service-5c69ddd488-46t9m                 866m         309Mi           
+iam-service-5c69ddd488-zl8kl                 864m         283Mi           
+iam-service-5c69ddd488-chvcg                 858m         294Mi           
+iam-service-5c69ddd488-mlh4s                 856m         292Mi           
+iam-service-5c69ddd488-zfbnl                 846m         289Mi           
+teaching-service-599b7ccf95-stmhf            832m         356Mi           
+teaching-service-599b7ccf95-9pwnk            826m         396Mi           
+teaching-service-599b7ccf95-q7tg7            817m         361Mi           
+iam-service-5c69ddd488-whs7h                 798m         307Mi           
+iam-service-5c69ddd488-7tb9j                 788m         1133Mi          
+iam-service-5c69ddd488-4p84k                 780m         570Mi           
+iam-service-5c69ddd488-r68t8                 776m         541Mi           
+teaching-service-599b7ccf95-2lvjl            768m         337Mi           
+iam-service-5c69ddd488-p4b5b                 766m         385Mi           
+iam-service-5c69ddd488-kdrzc                 691m         830Mi           
+teaching-service-599b7ccf95-8rcn5            616m         304Mi           
+iam-service-5c69ddd488-pkk8t                 616m         478Mi           
+nginx-gateway-5d68dbfccd-55jkk               501m         115Mi           
+nginx-gateway-5d68dbfccd-mjcnq               499m         118Mi           
+course-service-694db7874d-576z2              113m         590Mi           
+course-service-694db7874d-twkj5              111m         479Mi           
+graphql-gateway-6c59b79fbb-lw4w4             16m          317Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 158.63% 793.6MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 78.28% 932.4MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 10.85% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 139.70% 759.7MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.08% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737139
+teaching-service-599b7ccf95-ncs49            1796m        1264Mi          
+teaching-service-599b7ccf95-pk4wc            1359m        1132Mi          
+teaching-service-599b7ccf95-nrt92            1272m        801Mi           
+iam-service-5c69ddd488-mlzd4                 1164m        461Mi           
+teaching-service-599b7ccf95-r2vcg            1119m        879Mi           
+iam-service-5c69ddd488-zfbnl                 1106m        462Mi           
+iam-service-5c69ddd488-zl8kl                 1060m        463Mi           
+iam-service-5c69ddd488-mlh4s                 1051m        460Mi           
+teaching-service-599b7ccf95-sp2kt            1039m        760Mi           
+iam-service-5c69ddd488-hmfpz                 955m         944Mi           
+teaching-service-599b7ccf95-8rcn5            905m         482Mi           
+iam-service-5c69ddd488-chvcg                 877m         454Mi           
+iam-service-5c69ddd488-46t9m                 819m         456Mi           
+iam-service-5c69ddd488-msggw                 798m         945Mi           
+iam-service-5c69ddd488-whs7h                 772m         485Mi           
+teaching-service-599b7ccf95-9qwp6            714m         512Mi           
+iam-service-5c69ddd488-7tb9j                 701m         1134Mi          
+iam-service-5c69ddd488-kdrzc                 696m         830Mi           
+teaching-service-599b7ccf95-q7tg7            693m         475Mi           
+teaching-service-599b7ccf95-2lvjl            648m         472Mi           
+iam-service-5c69ddd488-p4b5b                 638m         461Mi           
+teaching-service-599b7ccf95-stmhf            602m         477Mi           
+teaching-service-599b7ccf95-c5z7g            597m         616Mi           
+teaching-service-599b7ccf95-mwnlg            510m         669Mi           
+iam-service-5c69ddd488-pkk8t                 503m         459Mi           
+nginx-gateway-5d68dbfccd-mjcnq               500m         114Mi           
+nginx-gateway-5d68dbfccd-55jkk               499m         110Mi           
+iam-service-5c69ddd488-9sp7j                 385m         649Mi           
+iam-service-5c69ddd488-r68t8                 372m         662Mi           
+iam-service-5c69ddd488-4p84k                 294m         650Mi           
+teaching-service-599b7ccf95-9pwnk            154m         466Mi           
+teaching-service-599b7ccf95-z6977            132m         477Mi           
+course-service-694db7874d-twkj5              119m         479Mi           
+teaching-service-599b7ccf95-mx4r8            106m         483Mi           
+course-service-694db7874d-576z2              93m          590Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+teaching-service-599b7ccf95-6rcdt            3m           467Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 121.27% 793.3MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 85.74% 932.5MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 11.08% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 112.65% 758.1MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.07% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737173
+teaching-service-599b7ccf95-ncs49            1618m        1264Mi          
+teaching-service-599b7ccf95-pk4wc            1130m        1131Mi          
+teaching-service-599b7ccf95-nrt92            1087m        801Mi           
+teaching-service-599b7ccf95-sp2kt            935m         759Mi           
+iam-service-5c69ddd488-hmfpz                 775m         944Mi           
+teaching-service-599b7ccf95-mx4r8            677m         520Mi           
+iam-service-5c69ddd488-whs7h                 647m         508Mi           
+iam-service-5c69ddd488-mlh4s                 646m         482Mi           
+iam-service-5c69ddd488-46t9m                 641m         478Mi           
+iam-service-5c69ddd488-msggw                 616m         945Mi           
+teaching-service-599b7ccf95-9pwnk            610m         564Mi           
+iam-service-5c69ddd488-p4b5b                 601m         482Mi           
+teaching-service-599b7ccf95-z6977            595m         513Mi           
+iam-service-5c69ddd488-mlzd4                 574m         483Mi           
+teaching-service-599b7ccf95-8rcn5            561m         515Mi           
+iam-service-5c69ddd488-7tb9j                 551m         1134Mi          
+iam-service-5c69ddd488-kdrzc                 547m         830Mi           
+teaching-service-599b7ccf95-2lvjl            541m         513Mi           
+teaching-service-599b7ccf95-6rcdt            541m         502Mi           
+iam-service-5c69ddd488-zl8kl                 531m         484Mi           
+teaching-service-599b7ccf95-stmhf            523m         508Mi           
+nginx-gateway-5d68dbfccd-55jkk               500m         113Mi           
+nginx-gateway-5d68dbfccd-mjcnq               500m         115Mi           
+teaching-service-599b7ccf95-q7tg7            479m         508Mi           
+iam-service-5c69ddd488-zfbnl                 455m         482Mi           
+iam-service-5c69ddd488-chvcg                 368m         532Mi           
+teaching-service-599b7ccf95-9qwp6            361m         514Mi           
+teaching-service-599b7ccf95-c5z7g            349m         620Mi           
+iam-service-5c69ddd488-pkk8t                 326m         454Mi           
+teaching-service-599b7ccf95-r2vcg            324m         882Mi           
+teaching-service-599b7ccf95-mwnlg            295m         670Mi           
+iam-service-5c69ddd488-9sp7j                 289m         651Mi           
+iam-service-5c69ddd488-r68t8                 285m         663Mi           
+iam-service-5c69ddd488-4p84k                 237m         650Mi           
+course-service-694db7874d-twkj5              128m         479Mi           
+course-service-694db7874d-576z2              88m          590Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 123.41% 794.1MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 78.10% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 8.14% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 109.29% 758.8MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.07% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737207
+teaching-service-599b7ccf95-ncs49            1117m        1270Mi          
+teaching-service-599b7ccf95-nrt92            947m         801Mi           
+teaching-service-599b7ccf95-pk4wc            903m         1132Mi          
+teaching-service-599b7ccf95-8rcn5            901m         532Mi           
+teaching-service-599b7ccf95-sp2kt            855m         759Mi           
+teaching-service-599b7ccf95-z6977            839m         527Mi           
+teaching-service-599b7ccf95-2lvjl            838m         524Mi           
+teaching-service-599b7ccf95-9pwnk            831m         579Mi           
+teaching-service-599b7ccf95-q7tg7            802m         524Mi           
+teaching-service-599b7ccf95-stmhf            801m         504Mi           
+teaching-service-599b7ccf95-mx4r8            765m         532Mi           
+teaching-service-599b7ccf95-6rcdt            562m         521Mi           
+iam-service-5c69ddd488-hmfpz                 541m         944Mi           
+teaching-service-599b7ccf95-c5z7g            524m         623Mi           
+teaching-service-599b7ccf95-9qwp6            500m         509Mi           
+nginx-gateway-5d68dbfccd-mjcnq               500m         128Mi           
+nginx-gateway-5d68dbfccd-55jkk               499m         127Mi           
+iam-service-5c69ddd488-mlzd4                 484m         490Mi           
+iam-service-5c69ddd488-whs7h                 465m         514Mi           
+iam-service-5c69ddd488-msggw                 461m         945Mi           
+iam-service-5c69ddd488-p4b5b                 451m         547Mi           
+iam-service-5c69ddd488-7tb9j                 450m         1134Mi          
+iam-service-5c69ddd488-kdrzc                 442m         830Mi           
+iam-service-5c69ddd488-46t9m                 440m         483Mi           
+teaching-service-599b7ccf95-r2vcg            432m         884Mi           
+iam-service-5c69ddd488-zfbnl                 431m         486Mi           
+iam-service-5c69ddd488-mlh4s                 425m         531Mi           
+iam-service-5c69ddd488-chvcg                 406m         535Mi           
+iam-service-5c69ddd488-zl8kl                 388m         532Mi           
+teaching-service-599b7ccf95-mwnlg            341m         673Mi           
+iam-service-5c69ddd488-9sp7j                 267m         651Mi           
+iam-service-5c69ddd488-r68t8                 262m         664Mi           
+iam-service-5c69ddd488-4p84k                 252m         651Mi           
+iam-service-5c69ddd488-pkk8t                 245m         454Mi           
+course-service-694db7874d-twkj5              135m         473Mi           
+course-service-694db7874d-576z2              89m          590Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 83.10% 794.3MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 48.58% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 9.68% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 78.11% 758.3MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.07% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737241
+teaching-service-599b7ccf95-ncs49            918m         1264Mi          
+teaching-service-599b7ccf95-pk4wc            876m         1131Mi          
+teaching-service-599b7ccf95-nrt92            802m         802Mi           
+teaching-service-599b7ccf95-stmhf            794m         500Mi           
+teaching-service-599b7ccf95-8rcn5            753m         584Mi           
+teaching-service-599b7ccf95-q7tg7            711m         531Mi           
+teaching-service-599b7ccf95-sp2kt            696m         759Mi           
+teaching-service-599b7ccf95-9pwnk            670m         585Mi           
+teaching-service-599b7ccf95-6rcdt            655m         521Mi           
+teaching-service-599b7ccf95-2lvjl            653m         529Mi           
+teaching-service-599b7ccf95-z6977            636m         533Mi           
+teaching-service-599b7ccf95-mx4r8            635m         537Mi           
+nginx-gateway-5d68dbfccd-55jkk               498m         125Mi           
+nginx-gateway-5d68dbfccd-mjcnq               498m         128Mi           
+teaching-service-599b7ccf95-r2vcg            464m         886Mi           
+teaching-service-599b7ccf95-c5z7g            433m         625Mi           
+teaching-service-599b7ccf95-9qwp6            416m         510Mi           
+iam-service-5c69ddd488-hmfpz                 414m         944Mi           
+iam-service-5c69ddd488-zl8kl                 396m         535Mi           
+iam-service-5c69ddd488-msggw                 389m         946Mi           
+teaching-service-599b7ccf95-mwnlg            387m         674Mi           
+iam-service-5c69ddd488-kdrzc                 383m         830Mi           
+iam-service-5c69ddd488-7tb9j                 382m         1134Mi          
+iam-service-5c69ddd488-whs7h                 346m         515Mi           
+iam-service-5c69ddd488-mlzd4                 341m         489Mi           
+iam-service-5c69ddd488-p4b5b                 341m         549Mi           
+iam-service-5c69ddd488-zfbnl                 331m         487Mi           
+iam-service-5c69ddd488-mlh4s                 327m         532Mi           
+iam-service-5c69ddd488-46t9m                 318m         483Mi           
+iam-service-5c69ddd488-chvcg                 305m         535Mi           
+iam-service-5c69ddd488-r68t8                 303m         665Mi           
+iam-service-5c69ddd488-pkk8t                 266m         493Mi           
+iam-service-5c69ddd488-9sp7j                 265m         652Mi           
+iam-service-5c69ddd488-4p84k                 265m         651Mi           
+course-service-694db7874d-twkj5              131m         473Mi           
+course-service-694db7874d-576z2              91m          590Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 68.67% 795.2MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 36.89% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 11.10% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 59.44% 758.1MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.16% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737275
+teaching-service-599b7ccf95-ncs49            874m         1264Mi          
+teaching-service-599b7ccf95-pk4wc            801m         1131Mi          
+teaching-service-599b7ccf95-nrt92            691m         802Mi           
+teaching-service-599b7ccf95-sp2kt            661m         759Mi           
+teaching-service-599b7ccf95-stmhf            568m         502Mi           
+teaching-service-599b7ccf95-8rcn5            504m         587Mi           
+nginx-gateway-5d68dbfccd-mjcnq               502m         131Mi           
+nginx-gateway-5d68dbfccd-55jkk               501m         126Mi           
+teaching-service-599b7ccf95-2lvjl            496m         532Mi           
+teaching-service-599b7ccf95-q7tg7            494m         534Mi           
+teaching-service-599b7ccf95-z6977            478m         537Mi           
+teaching-service-599b7ccf95-9qwp6            477m         510Mi           
+teaching-service-599b7ccf95-6rcdt            473m         524Mi           
+teaching-service-599b7ccf95-mx4r8            465m         540Mi           
+teaching-service-599b7ccf95-c5z7g            434m         627Mi           
+teaching-service-599b7ccf95-9pwnk            429m         588Mi           
+teaching-service-599b7ccf95-r2vcg            418m         887Mi           
+teaching-service-599b7ccf95-mwnlg            410m         675Mi           
+iam-service-5c69ddd488-hmfpz                 391m         944Mi           
+iam-service-5c69ddd488-kdrzc                 352m         830Mi           
+iam-service-5c69ddd488-msggw                 322m         946Mi           
+iam-service-5c69ddd488-7tb9j                 318m         1135Mi          
+iam-service-5c69ddd488-pkk8t                 313m         493Mi           
+iam-service-5c69ddd488-mlzd4                 307m         490Mi           
+iam-service-5c69ddd488-r68t8                 304m         665Mi           
+iam-service-5c69ddd488-4p84k                 288m         651Mi           
+iam-service-5c69ddd488-zfbnl                 287m         488Mi           
+iam-service-5c69ddd488-chvcg                 284m         536Mi           
+iam-service-5c69ddd488-zl8kl                 282m         535Mi           
+iam-service-5c69ddd488-whs7h                 280m         515Mi           
+iam-service-5c69ddd488-9sp7j                 277m         652Mi           
+iam-service-5c69ddd488-p4b5b                 272m         549Mi           
+iam-service-5c69ddd488-46t9m                 272m         483Mi           
+iam-service-5c69ddd488-mlh4s                 262m         533Mi           
+course-service-694db7874d-twkj5              144m         473Mi           
+course-service-694db7874d-576z2              85m          590Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 79.04% 795.2MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 37.05% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 9.21% 586.5MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 71.08% 758MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.08% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.05% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737309
+teaching-service-599b7ccf95-ncs49            837m         1264Mi          
+teaching-service-599b7ccf95-pk4wc            756m         1130Mi          
+teaching-service-599b7ccf95-nrt92            738m         803Mi           
+teaching-service-599b7ccf95-sp2kt            581m         759Mi           
+teaching-service-599b7ccf95-stmhf            528m         503Mi           
+nginx-gateway-5d68dbfccd-55jkk               498m         128Mi           
+nginx-gateway-5d68dbfccd-mjcnq               498m         130Mi           
+teaching-service-599b7ccf95-8rcn5            495m         588Mi           
+teaching-service-599b7ccf95-9pwnk            491m         590Mi           
+teaching-service-599b7ccf95-z6977            489m         538Mi           
+teaching-service-599b7ccf95-2lvjl            486m         536Mi           
+teaching-service-599b7ccf95-q7tg7            461m         536Mi           
+teaching-service-599b7ccf95-9qwp6            442m         511Mi           
+teaching-service-599b7ccf95-c5z7g            427m         629Mi           
+teaching-service-599b7ccf95-mx4r8            424m         543Mi           
+teaching-service-599b7ccf95-r2vcg            404m         889Mi           
+teaching-service-599b7ccf95-6rcdt            388m         526Mi           
+teaching-service-599b7ccf95-mwnlg            367m         676Mi           
+iam-service-5c69ddd488-hmfpz                 348m         944Mi           
+iam-service-5c69ddd488-kdrzc                 339m         830Mi           
+iam-service-5c69ddd488-r68t8                 336m         665Mi           
+iam-service-5c69ddd488-zfbnl                 324m         488Mi           
+iam-service-5c69ddd488-7tb9j                 324m         1135Mi          
+iam-service-5c69ddd488-msggw                 316m         946Mi           
+iam-service-5c69ddd488-p4b5b                 315m         550Mi           
+iam-service-5c69ddd488-4p84k                 291m         652Mi           
+iam-service-5c69ddd488-mlzd4                 289m         491Mi           
+iam-service-5c69ddd488-pkk8t                 281m         494Mi           
+iam-service-5c69ddd488-chvcg                 281m         536Mi           
+iam-service-5c69ddd488-46t9m                 280m         484Mi           
+iam-service-5c69ddd488-mlh4s                 273m         533Mi           
+iam-service-5c69ddd488-zl8kl                 271m         535Mi           
+iam-service-5c69ddd488-whs7h                 269m         516Mi           
+iam-service-5c69ddd488-9sp7j                 259m         653Mi           
+course-service-694db7874d-twkj5              131m         473Mi           
+course-service-694db7874d-576z2              97m          590Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           314Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 64.17% 795.7MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 38.39% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 6.86% 586.6MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 60.14% 758MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.06% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+k8s_course-service_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.06% 586MiB / 4GiB
+k8s_POD_course-service-undertow-f89566cd8-d989r_qianrenqianmian_c2240fde-94d9-4b08-b926-f3d06eb850d8_0 0.00% 1.938MiB / 126.8GiB
+---
+1792737342
+teaching-service-599b7ccf95-ncs49            466m         1264Mi          
+teaching-service-599b7ccf95-pk4wc            462m         1130Mi          
+teaching-service-599b7ccf95-stmhf            397m         504Mi           
+teaching-service-599b7ccf95-8rcn5            369m         591Mi           
+teaching-service-599b7ccf95-9pwnk            368m         593Mi           
+teaching-service-599b7ccf95-q7tg7            350m         539Mi           
+nginx-gateway-5d68dbfccd-55jkk               336m         99Mi            
+teaching-service-599b7ccf95-mx4r8            336m         544Mi           
+teaching-service-599b7ccf95-9qwp6            336m         512Mi           
+teaching-service-599b7ccf95-c5z7g            335m         630Mi           
+nginx-gateway-5d68dbfccd-mjcnq               332m         100Mi           
+teaching-service-599b7ccf95-z6977            319m         541Mi           
+teaching-service-599b7ccf95-6rcdt            291m         528Mi           
+teaching-service-599b7ccf95-mwnlg            274m         677Mi           
+teaching-service-599b7ccf95-2lvjl            268m         537Mi           
+teaching-service-599b7ccf95-nrt92            256m         803Mi           
+teaching-service-599b7ccf95-r2vcg            241m         890Mi           
+teaching-service-599b7ccf95-sp2kt            238m         759Mi           
+iam-service-5c69ddd488-whs7h                 217m         516Mi           
+iam-service-5c69ddd488-zl8kl                 216m         536Mi           
+iam-service-5c69ddd488-hmfpz                 199m         944Mi           
+iam-service-5c69ddd488-kdrzc                 195m         830Mi           
+iam-service-5c69ddd488-r68t8                 192m         666Mi           
+iam-service-5c69ddd488-msggw                 190m         946Mi           
+iam-service-5c69ddd488-pkk8t                 187m         494Mi           
+iam-service-5c69ddd488-7tb9j                 187m         1135Mi          
+iam-service-5c69ddd488-4p84k                 178m         652Mi           
+iam-service-5c69ddd488-46t9m                 176m         526Mi           
+iam-service-5c69ddd488-zfbnl                 175m         489Mi           
+iam-service-5c69ddd488-chvcg                 173m         537Mi           
+iam-service-5c69ddd488-mlzd4                 164m         491Mi           
+iam-service-5c69ddd488-mlh4s                 160m         533Mi           
+iam-service-5c69ddd488-p4b5b                 152m         550Mi           
+iam-service-5c69ddd488-9sp7j                 143m         653Mi           
+course-service-694db7874d-twkj5              87m          473Mi           
+course-service-694db7874d-576z2              66m          590Mi           
+graphql-gateway-6c59b79fbb-mcphq             4m           312Mi           
+graphql-gateway-6c59b79fbb-lw4w4             4m           317Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+k8s_iam-service_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 309.92% 223.8MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.00% 2.059MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.24% 795.9MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.07% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.07% 586.6MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.12% 758MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-sp2kt_qianrenqianmian_1b94dcf3-6ca2-4ef2-8921-74a4c0add49c_0 0.00% 2.039MiB / 126.8GiB
+k8s_teaching-service_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_208 0.07% 465.6MiB / 4GiB
+k8s_POD_teaching-service-undertow-65dc997975-gbwgg_qianrenqianmian_760a42e4-d43c-47be-a51a-6016c3a6207c_0 0.00% 2.125MiB / 126.8GiB
+---
+1792737378
+iam-service-5c69ddd488-r2tbs                 1206m        460Mi           
+iam-service-5c69ddd488-4z82m                 1167m        464Mi           
+iam-service-5c69ddd488-qffjh                 1157m        464Mi           
+iam-service-5c69ddd488-pf9vk                 326m         462Mi           
+graphql-gateway-6c59b79fbb-lw4w4             3m           317Mi           
+graphql-gateway-6c59b79fbb-mcphq             3m           312Mi           
+iam-service-5c69ddd488-46t9m                 3m           526Mi           
+iam-service-5c69ddd488-msggw                 3m           946Mi           
+teaching-service-599b7ccf95-9qwp6            3m           511Mi           
+teaching-service-599b7ccf95-ncs49            3m           1264Mi          
+teaching-service-599b7ccf95-r2vcg            3m           890Mi           
+teaching-service-599b7ccf95-c5z7g            2m           630Mi           
+course-service-694db7874d-576z2              2m           590Mi           
+iam-service-5c69ddd488-kdrzc                 2m           830Mi           
+iam-service-5c69ddd488-mlh4s                 2m           533Mi           
+iam-service-5c69ddd488-mlzd4                 2m           491Mi           
+iam-service-5c69ddd488-chvcg                 2m           537Mi           
+iam-service-5c69ddd488-p4b5b                 2m           550Mi           
+iam-service-5c69ddd488-9sp7j                 2m           653Mi           
+iam-service-5c69ddd488-pkk8t                 2m           494Mi           
+iam-service-5c69ddd488-7tb9j                 2m           1135Mi          
+iam-service-5c69ddd488-4p84k                 2m           652Mi           
+iam-service-5c69ddd488-r68t8                 2m           666Mi           
+iam-service-5c69ddd488-whs7h                 2m           517Mi           
+iam-service-5c69ddd488-zfbnl                 2m           489Mi           
+iam-service-5c69ddd488-zl8kl                 2m           536Mi           
+teaching-service-599b7ccf95-z6977            2m           541Mi           
+teaching-service-599b7ccf95-stmhf            2m           504Mi           
+teaching-service-599b7ccf95-sp2kt            2m           759Mi           
+teaching-service-599b7ccf95-q7tg7            2m           539Mi           
+teaching-service-599b7ccf95-pk4wc            2m           1130Mi          
+teaching-service-599b7ccf95-nrt92            2m           803Mi           
+teaching-service-599b7ccf95-mx4r8            2m           544Mi           
+teaching-service-599b7ccf95-mwnlg            2m           677Mi           
+teaching-service-599b7ccf95-2lvjl            2m           537Mi           
+teaching-service-599b7ccf95-6rcdt            2m           528Mi           
+teaching-service-599b7ccf95-8rcn5            2m           591Mi           
+teaching-service-599b7ccf95-9pwnk            2m           593Mi           
+course-service-694db7874d-twkj5              2m           473Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+iam-service-5c69ddd488-hmfpz                 1m           944Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+nginx-gateway-5d68dbfccd-mjcnq               1m           100Mi           
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+nginx-gateway-5d68dbfccd-55jkk               1m           99Mi            
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+k8s_iam-service_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.16% 460.2MiB / 4GiB
+k8s_iam-service_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.14% 464MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.00% 2.066MiB / 126.8GiB
+k8s_POD_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.00% 1.922MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.14% 463MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.00% 2.059MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.24% 795.9MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.17% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.15% 586.7MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+---
+1792737411
+graphql-gateway-6c59b79fbb-lw4w4             12m          318Mi           
+nginx-gateway-5d68dbfccd-55jkk               7m           95Mi            
+nginx-gateway-5d68dbfccd-mjcnq               7m           97Mi            
+teaching-service-599b7ccf95-2lvjl            6m           537Mi           
+teaching-service-599b7ccf95-9qwp6            6m           512Mi           
+teaching-service-599b7ccf95-ncs49            5m           1264Mi          
+iam-service-5c69ddd488-zl8kl                 5m           536Mi           
+course-service-694db7874d-twkj5              4m           473Mi           
+iam-service-5c69ddd488-46t9m                 4m           526Mi           
+iam-service-5c69ddd488-4p84k                 4m           653Mi           
+iam-service-5c69ddd488-7tb9j                 4m           1135Mi          
+iam-service-5c69ddd488-chvcg                 4m           537Mi           
+iam-service-5c69ddd488-whs7h                 4m           517Mi           
+teaching-service-599b7ccf95-nrt92            4m           803Mi           
+iam-service-5c69ddd488-mlzd4                 4m           491Mi           
+iam-service-5c69ddd488-kdrzc                 3m           830Mi           
+teaching-service-599b7ccf95-pk4wc            3m           1130Mi          
+teaching-service-599b7ccf95-z6977            3m           541Mi           
+iam-service-5c69ddd488-pkk8t                 3m           494Mi           
+teaching-service-599b7ccf95-stmhf            3m           504Mi           
+teaching-service-599b7ccf95-sp2kt            3m           759Mi           
+iam-service-5c69ddd488-r68t8                 3m           666Mi           
+iam-service-5c69ddd488-msggw                 3m           946Mi           
+iam-service-5c69ddd488-zfbnl                 3m           489Mi           
+iam-service-5c69ddd488-mlh4s                 3m           533Mi           
+teaching-service-599b7ccf95-r2vcg            3m           890Mi           
+teaching-service-599b7ccf95-q7tg7            3m           539Mi           
+iam-service-5c69ddd488-p4b5b                 3m           550Mi           
+iam-service-5c69ddd488-9sp7j                 3m           653Mi           
+iam-service-5c69ddd488-4z82m                 3m           464Mi           
+teaching-service-599b7ccf95-mx4r8            3m           544Mi           
+teaching-service-599b7ccf95-mwnlg            3m           677Mi           
+teaching-service-599b7ccf95-c5z7g            3m           630Mi           
+teaching-service-599b7ccf95-9pwnk            3m           593Mi           
+teaching-service-599b7ccf95-8rcn5            3m           591Mi           
+teaching-service-599b7ccf95-6rcdt            3m           528Mi           
+graphql-gateway-6c59b79fbb-mcphq             3m           312Mi           
+course-service-694db7874d-576z2              2m           590Mi           
+iam-service-5c69ddd488-pf9vk                 2m           462Mi           
+iam-service-5c69ddd488-qffjh                 2m           465Mi           
+iam-service-5c69ddd488-r2tbs                 2m           460Mi           
+iam-service-5c69ddd488-hmfpz                 2m           944Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+k8s_iam-service_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.12% 463.9MiB / 4GiB
+k8s_iam-service_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.14% 464MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.00% 2.066MiB / 126.8GiB
+k8s_POD_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.00% 1.922MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.13% 463MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.00% 2.059MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.13% 795.9MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.05% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.05% 586.6MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+---
+1792737445
+iam-service-5c69ddd488-qffjh                 36m          468Mi           
+iam-service-5c69ddd488-4z82m                 31m          467Mi           
+iam-service-5c69ddd488-pf9vk                 28m          467Mi           
+iam-service-5c69ddd488-p4b5b                 5m           550Mi           
+iam-service-5c69ddd488-r2tbs                 3m           463Mi           
+graphql-gateway-6c59b79fbb-lw4w4             3m           318Mi           
+graphql-gateway-6c59b79fbb-mcphq             3m           312Mi           
+iam-service-5c69ddd488-46t9m                 3m           526Mi           
+iam-service-5c69ddd488-hmfpz                 3m           945Mi           
+iam-service-5c69ddd488-zl8kl                 3m           536Mi           
+teaching-service-599b7ccf95-q7tg7            3m           539Mi           
+teaching-service-599b7ccf95-r2vcg            3m           890Mi           
+teaching-service-599b7ccf95-c5z7g            2m           630Mi           
+teaching-service-599b7ccf95-ncs49            2m           1264Mi          
+iam-service-5c69ddd488-mlh4s                 2m           534Mi           
+iam-service-5c69ddd488-mlzd4                 2m           491Mi           
+iam-service-5c69ddd488-msggw                 2m           946Mi           
+iam-service-5c69ddd488-9sp7j                 2m           653Mi           
+iam-service-5c69ddd488-7tb9j                 2m           1135Mi          
+iam-service-5c69ddd488-pkk8t                 2m           494Mi           
+iam-service-5c69ddd488-4p84k                 2m           653Mi           
+iam-service-5c69ddd488-r68t8                 2m           666Mi           
+iam-service-5c69ddd488-whs7h                 2m           517Mi           
+iam-service-5c69ddd488-zfbnl                 2m           489Mi           
+teaching-service-599b7ccf95-z6977            2m           541Mi           
+teaching-service-599b7ccf95-stmhf            2m           504Mi           
+teaching-service-599b7ccf95-sp2kt            2m           759Mi           
+teaching-service-599b7ccf95-nrt92            2m           803Mi           
+iam-service-5c69ddd488-chvcg                 2m           537Mi           
+teaching-service-599b7ccf95-mx4r8            2m           544Mi           
+teaching-service-599b7ccf95-mwnlg            2m           677Mi           
+teaching-service-599b7ccf95-9qwp6            2m           512Mi           
+teaching-service-599b7ccf95-9pwnk            2m           593Mi           
+teaching-service-599b7ccf95-8rcn5            2m           591Mi           
+teaching-service-599b7ccf95-6rcdt            2m           528Mi           
+teaching-service-599b7ccf95-2lvjl            2m           537Mi           
+teaching-service-undertow-65dc997975-gbwgg   1m           472Mi           
+course-service-694db7874d-576z2              1m           590Mi           
+nginx-gateway-5d68dbfccd-55jkk               1m           95Mi            
+nginx-gateway-5d68dbfccd-mjcnq               1m           97Mi            
+teaching-service-599b7ccf95-pk4wc            1m           1130Mi          
+realtime-gateway-689bfd455d-9dlwv            1m           7Mi             
+realtime-gateway-689bfd455d-drkxx            1m           10Mi            
+iam-service-undertow-5f578699d6-b7587        1m           504Mi           
+course-service-694db7874d-twkj5              1m           473Mi           
+realtime-gateway-689bfd455d-n9zcr            1m           9Mi             
+course-service-undertow-f89566cd8-d989r      1m           586Mi           
+iam-service-5c69ddd488-kdrzc                 1m           830Mi           
+k8s_iam-service_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.10% 464MiB / 4GiB
+k8s_iam-service_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.13% 467.7MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-r2tbs_qianrenqianmian_38336e42-5924-4bc1-8f43-244001ac89d0_0 0.00% 2.066MiB / 126.8GiB
+k8s_POD_iam-service-5c69ddd488-4z82m_qianrenqianmian_3ca30ce6-8f5a-4e72-bd73-efd0b35dd22f_0 0.00% 1.922MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.12% 467.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-pf9vk_qianrenqianmian_ba7d1967-666a-4da8-b0b3-8cdb1e3e689e_0 0.00% 2.059MiB / 126.8GiB
+k8s_teaching-service_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.11% 796MiB / 4GiB
+k8s_POD_teaching-service-599b7ccf95-nrt92_qianrenqianmian_83a5d873-a4e9-45e4-a2a9-ca926c178f5d_0 0.00% 1.457MiB / 126.8GiB
+k8s_iam-service_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.06% 932.6MiB / 4GiB
+k8s_POD_iam-service-5c69ddd488-hmfpz_qianrenqianmian_4cbbfc05-1ca7-4667-9f69-bf3848ca2741_0 0.00% 1.836MiB / 126.8GiB
+k8s_course-service_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.05% 586.6MiB / 4GiB
+k8s_POD_course-service-694db7874d-576z2_qianrenqianmian_fa1a6469-926d-4dfd-8fe8-502e999cac84_0 0.00% 2.172MiB / 126.8GiB
+---

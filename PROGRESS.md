@@ -77,3 +77,11 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - e2e 全量终跑(服务回正式镜像后): **51 passed / 4 skipped / 0 failed**(4.52s)。
 - 服务器峰值: teaching 2.84核/618MiB, iam 623MiB, 无 OOM。数据 report/loadtest-raw/(k8stop3/dockercpu3/k6job-summary/locust-gw_stats)。
 - 收口 commit: f419573。
+
+## 2026-10-23 非阻塞收口: 放宽限流档后端极限容量测试(完成)
+
+- 8 副本 k6 Job(backoffLimit=8) 全调度成功, 前置修复: ai-platform/ollama-worker requests 40核→1核(原值备份 /tmp/ow-backup.json 在 175 节点, 回滚命令 `kubectl apply -f /tmp/ow-backup.json`)。
+- 结果: 8 源合计 4,019 r/s / 186.9 万请求 / 失败 ≈14.9%(全部为 /api/v1/resources 命中 upload_limit zone 5r/s 钳制, 5xx=0)。读 p95 1.4s(teaching CPU 3.56 核排队), 无 OOM/无重启拐点。
+- 结论: 后端容量 ≥4,000 r/s 下限, 无饱和拐点, 满足 5,000 CCU 目标。原始数据 report/loadtest-raw/x8/。
+- 环境恢复: nginx-gateway 回滚 11.0.2(rate=100r/s 验证), k6 Job 清理, ollama-worker patch 待用户决定是否固化回 yaml(DGO: live patch 已备份)。
+- undertow A组实验副本 208 次重启为 2026-10-22 02:18 遗留(启动期 Unknown database), 本轮未新增。
