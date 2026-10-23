@@ -73,8 +73,8 @@ public class LearningPathController {
                 .status(status)
                 .page(pageable.getPageNumber())
                 .size(pageable.getPageSize())
-                .sortBy(pageable.getSort().toString())
-                .sortDirection(pageable.getSort().isEmpty() || pageable.getSort().iterator().next().getDirection().isAscending() ? "ASC" : "DESC")
+                .sortBy(pageable.getSort().isEmpty() ? null : pageable.getSort().iterator().next().getProperty())
+                .sortDirection(pageable.getSort().isEmpty() ? "ASC" : (pageable.getSort().iterator().next().getDirection().isAscending() ? "ASC" : "DESC"))
                 .build();
 
         return ResponseEntity.ok(dtoAssembler.toPageResponse(

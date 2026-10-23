@@ -6,9 +6,29 @@ import axios from 'axios'
 
 export const http = axios.create({ baseURL: '/agent', timeout: 30000 })
 
-/** GraphQL(经 nginx /gateway) */
+/** 演示会话引导: 无令牌时静默用演示账号向 iam 登录换取 accessToken(存 localStorage) */
+export async function ensureDemoSession(): Promise<void> {
+  if (localStorage.getItem('accessToken')) return
+  try {
+    const tenantId = localStorage.getItem('tenantId') || 'da98138f-486f-42db-944c-219a5a44bf52'
+    const r = await axios.post('/api/v1/auth/login',
+      { username: 'admin', password: 'Admin@12345' },
+      { headers: { 'X-Tenant-Id': tenantId }, timeout: 10000 })
+    if (r.data?.data?.accessToken) {
+      localStorage.setItem('accessToken', r.data.data.accessToken)
+      localStorage.setItem('tenantId', tenantId)
+    }
+  } catch { /* 静默: 无登录态时 GraphQL 将按匿名 401 展示不可达骨架 */ }
+}
+
+/** GraphQL(经 nginx /gateway; 携带登录令牌——graphql-gateway anyRequest().authenticated) */
 export async function gql<T = any>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const r = await axios.post('/gateway/graphql', { query, variables }, { timeout: 30000 })
+  await ensureDemoSession()
+  const token = localStorage.getItem('accessToken')
+  const r = await axios.post('/gateway/graphql', { query, variables }, {
+    timeout: 30000,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  })
   if (r.data.errors) throw new Error(r.data.errors[0]?.message || 'graphql error')
   return r.data.data as T
 }
@@ -46,6 +66,7 @@ export function worldWhatIf(masteries: Record<string, number>, knowledgePoint: s
 
 /** KT 掌握度 */
 export function mastery(studentId: string) {
-  return http.post('/api/v1/mcp/call', { tool: 'kt_mastery', args: { studentId } })
+  // kt_mastery 需要 studentId+skillId; 缺 skillId 时 kt 服务返回全向量, agent 侧工具 required 两参
+  return http.post('/api/v1/mcp/call', { tool: 'kt_mastery', args: { studentId, skillId: 'kp1' } })
     .then(r => r.data)
 }

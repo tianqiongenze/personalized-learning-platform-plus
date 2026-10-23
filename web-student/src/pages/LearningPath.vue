@@ -13,7 +13,7 @@ const steps = ref<Step[]>([])
 const assignments = ref<Assignment[]>([])
 
 const QUERY = `
-query($courseId: ID) {
+query($courseId: ID!) {
   learningPaths(courseId: $courseId) { title status }
   assignments(courseId: $courseId) { title dueAt }
 }`

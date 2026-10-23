@@ -36,7 +36,7 @@ public class CourseController {
 
     private String tenantId(HttpServletRequest request) {
         String t = request.getHeader("X-Tenant-Id");
-        return (t == null || t.isBlank()) ? "default" : t;
+        return (t == null || t.isBlank()) ? com.platform.common.tenant.TenantContext.DEFAULT_TENANT : t;
     }
 
     private String currentUser(HttpServletRequest request) {

@@ -26,9 +26,14 @@ public class SecurityConfig {
                 //   完全开放 —— 违反最小权限原则与等保 2.0 三级"剩余信息保护"。
                 //   现改为: 运维写操作需 PLATFORM_ADMIN, 只读观测需 PLATFORM_ADMIN 或
                 //   OPS_READER; 角色由网关经 X-User-Roles 注入, 缺失即 403。
+                //   注意: server.servlet.context-path=/api/v1/ops, Security 匹配器
+                //   相对 context-path, 故此处用 /** 而非 /api/v1/ops/**(后者永不匹配,
+                //   落到 anyRequest() 使全部带角色头的请求也 401)。
                 .requestMatchers("/actuator/**").hasAnyRole("PLATFORM_ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/ops/**")
-                .hasAnyRole("PLATFORM_ADMIN", "OPS_READER")
+                // iam 实际签发角色为 ADMIN/SUPER_ADMIN(见 /auth/verify X-User-Roles),
+                // 接受平台管理角色 ADMIN/SUPER_ADMIN 与设计角色 OPS_READER。
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/**")
+                .hasAnyRole("ADMIN", "SUPER_ADMIN", "OPS_READER")
                 .anyRequest().hasRole("PLATFORM_ADMIN"));
         http.exceptionHandling(ex -> ex
             .authenticationEntryPoint((req, res, e) -> res.sendError(401, "缺少有效凭证"))

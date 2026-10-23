@@ -30,10 +30,24 @@ public class KTResolver {
     @QueryMapping
     public List<Map<String, Object>> masteryProfile(@Argument String studentId,
                                                     @Argument List<String> skillIds) {
-        Map<String, Object> body = Map.of("studentId", studentId, "skillIds", skillIds);
-        Map<String, Object> resp = client.post("kt", "/kt/mastery/batch", body, Map.class);
-        Object items = resp.get("items");
-        return items instanceof List<?> l ? (List<Map<String, Object>>) l : List.of();
+        // kt-service 无 /kt/mastery/batch; 用 /kt/mastery 的 weak/strong 列表合成批量画像
+        Map<String, Object> resp = client.getMap("kt", "/kt/mastery?studentId=" + studentId);
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        for (String key : new String[]{"weakKps", "strongKps"}) {
+            Object arr = resp.get(key);
+            if (arr instanceof List<?> l) {
+                for (Object o : l) {
+                    if (o instanceof Map<?,?> m) {
+                        Map<String, Object> row = new java.util.HashMap<>();
+                        row.put("skillId", String.valueOf(m.get("kp")));
+                        row.put("mastery", m.get("mastery"));
+                        row.put("level", "weakKps".equals(key) ? "WEAK" : "STRONG");
+                        out.add(row);
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     @QueryMapping

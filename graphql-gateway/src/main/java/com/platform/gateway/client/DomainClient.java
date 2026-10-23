@@ -43,9 +43,33 @@ public class DomainClient {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(connectTimeoutMs);
         factory.setReadTimeout(readTimeoutMs);
-        this.restClient = builder.requestFactory(factory).build();
+        this.restClient = builder
+                .requestFactory(factory)
+                // 兑现"转发 X-Tenant-Id 租户头"承诺: 从当前 servlet 请求(GatewayJwtFilter 包装层)取用户上下文头透传下游
+                .requestInterceptor((request, body, execution) -> {
+                    var attrs = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+                    if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes sra) {
+                        var req = sra.getRequest();
+                        copyIfPresent(req, request, "X-User-Id");
+                        copyIfPresent(req, request, "X-Tenant-Id");
+                        copyIfPresent(req, request, "X-Roles");
+                        copyIfPresent(req, request, "X-User-Roles");
+                        // iam 全量验签模型需要原始 Bearer 令牌
+                        copyIfPresent(req, request, "Authorization");
+                        // 本网关即信任边界, 标记下游放行(tenant-service HeaderAuthFilter 依赖)
+                        request.getHeaders().add("X-Gateway-Verified", "1");
+                    }
+                    return execution.execute(request, body);
+                })
+                .build();
         this.services = services;
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("domainCall");
+    }
+
+    private static void copyIfPresent(jakarta.servlet.http.HttpServletRequest from,
+                                      org.springframework.http.HttpRequest to, String name) {
+        String v = from.getHeader(name);
+        if (v != null && !v.isBlank()) to.getHeaders().set(name, v);
     }
 
     public <T> T get(String service, String path, Class<T> type) {

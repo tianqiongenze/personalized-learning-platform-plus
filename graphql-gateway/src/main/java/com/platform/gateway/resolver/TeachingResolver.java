@@ -27,11 +27,21 @@ public class TeachingResolver {
 
     @QueryMapping
     public List<Map<String, Object>> learningPaths(@Argument String courseId) {
-        return client.getList("teaching", "/learning-paths?courseId=" + courseId);
+        if (courseId == null || courseId.isBlank() || !courseId.matches("[0-9a-fA-F-]{36}")) {
+            return client.getMap("teaching", "/learning-paths") instanceof Map<?,?> am
+                    && am.get("data") instanceof Map<?,?> dm && dm.get("content") instanceof List<?> cl
+                    ? (List<Map<String, Object>>) cl : List.of();
+        }
+        return client.getMap("teaching", "/learning-paths?courseId=" + courseId) instanceof Map<?,?> am
+                ? (am.get("data") instanceof Map<?,?> dm && dm.get("content") instanceof List<?> cl ? (List<Map<String, Object>>) cl : List.of())
+                : List.of();
     }
 
     @QueryMapping
     public List<Map<String, Object>> assignments(@Argument String courseId) {
-        return client.getList("teaching", "/assignments?courseId=" + courseId);
+        String q = (courseId != null && courseId.matches("[0-9a-fA-F-]{36}")) ? "?courseId=" + courseId : "";
+        return client.getMap("teaching", "/teaching/assignments" + q) instanceof Map<?,?> am
+                ? (am.get("data") instanceof Map<?,?> dm && dm.get("content") instanceof List<?> cl ? (List<Map<String, Object>>) cl : List.of())
+                : List.of();
     }
 }

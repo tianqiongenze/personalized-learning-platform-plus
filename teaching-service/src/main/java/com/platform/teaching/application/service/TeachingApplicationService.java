@@ -477,7 +477,7 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public Page<LearningPath> listLearningPaths(LearningPathQueries.ListLearningPathsQuery query) {
         Pageable pageable = PageRequest.of(query.getPage(), query.getSize(),
-                Sort.by(Sort.Direction.fromString(query.getSortDirection()), query.getSortBy()));
+                sortOf(query.getSortBy(), query.getSortDirection()));
         if (query.getTenantId() != null && query.getCourseId() != null) {
             return learningPathRepository.findByTenantIdAndStatus(query.getTenantId(),
                     LearningPathStatus.valueOf(query.getStatus()), pageable);
@@ -517,7 +517,7 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public Page<Assignment> listAssignments(TeachingQueries.ListAssignmentsQuery query) {
         Pageable pageable = PageRequest.of(query.getPage(), query.getSize(),
-                Sort.by(Sort.Direction.fromString(query.getSortDirection()), query.getSortBy()));
+                sortOf(query.getSortBy(), query.getSortDirection()));
         if (query.getTenantId() != null && query.getStatus() != null) {
             return assignmentRepository.findByTenantIdAndStatus(query.getTenantId(),
                     AssignmentStatus.valueOf(query.getStatus()), pageable);
@@ -551,7 +551,7 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public Page<Exam> listExams(TeachingQueries.ListExamsQuery query) {
         Pageable pageable = PageRequest.of(query.getPage(), query.getSize(),
-                Sort.by(Sort.Direction.fromString(query.getSortDirection()), query.getSortBy()));
+                sortOf(query.getSortBy(), query.getSortDirection()));
         if (query.getTenantId() != null && query.getStatus() != null) {
             return examRepository.findByTenantIdAndStatus(query.getTenantId(),
                     ExamStatus.valueOf(query.getStatus()), pageable);
@@ -585,7 +585,7 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public Page<Discussion> listDiscussions(TeachingQueries.ListDiscussionsQuery query) {
         Pageable pageable = PageRequest.of(query.getPage(), query.getSize(),
-                Sort.by(Sort.Direction.fromString(query.getSortDirection()), query.getSortBy()));
+                sortOf(query.getSortBy(), query.getSortDirection()));
         if (query.getTenantId() != null && query.getStatus() != null) {
             return discussionRepository.findByTenantIdAndStatus(query.getTenantId(),
                     DiscussionStatus.valueOf(query.getStatus()), pageable);
@@ -621,7 +621,7 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public Page<LiveSession> listLiveSessions(TeachingQueries.ListLiveSessionsQuery query) {
         Pageable pageable = PageRequest.of(query.getPage(), query.getSize(),
-                Sort.by(Sort.Direction.fromString(query.getSortDirection()), query.getSortBy()));
+                sortOf(query.getSortBy(), query.getSortDirection()));
         if (query.getTenantId() != null && query.getStatus() != null) {
             return liveSessionRepository.findByTenantIdAndStatus(query.getTenantId(),
                     LiveSessionStatus.valueOf(query.getStatus()), pageable);
@@ -645,5 +645,12 @@ public class TeachingApplicationService {
     @Transactional(readOnly = true)
     public List<LiveSession> getLiveSessions(TeachingQueries.GetLiveSessionsQuery query) {
         return liveSessionRepository.findLiveSessions(query.getTenantId());
+    }
+
+    /** 空排序参数安全构造(UNSORTED 属性引用会触发 PropertyReferenceException 500) */
+    private static org.springframework.data.domain.Sort sortOf(String sortBy, String sortDirection) {
+        if (sortBy == null || sortBy.isBlank()) return org.springframework.data.domain.Sort.unsorted();
+        org.springframework.data.domain.Sort.Direction dir = "desc".equalsIgnoreCase(sortDirection) ? org.springframework.data.domain.Sort.Direction.DESC : org.springframework.data.domain.Sort.Direction.ASC;
+        return org.springframework.data.domain.Sort.by(dir, sortBy);
     }
 }

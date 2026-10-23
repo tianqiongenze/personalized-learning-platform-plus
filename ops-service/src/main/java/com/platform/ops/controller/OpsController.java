@@ -171,11 +171,14 @@ public class OpsController {
     // ================= 日志中心 =================
 
     @GetMapping("/logs/loki")
-    public Object lokiQuery(@RequestParam(defaultValue = "{namespace=\"platform-plus\"}") String logql,
+    public Object lokiQuery(@RequestParam(required = false) String logql,
                             @RequestParam(required = false) String start,
                             @RequestParam(required = false) String end,
                             @RequestParam(defaultValue = "200") int limit) {
-        return logs.queryRange(logql, start, end, limit);
+        // 默认 LogQL 不能放在 @RequestParam defaultValue: Spring URI 模板解析会把
+        // "{namespace=..}" 当路径变量占位符展开(Not enough variable values)。
+        String q = (logql == null || logql.isBlank()) ? "{namespace=\"platform-plus\"}" : logql;
+        return logs.queryRange(q, start, end, limit);
     }
 
     /** Pod 实时日志 SSE: 前端 EventSource("/api/v1/ops/logs/pod/stream?ns=&pod=") */

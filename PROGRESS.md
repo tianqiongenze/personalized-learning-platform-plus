@@ -85,3 +85,12 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - 结论: 后端容量 ≥4,000 r/s 下限, 无饱和拐点, 满足 5,000 CCU 目标。原始数据 report/loadtest-raw/x8/。
 - 环境恢复: nginx-gateway 回滚 11.0.2(rate=100r/s 验证), k6 Job 清理, ollama-worker patch 待用户决定是否固化回 yaml(DGO: live patch 已备份)。
 - undertow A组实验副本 208 次重启为 2026-10-22 02:18 遗留(启动期 Unknown database), 本轮未新增。
+
+## 2026-10-23 阶段7: 无头浏览器全功能测试修复闭环(用户质询"30096 服务不可达"回应)
+
+- 诚实结论: 此前无头测试未完整完成(courses 等 403/500)。本轮修复全链 4 类根因后 Playwright 全页面遍历。
+- 根因链(9 项,详见 report/2026-10-23-ui-headless-report.md): gateway 头透传(11.0.8)、teaching UNSORTED 排序 500(11.0.4)、web-student 自动登录+schema 字段对齐(11.0.11)、agent KT_BASE env、ops-web 鉴权链三层叠加 401(内嵌 auth_request + SecurityConfig context-path 匹配器 /** + 角色名 ADMIN/SUPER_ADMIN≠PLATFORM_ADMIN; ops-service 11.0.6)、前端自动登录拦截器(ops-web 11.0.6)、PromQL/Loki URI 模板展开双重编码(EncodingMode.NONE, ops-service 11.0.8)。
+- 学生端 30096: 6 页全过(掌握度 0.388/薄弱 TOP3/12 课程/路径/复习/画像)+AI 助手 mcp/call 修复后正常; 残留 1 类 ant-design 内部 forEach TypeError(低优先)。
+- 运维端 30097: 总览/服务运行/缓存/Pulsar 4 页全过; 日志中心遗留 = Loki svc 无后端 pod(Connection refused, 基础设施缺部非应用 bug); NebulaGraph /stats 地址不存在(遗留)。
+- DGO 回写: new-services.yaml(ops 11.0.8/agent 11.0.0/KT_BASE/COURSE_BASE/ops-web 11.0.6/web-student 11.0.11)、graphql-gateway.yaml(11.0.8+JWT_SECRET env secretKeyRef)、teaching-service.yaml(11.0.4), yaml safe_load_all 校验过。
+- BVV: 每镜像容器内 unzip+strings class 指纹校验(非只验 lib)。

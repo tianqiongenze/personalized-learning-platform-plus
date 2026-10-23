@@ -15,7 +15,7 @@ async function fetchResource() {
   resultJson.value = ''
   try {
     const d = await gql<{ generatedResource: unknown }>(
-      'query($id: ID) { generatedResource(id: $id) }',
+      'query($id: ID!) { generatedResource(id: $id) }',
       { id: resId.value.trim() },
     )
     resultJson.value = JSON.stringify(d?.generatedResource ?? null, null, 2)

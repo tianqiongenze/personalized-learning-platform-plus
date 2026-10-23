@@ -76,7 +76,7 @@ public class GatewayJwtFilter extends OncePerRequestFilter {
                     return switch (name) {
                         case "X-User-Id" -> userId;
                         case "X-Tenant-Id" -> claims.get("tenant_id", String.class);
-                        case "X-Roles" -> rolesClaim instanceof List<?> rl
+                        case "X-Roles", "X-User-Roles" -> rolesClaim instanceof List<?> rl
                                 ? rl.stream().filter(String.class::isInstance).map(String.class::cast)
                                     .collect(Collectors.joining(","))
                                 : null;

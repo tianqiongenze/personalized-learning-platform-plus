@@ -23,17 +23,19 @@ public class PrometheusService {
 
     @SuppressWarnings("unchecked")
     public Object query(String promql) {
-        return client.get().uri(uri -> uri.path("/api/v1/query")
-                        .queryParam("query", promql).build())
+        // RestClient uri 模板 {q} 展开时会对变量值再做一次 encode —— 传入预编码串
+        // 会导致双重编码(%5B→%255B), Prometheus 解码一次后仍是 %7B 等 PromQL 非法
+        // 字符(报 1:4 bad number)。正确做法: 传原始 PromQL, 由模板展开编码一次。
+        return client.get()
+                .uri("/api/v1/query?query={q}", promql)
                 .retrieve().body(Map.class);
     }
 
     @SuppressWarnings("unchecked")
     public Object range(String promql, String start, String end, String step) {
-        return client.get().uri(uri -> uri.path("/api/v1/query_range")
-                        .queryParam("query", promql)
-                        .queryParam("start", start).queryParam("end", end)
-                        .queryParam("step", step).build())
+        return client.get()
+                .uri("/api/v1/query_range?query={q}&start={s}&end={e}&step={st}",
+                        promql, start, end, step)
                 .retrieve().body(Map.class);
     }
 

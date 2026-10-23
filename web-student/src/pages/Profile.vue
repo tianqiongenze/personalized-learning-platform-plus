@@ -10,9 +10,9 @@ const memory = ref<Record<string, unknown> | null>(null)
 const skills = ref<{ skill?: string; mastery?: number }[]>([])
 
 const QUERY = `
-query($studentId: ID, $skillIds: [String]) {
-  memoryProfile(studentId: $studentId) { version profile }
-  masteryProfile(studentId: $studentId, skillIds: $skillIds) { skill mastery }
+query($studentId: ID!, $skillIds: [String!]!) {
+  memoryProfile(studentId: $studentId) { l1EventCount l2Summaries l3ProfileVersion learningStyle { dominant visual } }
+  masteryProfile(studentId: $studentId, skillIds: $skillIds) { skillId mastery level }
 }`
 
 onMounted(async () => {
@@ -34,13 +34,13 @@ onMounted(async () => {
     <template v-else>
       <h4>L3 记忆画像摘要</h4>
       <div class="card-mastery" style="padding:8px 12px; margin-bottom:16px">
-        <div>版本: {{ (memory as any)?.version ?? '—' }}</div>
-        <div>画像: <span class="text-secondary">{{ JSON.stringify((memory as any)?.profile ?? '—') }}</span></div>
+        <div>L3 画像版本: {{ (memory as any)?.l3ProfileVersion ?? '—' }} · L1 事件 {{ (memory as any)?.l1EventCount ?? 0 }} · L2 摘要 {{ (memory as any)?.l2Summaries ?? 0 }}</div>
+        <div>主导风格: <span class="text-secondary">{{ (memory as any)?.learningStyle?.dominant ?? '—' }} (visual {{ (memory as any)?.learningStyle?.visual ?? '—' }})</span></div>
       </div>
       <h4>掌握度</h4>
       <template v-if="skills.length">
         <div v-for="(s, i) in skills" :key="i" style="margin-bottom:10px">
-          <div>{{ s?.skill ?? '—' }}</div>
+          <div>{{ s?.skillId ?? '—' }} ({{ s?.level ?? '—' }})</div>
           <a-progress :percent="Math.round((Number(s?.mastery) || 0) * 100)" size="small" />
         </div>
       </template>

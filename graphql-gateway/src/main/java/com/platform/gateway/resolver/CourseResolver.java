@@ -30,9 +30,11 @@ public class CourseResolver {
     @QueryMapping
     public List<Map<String, Object>> courses(@Argument String tenantId, @Argument String subject,
                                              @Argument Integer page, @Argument Integer size) {
-        return client.getList("course", "/courses?tenantId=" + tenantId
+        // course 返回 ApiResponse{ success, data:{ content:[...] } } — 解包(同 TenantResolver)
+        Map<String, Object> resp = client.getMap("course", "/courses?tenantId=" + tenantId
                 + (subject == null ? "" : "&subject=" + subject)
                 + "&page=" + or(page, 0) + "&size=" + or(size, 20));
+        return TenantResolver.unwrapContent(resp);
     }
 
     /** Course.chapters 批量解析(防 N+1) */

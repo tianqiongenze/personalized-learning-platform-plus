@@ -1,40 +1,51 @@
-# =============================================================================
-# 新增服务部署物(重构交付): ai-service / ops-service / agent-service(LangGraph) /
-#                          realtime-gateway(Go) / vector-reranker(Rust) / ops-web
-# 端口规划: ai 8085 / agent 8090 / reranker 8090(容器内, service 区分) /
-#          realtime 8095 / ops 8096
-# =============================================================================
-# ---------- 统一运维平台 RBAC(最小权限: 读工作负载/HPA/事件/Pod日志) ----------
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ops-service
   namespace: qianrenqianmian
----
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ops-reader
 rules:
-  - apiGroups: ["", "apps", "autoscaling"]
-    resources: ["pods", "pods/log", "deployments", "horizontalpodautoscalers", "services", "nodes"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "list"]
----
+- apiGroups:
+  - ''
+  - apps
+  - autoscaling
+  resources:
+  - pods
+  - pods/log
+  - deployments
+  - horizontalpodautoscalers
+  - services
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ops-reader-binding
 subjects:
-  - {kind: ServiceAccount, name: ops-service, namespace: qianrenqianmian}
+- kind: ServiceAccount
+  name: ops-service
+  namespace: qianrenqianmian
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: ops-reader
----
-# ---------- ops-service ----------
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,37 +53,58 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: ops-service}}
+  selector:
+    matchLabels:
+      app: ops-service
   template:
     metadata:
-      labels: {app: ops-service}
-      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8096"}
+      labels:
+        app: ops-service
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8096'
     spec:
       serviceAccountName: ops-service
       terminationGracePeriodSeconds: 30
       containers:
-        - name: ops
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/ops-service:11.0.2
-          envFrom:
-            - configMapRef: {name: platform-plus-config}
-            - secretRef: {name: platform-plus-secrets}
-          ports: [{containerPort: 8096}]
-          readinessProbe: {httpGet: {path: /actuator/health/readiness, port: 8096}, initialDelaySeconds: 30}
-          livenessProbe: {httpGet: {path: /actuator/health/liveness, port: 8096}, initialDelaySeconds: 60}
----
+      - name: ops
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/ops-service:11.0.8
+        envFrom:
+        - configMapRef:
+            name: platform-plus-config
+        - secretRef:
+            name: platform-plus-secrets
+        ports:
+        - containerPort: 8096
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8096
+          initialDelaySeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8096
+          initialDelaySeconds: 60
+
 apiVersion: v1
 kind: Service
 metadata:
   name: ops-service
   namespace: qianrenqianmian
 spec:
-  selector: {app: ops-service}
-  ports: [{port: 8096}]
----
-# ---------- ai-service ----------
+  selector:
+    app: ops-service
+  ports:
+  - port: 8096
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -80,38 +112,59 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: ai-service}}
+  selector:
+    matchLabels:
+      app: ai-service
   template:
     metadata:
-      labels: {app: ai-service}
-      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8085"}
+      labels:
+        app: ai-service
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8085'
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: ai
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/ai-service:11.0.2
-          envFrom:
-            - configMapRef: {name: platform-plus-config}
-            - secretRef: {name: platform-plus-secrets}
-          ports: [{containerPort: 8085}]
-          resources:
-            requests: {cpu: 500m, memory: 1Gi}
-            limits: {cpu: "2", memory: 2Gi}
-          readinessProbe: {httpGet: {path: /actuator/health/readiness, port: 8085}, initialDelaySeconds: 45}
----
+      - name: ai
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/ai-service:11.0.2
+        envFrom:
+        - configMapRef:
+            name: platform-plus-config
+        - secretRef:
+            name: platform-plus-secrets
+        ports:
+        - containerPort: 8085
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8085
+          initialDelaySeconds: 45
+
 apiVersion: v1
 kind: Service
 metadata:
   name: ai-service
   namespace: qianrenqianmian
 spec:
-  selector: {app: ai-service}
-  ports: [{port: 8085}]
----
-# ---------- agent-service (LangGraph, middleware 命名空间) ----------
+  selector:
+    app: ai-service
+  ports:
+  - port: 8085
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -119,40 +172,67 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: agent-service}}
+  selector:
+    matchLabels:
+      app: agent-service
   template:
     metadata:
-      labels: {app: agent-service}
-      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8090"}
+      labels:
+        app: agent-service
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8090'
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: agent
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/agent-service:11.0.2
-          env:
-            - {name: LLM_BASE_URL, value: "http://llm-service.infra.svc.cluster.local:8000/v1"}
-            - {name: RERANKER_URL, value: "http://vector-reranker.infra:8090"}
-            - {name: COURSE_SERVICE_URL, value: "http://course-service.qianrenqianmian:8083/api/v1"}
-            - {name: TEACHING_SERVICE_URL, value: "http://teaching-service.qianrenqianmian:8084/api/v1"}
-          ports: [{containerPort: 8090}]
-          resources:
-            requests: {cpu: 250m, memory: 768Mi}
-            limits: {cpu: "1", memory: 1536Mi}
-          readinessProbe: {httpGet: {path: /health, port: 8090}, initialDelaySeconds: 20}
----
+      - name: agent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/agent-service:11.0.0
+        env:
+        - name: LLM_BASE_URL
+          value: http://llm-service.infra.svc.cluster.local:8000/v1
+        - name: RERANKER_URL
+          value: http://vector-reranker.infra:8090
+        - name: COURSE_SERVICE_URL
+          value: http://course-service.qianrenqianmian:8083/api/v1
+        - name: TEACHING_SERVICE_URL
+          value: http://teaching-service.qianrenqianmian:8084/api/v1
+        - name: KT_BASE
+          value: http://kt-service.infra:8086
+        - name: COURSE_BASE
+          value: http://course-service:8083/api/v1
+        ports:
+        - containerPort: 8090
+        resources:
+          requests:
+            cpu: 250m
+            memory: 768Mi
+          limits:
+            cpu: '1'
+            memory: 1536Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 20
+
 apiVersion: v1
 kind: Service
 metadata:
   name: agent-service
   namespace: qianrenqianmian
 spec:
-  selector: {app: agent-service}
-  ports: [{port: 8090}]
----
-# ---------- vector-reranker (Rust) ----------
+  selector:
+    app: agent-service
+  ports:
+  - port: 8090
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -160,35 +240,55 @@ metadata:
   namespace: infra
 spec:
   replicas: 2
-  selector: {matchLabels: {app: vector-reranker}}
+  selector:
+    matchLabels:
+      app: vector-reranker
   template:
     metadata:
-      labels: {app: vector-reranker}
-      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8090", prometheus.io/path: /metrics}
+      labels:
+        app: vector-reranker
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8090'
+        prometheus.io/path: /metrics
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: reranker
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/vector-reranker:11.0.2
-          ports: [{containerPort: 8090}]
-          resources:
-            requests: {cpu: 100m, memory: 64Mi}
-            limits: {cpu: "1", memory: 128Mi}   # Rust 二进制极轻
-          readinessProbe: {httpGet: {path: /health, port: 8090}, initialDelaySeconds: 5}
----
+      - name: reranker
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/vector-reranker:11.0.2
+        ports:
+        - containerPort: 8090
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: '1'
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 5
+
 apiVersion: v1
 kind: Service
 metadata:
   name: vector-reranker
   namespace: infra
 spec:
-  selector: {app: vector-reranker}
-  ports: [{port: 8090}]
----
-# ---------- realtime-gateway (Go) ----------
+  selector:
+    app: vector-reranker
+  ports:
+  - port: 8090
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -196,36 +296,54 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: realtime-gateway}}
+  selector:
+    matchLabels:
+      app: realtime-gateway
   template:
     metadata:
-      labels: {app: realtime-gateway}
+      labels:
+        app: realtime-gateway
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: gateway
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/realtime-gateway:11.0.2
-          env:
-            - {name: AGENT_SERVICE_URL, value: "http://agent-service.qianrenqianmian:8090"}
-          ports: [{containerPort: 8095}]
-          resources:
-            requests: {cpu: 50m, memory: 32Mi}
-            limits: {cpu: 500m, memory: 64Mi}
-          readinessProbe: {httpGet: {path: /health, port: 8095}, initialDelaySeconds: 5}
----
+      - name: gateway
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/realtime-gateway:11.0.2
+        env:
+        - name: AGENT_SERVICE_URL
+          value: http://agent-service.qianrenqianmian:8090
+        ports:
+        - containerPort: 8095
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 64Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8095
+          initialDelaySeconds: 5
+
 apiVersion: v1
 kind: Service
 metadata:
   name: realtime-gateway
   namespace: qianrenqianmian
 spec:
-  selector: {app: realtime-gateway}
-  ports: [{port: 8095}]
----
-# ---------- ops-web (PC 管理端, nginx 托管静态资源) ----------
+  selector:
+    app: realtime-gateway
+  ports:
+  - port: 8095
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -233,20 +351,28 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: ops-web}}
+  selector:
+    matchLabels:
+      app: ops-web
   template:
     metadata:
-      labels: {app: ops-web}
+      labels:
+        app: ops-web
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: web
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/ops-web:11.0.4
-          ports: [{containerPort: 80}]
----
+      - name: web
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/ops-web:11.0.6
+        ports:
+        - containerPort: 80
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -254,11 +380,13 @@ metadata:
   namespace: qianrenqianmian
 spec:
   type: NodePort
-  selector: {app: ops-web}
-  ports: [{port: 80, targetPort: 80, nodePort: 30097}]
+  selector:
+    app: ops-web
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30097
 
----
-# ---------- kt-service (知识追踪推理: BKT+DKT, infra 基础应用) ----------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -266,35 +394,54 @@ metadata:
   namespace: infra
 spec:
   replicas: 2
-  selector: {matchLabels: {app: kt-service}}
+  selector:
+    matchLabels:
+      app: kt-service
   template:
     metadata:
-      labels: {app: kt-service}
-      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8086"}
+      labels:
+        app: kt-service
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8086'
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: kt
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/kt-service:11.0.2
-          ports: [{containerPort: 8086}]
-          resources:
-            requests: {cpu: 200m, memory: 512Mi}
-            limits: {cpu: "1", memory: 1Gi}
-          readinessProbe: {httpGet: {path: /health, port: 8086}, initialDelaySeconds: 15}
----
+      - name: kt
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/kt-service:11.0.2
+        ports:
+        - containerPort: 8086
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8086
+          initialDelaySeconds: 15
+
 apiVersion: v1
 kind: Service
 metadata:
   name: kt-service
   namespace: infra
 spec:
-  selector: {app: kt-service}
-  ports: [{port: 8086}]
----
-# ---------- web-student (学生 Web 端, nginx 静态托管) ----------
+  selector:
+    app: kt-service
+  ports:
+  - port: 8086
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -302,31 +449,53 @@ metadata:
   namespace: qianrenqianmian
 spec:
   replicas: 2
-  selector: {matchLabels: {app: web-student}}
+  selector:
+    matchLabels:
+      app: web-student
   template:
-    metadata: {labels: {app: web-student}}
+    metadata:
+      labels:
+        app: web-student
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-        - name: web
-          lifecycle:
-            preStop:
-              exec: {command: ["sh", "-c", "sleep 5"]}
-          image: 10.167.2.175:30500/platform/web-student:11.0.5
-          ports: [{containerPort: 8080}]
-          readinessProbe: {httpGet: {path: /, port: 8080}, initialDelaySeconds: 5}
-          resources:
-            requests: {cpu: 50m, memory: 64Mi}
-            limits: {cpu: 200m, memory: 128Mi}
----
+      - name: web
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        image: 10.167.2.175:30500/platform/web-student:11.0.11
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+
 apiVersion: v1
 kind: Service
 metadata:
   name: web-student
   namespace: qianrenqianmian
   annotations:
-    note: "D-02 fix: 原 nodePort 30090 与 dify-plus redis8-node-0 冲突, 改 30096; 容器实际监听 80(nginx)"
+    note: 'D-02 fix: 原 nodePort 30090 与 dify-plus redis8-node-0 冲突, 改 30096; 容器实际监听
+      80(nginx)'
 spec:
   type: NodePort
-  selector: {app: web-student}
-  ports: [{port: 8080, targetPort: 80, nodePort: 30096}]
+  selector:
+    app: web-student
+  ports:
+  - port: 8080
+    targetPort: 80
+    nodePort: 30096

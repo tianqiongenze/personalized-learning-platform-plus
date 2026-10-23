@@ -6,16 +6,16 @@ import { gql } from '../api'
 const STUDENT = 'e2e-stu-1'
 const loading = ref(true)
 const failed = ref(false)
-const plans = ref<{ kp?: string; next?: string }[]>([])
+const plans = ref<{ skillId?: string; dueAt?: string; intervalDays?: number }[]>([])
 
 const QUERY = `
-query($studentId: ID) {
-  reviewPlan(studentId: $studentId) { kp next }
+query($studentId: ID!) {
+  reviewPlan(studentId: $studentId) { skillId dueAt intervalDays }
 }`
 
 onMounted(async () => {
   try {
-    const d = await gql<{ reviewPlan: { kp?: string; next?: string }[] }>(QUERY, { studentId: STUDENT })
+    const d = await gql<{ reviewPlan: { skillId?: string; dueAt?: string; intervalDays?: number }[] }>(QUERY, { studentId: STUDENT })
     plans.value = Array.isArray(d?.reviewPlan) ? d.reviewPlan : []
   } catch { failed.value = true }
   loading.value = false
@@ -28,8 +28,8 @@ onMounted(async () => {
     <a-empty v-else-if="failed" description="复习服务暂不可达" />
     <a-empty v-else-if="!plans.length" description="今日无到期卡片" />
     <a-card v-else v-for="(p, i) in plans" :key="i" size="small" style="margin-bottom:12px">
-      <div><b>知识点: {{ p?.kp ?? '—' }}</b></div>
-      <div class="text-secondary">下次复习: {{ p?.next ?? '—' }}</div>
+      <div><b>知识点: {{ p?.skillId ?? '—' }}</b></div>
+      <div class="text-secondary">下次复习: {{ p?.dueAt ?? '—' }} (间隔 {{ p?.intervalDays ?? '—' }} 天)</div>
     </a-card>
   </a-card>
 </template>

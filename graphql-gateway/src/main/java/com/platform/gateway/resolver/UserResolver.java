@@ -32,8 +32,10 @@ public class UserResolver {
     public List<Map<String, Object>> users(@Argument String tenantId,
                                            @Argument Integer page,
                                            @Argument Integer size) {
-        return client.getList("iam", "/users?tenantId=" + tenantId
+        // iam 返回 ApiResponse{ success, data:{ content:[...] } } — 解包(同 TenantResolver)
+        Map<String, Object> resp = client.getMap("iam", "/users?tenantId=" + tenantId
                 + "&page=" + or(page, 0) + "&size=" + or(size, 20));
+        return TenantResolver.unwrapContent(resp);
     }
 
     @MutationMapping

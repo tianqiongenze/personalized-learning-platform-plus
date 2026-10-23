@@ -11,7 +11,7 @@ onMounted(async () => {
   try {
     const m = await mastery('e2e-stu-1')
     overall.value = m?.overallMastery ?? null
-    weak.value = m?.weakKps?.slice(0, 3) ?? []
+    weak.value = Array.isArray(m?.weakKps) ? m.weakKps.slice(0, 3) : []
   } catch { /* 后端不可达时保持骨架 */ }
   try {
     const r = await worldWhatIf({ 动力电池: 0.4, PLC: 0.6 }, '动力电池', ['PLC'])

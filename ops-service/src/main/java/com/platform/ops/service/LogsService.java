@@ -29,12 +29,14 @@ public class LogsService {
 
     private final KubernetesClient client;
     private final RestClient loki;
+    private final String lokiBaseUrl;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public LogsService(KubernetesClient client,
                        @Value("${app.endpoints.loki}") String lokiUrl) {
         this.client = client;
         this.loki = RestClient.builder().baseUrl(lokiUrl).build();
+        this.lokiBaseUrl = lokiUrl;
     }
 
     /** Pod 实时日志 -> SSE(前端 EventSource 直接订阅) */
@@ -57,16 +59,26 @@ public class LogsService {
         return emitter;
     }
 
-    /** Loki 聚合日志查询(LogQL) */
+    /** Loki 聚合日志查询(LogQL)。LogQL 含 {..} 花括号, RestClient 默认 DefaultUriBuilderFactory
+     *  会把 {..} 当 URI 模板变量展开(报 Not enough variable values)—— 预编码 + 字符串
+     *  模板占位 {q} 同样会被再编码导致双重编码(Prometheus query 同坑, 见 PrometheusService)。
+     *  解法: 对 builder 设_ENCODING_MODE none, 由 UrLEncoder 预编码一次。 */
     public Object queryRange(String logql, String start, String end, int limit) {
-        return loki.get()
-                .uri(uri -> uri.path("/loki/api/v1/query_range")
-                        .queryParam("query", logql)
-                        .queryParam("start", start == null ? String.valueOf(System.nanoTime() - 3600_000_000_000L) : start)
-                        .queryParam("end", end == null ? String.valueOf(System.nanoTime()) : end)
-                        .queryParam("limit", Math.min(limit, 1000))
-                        .build())
-                .retrieve().body(Object.class);
+        var factory = new org.springframework.web.util.DefaultUriBuilderFactory(lokiUrl());
+        factory.setEncodingMode(org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode.NONE);
+        String url = factory.builder()
+                .path("/loki/api/v1/query_range")
+                .queryParam("query", java.net.URLEncoder.encode(logql, java.nio.charset.StandardCharsets.UTF_8))
+                .queryParam("start", start == null ? String.valueOf(System.nanoTime() - 3600_000_000_000L) : start)
+                .queryParam("end", end == null ? String.valueOf(System.nanoTime()) : end)
+                .queryParam("limit", Math.min(limit, 1000))
+                .build()
+                .toString();
+        return loki.get().uri(URI.create(url)).retrieve().body(Object.class);
+    }
+
+    private String lokiUrl() {
+        return lokiBaseUrl;
     }
 
     /** 日志级别动态调整(管理操作): 直连目标服务 actuator */
