@@ -94,3 +94,13 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - 运维端 30097: 总览/服务运行/缓存/Pulsar 4 页全过; 日志中心遗留 = Loki svc 无后端 pod(Connection refused, 基础设施缺部非应用 bug); NebulaGraph /stats 地址不存在(遗留)。
 - DGO 回写: new-services.yaml(ops 11.0.8/agent 11.0.0/KT_BASE/COURSE_BASE/ops-web 11.0.6/web-student 11.0.11)、graphql-gateway.yaml(11.0.8+JWT_SECRET env secretKeyRef)、teaching-service.yaml(11.0.4), yaml safe_load_all 校验过。
 - BVV: 每镜像容器内 unzip+strings class 指纹校验(非只验 lib)。
+
+## 2026-10-23 阶段8: 遗留3项清零 + 课程数据层次重填充(多智能体并行)
+
+- 并行派发 4 agent(A 部署/B 排查/C 前端/D 数据), A/D 因限流失败由主线程接手, B/C 完成。
+- ①Loki 部署: helm loki-stack 仅 promtail 无后端 → 新建 loki 单体 Deployment(镜像 grafana/loki:3.4.0 amd64, 经 daocloud 按 digest 拉; 踩坑: 首推 arm64 致 exec format error×2 + svc selector 合并 release label 缺失致 endpoints 空); /ready=ready, 真实 LogQL 返回 web-student 日志流; k8s/loki/loki-single.yaml 落仓库; 原 svc selector 备份 175:/tmp/loki-svc-selector-backup.json。
+- ②NebulaGraph: 未失联, 端口错 — graphd 9669=gRPC, 19669=HTTP /stats(实测); live CM NEBULA_GRAPH_PORT 9669→19669 + rollout restart, stats 返真实指标; configmap-secret.yaml 回写+注释。
+- ③forEach TypeError: 根因 App.vue:20 `<a-menu selected-keys="[]">` 字符串字面量传给数组 prop → antd-vue Menu immediate watcher 内 selectedKeys.slice() 得字符串再 .forEach 崩; 改 `:selected-keys="[]"`; web-student 11.0.12 部署, Playwright 首页 console 0 errors。
+- ④课程数据: 探明 course_db 在 TiDB(24,011 门全 K12, 压测链 4608 万KP/3840 万资源, 不删); 事务插入 45 门新课(本科12/专科12/职业本科-重庆33618产业21, 各4章×2KP=180章/360KP), chapters.status enum 用 PUBLISHED+estimated_hours 必填两个小坑; GraphQL page0 首屏即新课(BK9001 数据结构与算法等); 留底 report/course-refill-2026-10-23.py/.sql。
+- 附加修复: LogsService 用 nanoTime 当 epoch ns 致 Loki 恒空 → currentTimeMillis*1e6(ops-service 11.0.9); 日志中心页面级返回约100条日志。
+- DGO: ops-service 11.0.9 / web-student 11.0.12 回写 new-services.yaml。

@@ -17,7 +17,7 @@ const navs = [
   <a-layout style="min-height: 100vh">
     <a-layout-header class="header">
       <span class="brand" @click="router.push('/')">千人千面 · 个性化学习平台</span>
-      <a-menu theme="dark" mode="horizontal" selected-keys="[]" style="flex:1; background:transparent">
+      <a-menu theme="dark" mode="horizontal" :selected-keys="[]" style="flex:1; background:transparent">
         <a-menu-item v-for="n in navs" :key="n.key" @click="router.push(n.key)">{{ n.label }}</a-menu-item>
       </a-menu>
     </a-layout-header>

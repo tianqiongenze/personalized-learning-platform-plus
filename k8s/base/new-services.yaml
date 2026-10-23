@@ -75,7 +75,7 @@ spec:
               - sh
               - -c
               - sleep 5
-        image: 10.167.2.175:30500/platform/ops-service:11.0.8
+        image: 10.167.2.175:30500/platform/ops-service:11.0.9
         envFrom:
         - configMapRef:
             name: platform-plus-config
@@ -467,7 +467,7 @@ spec:
               - sh
               - -c
               - sleep 5
-        image: 10.167.2.175:30500/platform/web-student:11.0.11
+        image: 10.167.2.175:30500/platform/web-student:11.0.12
         ports:
         - containerPort: 8080
         readinessProbe:

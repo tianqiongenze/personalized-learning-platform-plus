@@ -69,8 +69,8 @@ public class LogsService {
         String url = factory.builder()
                 .path("/loki/api/v1/query_range")
                 .queryParam("query", java.net.URLEncoder.encode(logql, java.nio.charset.StandardCharsets.UTF_8))
-                .queryParam("start", start == null ? String.valueOf(System.nanoTime() - 3600_000_000_000L) : start)
-                .queryParam("end", end == null ? String.valueOf(System.nanoTime()) : end)
+                .queryParam("start", start == null ? String.valueOf(System.currentTimeMillis() * 1_000_000L - 3600_000_000_000L) : start)
+                .queryParam("end", end == null ? String.valueOf(System.currentTimeMillis() * 1_000_000L) : end)
                 .queryParam("limit", Math.min(limit, 1000))
                 .build()
                 .toString();
