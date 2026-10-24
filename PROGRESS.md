@@ -104,3 +104,19 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 - ④课程数据: 探明 course_db 在 TiDB(24,011 门全 K12, 压测链 4608 万KP/3840 万资源, 不删); 事务插入 45 门新课(本科12/专科12/职业本科-重庆33618产业21, 各4章×2KP=180章/360KP), chapters.status enum 用 PUBLISHED+estimated_hours 必填两个小坑; GraphQL page0 首屏即新课(BK9001 数据结构与算法等); 留底 report/course-refill-2026-10-23.py/.sql。
 - 附加修复: LogsService 用 nanoTime 当 epoch ns 致 Loki 恒空 → currentTimeMillis*1e6(ops-service 11.0.9); 日志中心页面级返回约100条日志。
 - DGO: ops-service 11.0.9 / web-student 11.0.12 回写 new-services.yaml。
+
+## 阶段10(2026-10-24): 对标任务全落地 + 数据层确认 + TiDB→CRDB 同步
+
+**数据层确认(实测)**: 默认 **TiDB**(course/teaching/iam/tenant 四服务 DATASOURCE_URL=jdbc:mysql://tidb.infra:4000/*_db); CRDB 六库在(iam/tenant 空表)。
+
+**落地(全部闭环验证)**:
+- P0-1 durable 会话: DSN→CRDB agent_db 接线+psycopg2+修 3 处潜伏 bug(%格式化/链式fetchone×2); agent-service 11.0.3; CRDB durable_sessions 实存行, save/resume/heartbeat/drain 全过
+- P0-2 kb eval 在线闭环: reranker /internal/eval(自闭环: embed-proxy→Milvus REST 直连, Java 客户端经 Dify proxy 恒得空 data 的规避); **终验 Recall@5=1.0/MRR=0.933/nDCG@5=0.951 全 PASS**(report/kb-eval-online-*.json)
+- P1-1 LLM fallback: build_llm(with_fallbacks)+两 graph 接入+LLM_FALLBACK_MODELS env
+- P1-2 memoryGraph: kt-service /kt/memory-graph + gateway schema/resolver; GraphQL 实查通过
+- Milvus edu_resources 灌库: 360 新课 kp(seed_milvus_kp.py); 在线标注集 45 条(rag_retrieval_eval_online.jsonl)
+- TiDB→CRDB 同步: sync_tidb_to_crdb.py(DDL镜像+pg_catalog类型适配+幂等upsert+--full/--reverse) + 每小时 CronJob(tidb-crdb-sync.yaml, 内存 1Gi) + 专用镜像 tidb-crdb-sync:1.0.0; courses 24056/users 300030 已入 CRDB
+
+**深挖修复(链路真实故障)**: ai-service 11.0.0 镜像无 InternalSearchController(重建至 11.0.8); api-key EMPTY 默认; Spring AI dimensions 探测风暴打爆 ollama(直连版规避); reranker delegate URL context-path 缺失; nDCG 首项 log2(1)=0 除零; new-services.yaml 历史 19-doc 分隔符损坏修复。
+
+**遗留**: infra ns 的 kt-service/vector-reranker 部署 yaml 无仓库正本(DGO 债, 已在 tidb-crdb-sync.yaml 注释记录); Spring AI↔Dify embed-proxy 的 Java 客户端空响应根因未深挖(已用直连规避)。

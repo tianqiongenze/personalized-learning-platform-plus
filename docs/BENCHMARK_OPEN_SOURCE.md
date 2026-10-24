@@ -77,3 +77,29 @@
 - 四项目对标后 PLPP **无结构性架构缺陷**;2 个 P0(会话 lease 恢复、kb eval 检索评估)、3 个 P1(LLM fallback、memoryGraph 查询、画像维度查漏)、3 个 P2。
 - LearnGraph 与 PLPP KT 域同构互相印证;DeepTutor/OpenMAIC 提供 2 个可落地工程模式;ourclass-lite 不采纳。
 - GraphQL 覆盖已达标;中间件"最新最优"以稳定+避坑为准,不盲追版本(逐项理由见 §5)。
+
+---
+
+## 7. 落地执行状态(2026-10-24 更新,commit 978915d+)
+
+> HSA 修正: 初版文档把 P0-1 判为"未实现"是错的 —— durable.py/slots.py/离线 kb eval
+> 在更早阶段已部分落地, 本轮做的是**核实+接线+补缺+闭环验证**。
+
+| 项 | 初版判断 | 实测现状 | 本轮动作 | 验证证据 |
+|---|---|---|---|---|
+| P0-1 会话 lease/heartbeat/resume | "未实现" | **代码已在**(durable.py, OpenMAIC 语义全)但 DSN 未注入=内存降级, 且 3 处潜伏 bug 从未在 DB 模式跑过 | DSN→CRDB agent_db 接线; psycopg2 入镜像; 修复 %格式化冲突/链式 fetchone ×2; agent-service 11.0.3 | pod 内 save/resume/heartbeat/drain 全通过; CRDB agent_db.durable_sessions 实存行 |
+| P0-2 kb eval 在线闭环 | "未实现" | 离线 evals/ 已有(36 条, 指标达标)但 retrieved_ids 固化 | vector-reranker /internal/eval 在线端点(Recall@K/MRR/nDCG+阈值); 回归脚本(经 agent pod 通道); 灌库 Milvus edu_resources+重建在线标注集 | 端点部署验证; 在线指标见 report/kb-eval-online-*.json |
+| P1-1 LLM fallback | "未实现" | slots 三层覆盖链已在, 无 fallback 链 | config.build_llm(with_fallbacks) 接入 assistant/generation 两 graph; LLM_FALLBACK_MODELS env 注入 | 镜像内 build_llm 存在; env 注入确认 |
+| P1-2 memoryGraph | "未实现" | 无 | kt-service /kt/memory-graph + gateway schema(MemoryGraph/GraphNode/GraphEdge)+ KTResolver | GraphQL 实查返回 nodes/edges(带 JWT 全链) |
+| 数据层 | 未涉及 | 实测默认 **TiDB**(四服务 DATASOURCE_URL); CRDB 六库在但 iam/tenant 空 | sync_tidb_to_crdb.py(DDL 镜像+类型适配+幂等 upsert)+ 每小时 CronJob + 大表 --full 手动 | courses 24056/users 300k 已入 CRDB |
+
+**附加修复(链路深挖发现的真实故障)**:
+1. ai-service 线上镜像(11.0.0)不含 InternalSearchController → 重建 11.0.3-11.0.6(含 api-key EMPTY 默认/embedding base-url embed-proxy/dimensions 1024)
+2. reranker SEARCH_DELEGATE_URL 缺失且 ai-service 有 context-path /api/v1(ops SecurityConfig 同款坑)→ 接线
+3. **Milvus edu_resources collection 从未灌入**(生产 RAG 检索恒空的根因)→ seed 脚本灌入 360 新课 kp
+4. k8s/base/new-services.yaml 历史性损坏(全文仅 1 个 `---`)→ 修复后 19 docs strict 校验通过
+5. durable.py 三处潜伏 bug(见 P0-1)—— "配而未接"代码从未被执行过的实证
+
+**未闭环(诚实)**: 在线 eval 指标在灌库+标注集重建后终跑(见 §8 终验); Spring AI MilvusVectorStore
+对 embed-proxy 200 响应解析为空的兼容问题仍存在(生产 GenerationService.search 走 VectorStore,
+建议后续把 InternalSearchController 换直连实现或升级 Spring AI)。

@@ -15,9 +15,9 @@ TOPK="${TOPK:-5}"
 OUT="${OUT:-report/kb-eval-online-$(date +%Y%m%d-%H%M%S).json}"
 
 python3 - "$TOPK" <<'PY' > /tmp/kb_eval_payload.json
-import json, sys
+import json, os, sys
 items = []
-with open("evals/rag_retrieval_eval.jsonl", encoding="utf-8") as f:
+with open(os.environ.get("EVAL_SET", "evals/rag_retrieval_eval.jsonl"), encoding="utf-8") as f:
     for line in f:
         line = line.strip()
         if line:
@@ -42,7 +42,7 @@ except Exception as e:
 \"" 2>/dev/null > "$OUT"
 
 python3 - "$OUT" <<'PY'
-import json, sys
+import json, os, sys
 r = json.load(open(sys.argv[1]))
 if "error" in r:
     print("FAIL: eval 端点错误:", r["error"]); sys.exit(1)

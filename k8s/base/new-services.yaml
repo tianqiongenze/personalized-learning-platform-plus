@@ -138,7 +138,7 @@ spec:
               - sh
               - -c
               - sleep 5
-        image: 10.167.2.175:30500/platform/ai-service:11.0.2
+        image: 10.167.2.175:30500/platform/ai-service:11.0.8
         envFrom:
         - configMapRef:
             name: platform-plus-config

@@ -41,7 +41,10 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 128Mi
+                memory: 256Mi
               limits:
                 cpu: "1"
-                memory: 512Mi
+                memory: 1Gi
+# NOTE(DGO): vector-reranker 部署在 infra ns 且无仓库正本 yaml(live set image 管理遗留),
+# 当前 live: 10.167.2.175:30500/platform/vector-reranker:11.0.3(自闭环检索版)
+# 待办: 把 kt-service/vector-reranker 的 infra 部署 yaml 纳入仓库正本

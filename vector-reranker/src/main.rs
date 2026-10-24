@@ -65,15 +65,99 @@ static DELEGATE_EMPTY: AtomicU64 = AtomicU64::new(0);
 static EVAL_RUNS: AtomicU64 = AtomicU64::new(0);
 static EVAL_QUERIES: AtomicU64 = AtomicU64::new(0);
 
-/// 向量召回委托目标(ai-service, Spring AI VectorStore/Milvus 连接持有方)。
-/// 部署注入, 缺省指向集群内 ai-service; 未配置或不可达时降级为空集并在 /metrics 暴露失败计数。
+/// 向量召回委托目标: 默认自闭环(embed-proxy + Milvus REST 直连, 与灌库链路同构,
+/// 实测稳定); 也可用 SEARCH_DELEGATE_URL 指回 ai-service /internal/vector-search。
+/// 背景见 InternalSearchController 注释: Java HttpClient 经 Dify embed-proxy 恒得空 data。
 fn delegate_url() -> String {
-    std::env::var("SEARCH_DELEGATE_URL")
-        .unwrap_or_else(|_| "http://ai-service.platform:8085".into())
+    std::env::var("SEARCH_DELEGATE_URL").unwrap_or_default()
+}
+
+fn embed_url() -> String {
+    std::env::var("EMBED_URL")
+        .unwrap_or_else(|_| "http://embed-proxy.ai-platform.svc.cluster.local:8088".into())
+}
+
+fn milvus_url() -> String {
+    std::env::var("MILVUS_URL")
+        .unwrap_or_else(|_| "http://milvus.infra.svc.cluster.local:19530".into())
+}
+
+fn collection() -> String {
+    std::env::var("MILVUS_COLLECTION").unwrap_or_else(|_| "edu_resources".into())
+}
+
+fn http_client() -> Option<reqwest::Client> {
+    reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_millis(3000))
+        .timeout(std::time::Duration::from_secs(120)) // ollama bge-m3 CPU 推理慢
+        .build()
+        .ok()
+}
+
+/// 自闭环: query → embed-proxy(/v1/embeddings) → Milvus REST(/v2/.../search)
+async fn search_direct(query: &str, top_k: usize) -> Vec<Hit> {
+    let Some(client) = http_client() else { return vec![] };
+    // 1) embedding(重试 3 次: ollama 间歇 503)
+    let mut vector: Vec<f64> = vec![];
+    for attempt in 0..3 {
+        let resp = client
+            .post(format!("{}/v1/embeddings", embed_url()))
+            .json(&serde_json::json!({ "model": "bge-m3", "input": [query] }))
+            .send()
+            .await;
+        if let Ok(r) = resp {
+            if let Ok(v) = r.json::<serde_json::Value>().await {
+                if let Some(arr) = v["data"].as_array() {
+                    if let Some(first) = arr.first().and_then(|d| d["embedding"].as_array()) {
+                        vector = first.iter().filter_map(|x| x.as_f64()).collect();
+                        if !vector.is_empty() { break; }
+                    }
+                }
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(2 * (attempt as u64 + 1))).await;
+    }
+    if vector.is_empty() {
+        DELEGATE_FAIL.fetch_add(1, Ordering::Relaxed);
+        return vec![];
+    }
+    // 2) Milvus REST search
+    let body = serde_json::json!({
+        "collectionName": collection(),
+        "data": [vector],
+        "limit": top_k,
+        "outputFields": ["doc_id", "content", "metadata"],
+    });
+    let resp = client
+        .post(format!("{}/v2/vectordb/entities/search", milvus_url()))
+        .json(&body)
+        .send()
+        .await;
+    let mut out = vec![];
+    if let Ok(r) = resp {
+        if let Ok(v) = r.json::<serde_json::Value>().await {
+            if let Some(rows) = v["data"].as_array() {
+                for row in rows {
+                    let id = row["doc_id"].as_str().unwrap_or_default().to_string();
+                    if id.is_empty() { continue; }
+                    let score = row["distance"].as_f64().unwrap_or(0.0);
+                    let text = row["content"].as_str().unwrap_or_default().to_string();
+                    out.push(Hit { id, score, text, tags: vec![] });
+                }
+            }
+        }
+    }
+    if out.is_empty() { DELEGATE_FAIL.fetch_add(1, Ordering::Relaxed); }
+    else { DELEGATE_OK.fetch_add(1, Ordering::Relaxed); }
+    out
 }
 
 async fn fetch_candidates(query: &str, top_k: usize) -> Vec<Hit> {
-    let url = format!("{}/internal/vector-search", delegate_url().trim_end_matches('/'));
+    let delegate = delegate_url();
+    if delegate.is_empty() {
+        return search_direct(query, top_k).await; // 自闭环直连(默认)
+    }
+    let url = format!("{}/internal/vector-search", delegate.trim_end_matches('/'));
     let client = reqwest::Client::builder()
         .connect_timeout(std::time::Duration::from_millis(2000))
         .timeout(std::time::Duration::from_secs(10))
@@ -267,14 +351,13 @@ fn mrr(ret: &[String], gold: &[String]) -> f64 {
 }
 
 fn ndcg_at_k(ret: &[String], gold: &[String], k: usize) -> f64 {
-    let mut dcg = 0.0;
-    for (i, r) in ret.iter().take(k).enumerate() {
-        if gold.contains(r) {
-            dcg += 1.0 / ((i + 1) as f64).log2();
-        }
-    }
-    let ideal: f64 = (1..=gold.len().min(k))
-        .map(|i| 1.0 / (i as f64).log2())
+    // 标准 nDCG: 折减 log2(rank+1), rank 从 1 起 — 注意 log2(1)=0 不能做除数
+    let dcg: f64 = ret.iter().take(k).enumerate()
+        .filter(|(_, r)| gold.contains(r))
+        .map(|(i, _)| 1.0 / ((i + 2) as f64).log2())
+        .sum();
+    let ideal: f64 = (0..gold.len().min(k))
+        .map(|i| 1.0 / ((i + 2) as f64).log2())
         .sum();
     if ideal <= 0.0 { 0.0 } else { dcg / ideal }
 }

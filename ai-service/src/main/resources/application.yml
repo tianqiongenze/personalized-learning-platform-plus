@@ -132,6 +132,7 @@ spring.ai:
       api-key: ${LLM_API_KEY:EMPTY}
       options:
         model: ${EMBEDDING_MODEL:bge-m3}
+        dimensions: ${EMBEDDING_DIMENSIONS:1024}
   vectorstore:
     milvus:
       client:
