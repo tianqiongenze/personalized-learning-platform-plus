@@ -1,0 +1,47 @@
+# TiDB → CRDB 小表集每小时同步(数据层默认 TiDB, CRDB 镜像随时可切换)
+# 大表全量(--full)切换前手动执行:
+#   kubectl -n qianrenqianmian create job --from=cronjob/tidb-crdb-sync tidb-crdb-sync-full -- -full
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tidb-crdb-sync
+  namespace: qianrenqianmian
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3300   # 单次上限 55min, 避免与下小时重叠(Forbid 双保险)
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: sync
+            image: 10.167.2.175:30500/platform/tidb-crdb-sync:1.0.0
+            env:
+            - name: TIDB_HOST
+              value: tidb.infra.svc.cluster.local
+            - name: TIDB_PORT
+              value: "4000"
+            - name: TIDB_USER
+              value: root
+            - name: TIDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: platform-plus-secrets
+                  key: DB_PASSWORD
+            - name: CRDB_HOST
+              value: cockroachdb.infra.svc.cluster.local
+            - name: CRDB_PORT
+              value: "26257"
+            - name: CRDB_USER
+              value: root
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: "1"
+                memory: 512Mi

@@ -64,6 +64,12 @@ public class KTResolver {
         return client.getMap("kt", "/kt/memory/" + studentId);
     }
 
+    /** 三层记忆图谱(DeepTutor 借鉴): nodes/edges 由 kt-service /kt/memory-graph 组装 */
+    @QueryMapping
+    public Map<String, Object> memoryGraph(@Argument String studentId) {
+        return client.getMap("kt", "/kt/memory-graph/" + studentId);
+    }
+
     @QueryMapping
     public List<Map<String, Object>> reviewPlan(@Argument String studentId) {
         Map<String, Object> resp = client.getMap("kt", "/kt/review/" + studentId);

@@ -88,21 +88,23 @@ class DurableSession:
                 "state": copy.deepcopy(self.state), "inbox": copy.deepcopy(self.inbox)}
             return 0
         import json
-        with self._db.cursor() as c:
-            c.execute(
-                """INSERT INTO durable_sessions
+        # 注意: interval 用 f-string 内插(常量), %s 全部留给 execute 参数 —
+        # 旧版 % 格式化会与 psycopg2 的 %s 占位冲突(7 个 %s 只配 2 个值必炸)
+        sql = f"""INSERT INTO durable_sessions
                    (session_id, kind, owner_pod, lease_until, version, state, inbox)
-                   VALUES (%s,%s,%s,now()+interval '%s seconds',1,%s,%s)
+                   VALUES (%s,%s,%s,now()+interval '{LEASE_SECONDS} seconds',1,%s,%s)
                    ON CONFLICT (session_id) DO UPDATE SET
                      owner_pod=EXCLUDED.owner_pod,
-                     lease_until=now()+interval '%s seconds',
+                     lease_until=now()+interval '{LEASE_SECONDS} seconds',
                      version=durable_sessions.version+1,
                      state=EXCLUDED.state,
                      inbox=EXCLUDED.inbox,
-                     updated_at=now()""" % (LEASE_SECONDS, LEASE_SECONDS),
-                (self.session_id, self.kind, _pod(),
-                 json.dumps(self.state, ensure_ascii=False),
-                 json.dumps(self.inbox, ensure_ascii=False)))
+                     updated_at=now()"""
+        with self._db.cursor() as c:
+            c.execute(sql,
+                      (self.session_id, self.kind, _pod(),
+                       json.dumps(self.state, ensure_ascii=False),
+                       json.dumps(self.inbox, ensure_ascii=False)))
             c.execute("SELECT version FROM durable_sessions WHERE session_id=%s",
                       (self.session_id,))
             return c.fetchone()[0]
@@ -124,25 +126,29 @@ class DurableSession:
             if takeover:
                 # 仅当租约已过期才允许接管(乐观: UPDATE 影响 0 行 = 未过期或不存在)
                 c.execute(
-                    """UPDATE durable_sessions SET owner_pod=%s,
-                       lease_until=now()+interval '%s seconds', version=version+1
-                       WHERE session_id=%s AND kind=%s AND lease_until < now()"""
-                    % (_pod(), LEASE_SECONDS), (session_id, kind))
+                    f"""UPDATE durable_sessions SET owner_pod=%s,
+                       lease_until=now()+interval '{LEASE_SECONDS} seconds', version=version+1
+                       WHERE session_id=%s AND kind=%s AND lease_until < now()""",
+                    (_pod(), session_id, kind))
                 if c.rowcount == 0:
-                    row = c.execute("SELECT 1 FROM durable_sessions WHERE session_id=%s",
-                                    (session_id,)).fetchone()
+                    # psycopg2 cursor.execute() 返回 None, 不可链式 .fetchone()
+                    c.execute("SELECT 1 FROM durable_sessions WHERE session_id=%s",
+                              (session_id,))
+                    row = c.fetchone()
                     raise LeaseLost("lease active on another replica" if row
                                     else "session not found")
             else:
-                row = c.execute("""SELECT lease_until < now() FROM durable_sessions
-                                   WHERE session_id=%s AND kind=%s""",
-                                (session_id, kind)).fetchone()
+                c.execute("""SELECT lease_until < now() FROM durable_sessions
+                             WHERE session_id=%s AND kind=%s""",
+                          (session_id, kind))
+                row = c.fetchone()
                 if not row:
                     raise LeaseLost("session not found")
                 if row[0]:
                     return cls.resume(kind, session_id, takeover=True)
-            data = c.execute("""SELECT state, inbox FROM durable_sessions
-                                WHERE session_id=%s""", (session_id,)).fetchone()
+            c.execute("""SELECT state, inbox FROM durable_sessions
+                         WHERE session_id=%s""", (session_id,))
+            data = c.fetchone()
         import json
         s.state = data[0] if isinstance(data[0], dict) else json.loads(data[0])
         s.inbox = data[1] if isinstance(data[1], list) else json.loads(data[1])
@@ -155,10 +161,10 @@ class DurableSession:
             return
         with self._db.cursor() as c:
             c.execute(
-                """UPDATE durable_sessions SET lease_until=now()+interval '%s seconds',
+                f"""UPDATE durable_sessions SET lease_until=now()+interval '{LEASE_SECONDS} seconds',
                    owner_pod=%s, updated_at=now()
-                   WHERE session_id=%s AND owner_pod=%s""" % (LEASE_SECONDS, _pod()),
-                (self.session_id, _pod()))
+                   WHERE session_id=%s AND owner_pod=%s""",
+                (_pod(), self.session_id, _pod()))
             if c.rowcount == 0:
                 raise LeaseLost("lease held by another replica")
 

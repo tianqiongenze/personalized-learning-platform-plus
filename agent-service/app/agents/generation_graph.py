@@ -6,10 +6,9 @@ import operator
 from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 
-from app.config import LLM_BASE_URL, LLM_API_KEY, LLM_MODEL
+from app.config import build_llm
 from app.tools.edu_tools import search_course_resources, query_knowledge_graph
 
 RESOURCE_TYPES = {
@@ -39,9 +38,9 @@ class GenState(TypedDict):
     messages: Annotated[list, operator.add]
 
 
-_llm = ChatOpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY,
-                  model=LLM_MODEL, temperature=0.3, streaming=False,
-                  timeout=60, max_retries=0)  # LLM 慢/不可用时快速失败→模板降级
+# 主模型 + fallback 链(LLM_FALLBACK_MODELS 配置时启用); 快速失败→模板降级语义保留
+_llm = build_llm(temperature=0.3, streaming=False,
+                 timeout=60, max_retries=0)
 
 
 def parse_intent(state: GenState) -> dict:

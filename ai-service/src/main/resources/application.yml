@@ -122,12 +122,14 @@ spring.ai:
     chat: openai
   openai:
     base-url: ${LLM_BASE_URL:http://litellm.ai-platform:4000}
-    api-key: ${LLM_API_KEY:}
+    api-key: ${LLM_API_KEY:EMPTY}
     chat:
       options:
         model: ${LLM_MODEL:qwen2.5-7b-instruct}
         temperature: 0.4
     embedding:
+      base-url: ${EMBEDDING_BASE_URL:http://embed-proxy.ai-platform.svc.cluster.local:8088}
+      api-key: ${LLM_API_KEY:EMPTY}
       options:
         model: ${EMBEDDING_MODEL:bge-m3}
   vectorstore:

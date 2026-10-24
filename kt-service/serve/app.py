@@ -139,6 +139,43 @@ async def memory_profile(student_id: str, state: State) -> dict:
     return state["memory"].snapshot(student_id)
 
 
+@get("/kt/memory-graph/{student_id:str}")
+async def memory_graph(student_id: str, state: State) -> dict:
+    """三层记忆图谱(DeepTutor 借鉴: 可检查的记忆可视化)。
+
+    nodes: STUDENT(L3 根) / SKILL(技能, data=mastery 等) / SUMMARY(L2 会话摘要)
+    edges: HAS_SUMMARY(student→summary) / STUDIES(summary→skill, weight=mastery)
+    由 MemoryPyramid 内存态组装; 空学生返回仅含学生节点的空图(非 404)。
+    """
+    m = state["memory"]
+    snap = m.snapshot(student_id)
+    l2 = getattr(m, "l2_summaries", {}).get(student_id, {})
+    nodes = [{"id": f"student:{student_id}", "label": student_id,
+              "layer": "L3", "kind": "STUDENT",
+              "data": {"profileVersion": snap.get("l3ProfileVersion", 0),
+                       "learningStyle": (snap.get("profile") or {}).get("learningStyle", {})}},
+              {"id": f"l1:{student_id}", "label": f"L1 事件流({snap.get('l1EventCount', 0)})",
+               "layer": "L1", "kind": "EVENTS", "data": {"count": snap.get("l1EventCount", 0)}}]
+    edges = [{"source": f"student:{student_id}", "target": f"l1:{student_id}",
+              "kind": "STREAMS_FROM", "weight": 1.0}]
+    for skill_id, s in l2.items():
+        sid_node = f"summary:{student_id}:{skill_id}"
+        nodes.append({"id": sid_node, "label": f"{skill_id} 摘要", "layer": "L2",
+                      "kind": "SUMMARY", "data": s})
+        edges.append({"source": f"student:{student_id}", "target": sid_node,
+                      "kind": "HAS_SUMMARY", "weight": 1.0})
+        edges.append({"source": sid_node, "target": f"skill:{skill_id}",
+                      "kind": "STUDIES", "weight": float(s.get("mastery", 0.0))})
+        if not any(n["id"] == f"skill:{skill_id}" for n in nodes):
+            nodes.append({"id": f"skill:{skill_id}", "label": skill_id,
+                          "layer": "SKILL", "kind": "SKILL",
+                          "data": {"mastery": s.get("mastery"),
+                                   "correctRate": s.get("correctRate")}})
+    return {"studentId": student_id,
+            "nodeCount": len(nodes), "edgeCount": len(edges),
+            "nodes": nodes, "edges": edges}
+
+
 @get("/kt/review/{student_id:str}")
 async def review_plan(student_id: str, state: State, quality: int | None = None) -> dict:
     plan = state["memory"].review_schedule(student_id, quality)
@@ -163,6 +200,6 @@ async def gaps(student_id: str, state: State, courseId: str | None = None) -> di
 
 app = Litestar(
     route_handlers=[health, model_info, metrics, mastery, predict,
-                    record_event, memory_profile, review_plan, zpd, gaps],
+                    record_event, memory_profile, memory_graph, review_plan, zpd, gaps],
     on_startup=[on_startup],
 )

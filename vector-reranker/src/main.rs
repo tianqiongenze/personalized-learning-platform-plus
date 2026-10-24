@@ -62,6 +62,8 @@ static REQ_COUNTER: AtomicU64 = AtomicU64::new(0);
 static DELEGATE_OK: AtomicU64 = AtomicU64::new(0);
 static DELEGATE_FAIL: AtomicU64 = AtomicU64::new(0);
 static DELEGATE_EMPTY: AtomicU64 = AtomicU64::new(0);
+static EVAL_RUNS: AtomicU64 = AtomicU64::new(0);
+static EVAL_QUERIES: AtomicU64 = AtomicU64::new(0);
 
 /// 向量召回委托目标(ai-service, Spring AI VectorStore/Milvus 连接持有方)。
 /// 部署注入, 缺省指向集群内 ai-service; 未配置或不可达时降级为空集并在 /metrics 暴露失败计数。
@@ -115,11 +117,15 @@ async fn metrics() -> String {
         "reranker_requests_total {}\n\
          reranker_delegate_ok_total {}\n\
          reranker_delegate_empty_total {}\n\
-         reranker_delegate_fail_total {}\n",
+         reranker_delegate_fail_total {}\n\
+         reranker_eval_runs_total {}\n\
+         reranker_eval_queries_total {}\n",
         REQ_COUNTER.load(Ordering::Relaxed),
         DELEGATE_OK.load(Ordering::Relaxed),
         DELEGATE_EMPTY.load(Ordering::Relaxed),
         DELEGATE_FAIL.load(Ordering::Relaxed),
+        EVAL_RUNS.load(Ordering::Relaxed),
+        EVAL_QUERIES.load(Ordering::Relaxed),
     )
 }
 
@@ -129,6 +135,7 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(|| async { "UP" }))
         .route("/internal/search", post(internal_search))
+        .route("/internal/eval", post(kb_eval))
         .route("/rerank/{collection}", post(rerank))
         .route("/metrics", get(metrics));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8090").await.unwrap();
@@ -223,3 +230,89 @@ fn jaccard(a: &HashSet<String>, b: &HashSet<String>) -> f64 {
     let union = a.len() + b.len() - inter as usize;
     if union == 0 { 0.0 } else { inter / union as f64 }
 }
+
+// ============ kb eval: 在线检索质量评估(DeepTutor kb eval 借鉴) ============
+// 输入: 标注集 [{query, goldIds}]; 对每条 query 实时经 ai-service 向量检索,
+// 计算 Recall@K / MRR / nDCG@K 并汇总+阈值判定。与 evals/run_eval.py 离线
+// 指标口径一致(同公式), 差异仅在 retrieved_ids 来源: 在线=真实检索, 离线=标注固化。
+
+#[derive(Deserialize)]
+struct EvalItem {
+    query: String,
+    #[serde(rename = "goldIds")]
+    gold_ids: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct EvalRequest {
+    #[serde(default)]
+    items: Vec<EvalItem>,
+    #[serde(rename = "topK", default = "default_top_k")]
+    top_k: usize,
+}
+
+fn recall_at_k(ret: &[String], gold: &[String], k: usize) -> f64 {
+    if gold.is_empty() { return 0.0; }
+    let hit = ret.iter().take(k).filter(|r| gold.contains(r)).count();
+    hit as f64 / gold.len() as f64
+}
+
+fn mrr(ret: &[String], gold: &[String]) -> f64 {
+    for (i, r) in ret.iter().enumerate() {
+        if gold.contains(r) {
+            return 1.0 / (i + 1) as f64;
+        }
+    }
+    0.0
+}
+
+fn ndcg_at_k(ret: &[String], gold: &[String], k: usize) -> f64 {
+    let mut dcg = 0.0;
+    for (i, r) in ret.iter().take(k).enumerate() {
+        if gold.contains(r) {
+            dcg += 1.0 / ((i + 1) as f64).log2();
+        }
+    }
+    let ideal: f64 = (1..=gold.len().min(k))
+        .map(|i| 1.0 / (i as f64).log2())
+        .sum();
+    if ideal <= 0.0 { 0.0 } else { dcg / ideal }
+}
+
+async fn kb_eval(Json(req): Json<EvalRequest>) -> (StatusCode, Json<serde_json::Value>) {
+    if req.items.is_empty() {
+        return (StatusCode::BAD_REQUEST, Json(serde_json::json!({
+            "error": "items required: [{query, goldIds}]"
+        })));
+    }
+    EVAL_RUNS.fetch_add(1, Ordering::Relaxed);
+    let k = req.top_k.clamp(1, 50);
+    let mut per_query = Vec::with_capacity(req.items.len());
+    let (mut rs, mut ms, mut ns, mut n) = (0.0, 0.0, 0.0, 0u64);
+    for it in &req.items {
+        EVAL_QUERIES.fetch_add(1, Ordering::Relaxed);
+        let hits = fetch_candidates(&it.query, k).await;
+        let ret: Vec<String> = hits.iter().map(|h| h.id.clone()).collect();
+        let r5 = recall_at_k(&ret, &it.gold_ids, k);
+        let m = mrr(&ret, &it.gold_ids);
+        let n5 = ndcg_at_k(&ret, &it.gold_ids, k);
+        rs += r5; ms += m; ns += n5; n += 1;
+        per_query.push(serde_json::json!({
+            "query": it.query, "retrieved": ret,
+            "goldIds": it.gold_ids,
+            "recall": round4(r5), "mrr": round4(m), "ndcg": round4(n5),
+        }));
+    }
+    let recall = rs / n as f64;
+    let mrr_v = ms / n as f64;
+    let ndcg = ns / n as f64;
+    (StatusCode::OK, Json(serde_json::json!({
+        "n": n, "topK": k,
+        "recallAtK": round4(recall), "mrr": round4(mrr_v), "ndcgAtK": round4(ndcg),
+        "passThreshold": {"recallAtK": 0.8, "mrr": 0.6, "ndcgAtK": 0.75},
+        "passed": recall >= 0.8 && mrr_v >= 0.6 && ndcg >= 0.75,
+        "detail": per_query,
+    })))
+}
+
+fn round4(v: f64) -> f64 { (v * 10000.0).round() / 10000.0 }

@@ -5,15 +5,14 @@ ReAct 模式: LLM 决定调用工具(检索/学情/图谱) → 综合 → 回答
 import json
 from typing import Annotated, Literal, TypedDict
 
-from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from app.config import LLM_BASE_URL, LLM_API_KEY, LLM_MODEL
+from app.config import build_llm
 from app.tools.edu_tools import ALL_TOOLS
 
-_llm = ChatOpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY,
-                  model=LLM_MODEL, temperature=0.7, streaming=True)
+# 主模型 + fallback 链(LLM_FALLBACK_MODELS 配置时启用; OpenMAIC 借鉴)
+_llm = build_llm(temperature=0.7, streaming=True)
 
 SYSTEM_PROMPT = """你是"千人千面"个性化学习平台的 AI 学习助手。
 - 页面上下文: {page_context}

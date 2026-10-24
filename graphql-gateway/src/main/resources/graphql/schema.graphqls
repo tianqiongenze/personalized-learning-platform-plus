@@ -133,6 +133,30 @@ type MemoryProfile {
   learningStyle: LearningStyle
 }
 
+# 三层记忆图谱(DeepTutor 借鉴: 记忆可视化可检查)
+type GraphNode {
+  id: String!
+  label: String!
+  layer: String!   # L1 事件流 / L2 摘要 / L3 画像 / SKILL
+  kind: String!    # STUDENT | EVENTS | SUMMARY | SKILL
+  data: JSON
+}
+
+type GraphEdge {
+  source: String!
+  target: String!
+  kind: String!    # STREAMS_FROM | HAS_SUMMARY | STUDIES
+  weight: Float!
+}
+
+type MemoryGraph {
+  studentId: ID!
+  nodeCount: Int!
+  edgeCount: Int!
+  nodes: [GraphNode!]!
+  edges: [GraphEdge!]!
+}
+
 type LearningStyle {
   visual: Float!
   auditory: Float!
@@ -201,6 +225,7 @@ type Query {
   masteryProfile(studentId: ID!, skillIds: [String!]!): [Mastery!]!
   recommendations(studentId: ID!, limit: Int = 5): [LearningRecommendation!]!
   memoryProfile(studentId: ID!): MemoryProfile
+  memoryGraph(studentId: ID!): MemoryGraph
   reviewPlan(studentId: ID!): [ReviewPlan!]!
   skillGaps(studentId: ID!, courseId: ID): [SkillGap!]!
   generatedResource(id: ID!): GeneratedResource
