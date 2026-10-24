@@ -1,0 +1,156 @@
+# infra 域 kt-service/vector-reranker 部署正本(2026-10-24 从 live 导出清理, DGO 债清偿)
+# 源: kubectl get deploy kt-service vector-reranker -o yaml; 后续变更一律改本文件 apply
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kt-service
+  namespace: infra
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kt-service
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '8086'
+        prometheus.io/scrape: 'true'
+      creationTimestamp: null
+      labels:
+        app: kt-service
+    spec:
+      containers:
+      - image: 10.167.2.175:30500/platform/kt-service:11.0.1
+        imagePullPolicy: IfNotPresent
+        name: kt
+        ports:
+        - containerPort: 8086
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8086
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-reranker
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vector-reranker
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8090'
+        prometheus.io/scrape: 'true'
+      creationTimestamp: null
+      labels:
+        app: vector-reranker
+    spec:
+      containers:
+      - image: 10.167.2.175:30500/platform/vector-reranker:11.0.3
+        imagePullPolicy: IfNotPresent
+        name: reranker
+        ports:
+        - containerPort: 8090
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8090
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: '1'
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kt-service
+  namespace: infra
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kt-service
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '8086'
+        prometheus.io/scrape: 'true'
+      creationTimestamp: null
+      labels:
+        app: kt-service
+    spec:
+      containers:
+      - image: 10.167.2.175:30500/platform/kt-service:11.0.1
+        imagePullPolicy: IfNotPresent
+        name: kt
+        ports:
+        - containerPort: 8086
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8086
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

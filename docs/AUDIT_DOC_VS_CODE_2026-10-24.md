@@ -97,3 +97,18 @@
 4. nebula-storaged ADD HOSTS(console 镜像拉取失败,待 daocloud 代理通道);
 5. 10+ 系统 adapter(依赖外部系统 API 开放,二期);
 6. CRDB 免费层并发事务上限(同步错峰;正式 license 建议)。
+
+## 五、阶段12 追加(同日清偿, commit 见 git log)
+
+| 项 | 结果 |
+|---|---|
+| 事件消费侧联动 | ✅ learning-behavior→teaching 消费→KT 掌握度 E2E(KT l1=2);agent 生产行为事件 |
+| 四服务 outbox 化 | ✅ 四 Publisher 改 relay.save,TiDB 四库 event_outbox,delivered 验证 ×2 |
+| nebula storaged | ✅ ONLINE(graphd 恢复);kg33618 数据需重灌(旧 host 失联) |
+| LLM 通道 | ✅ 切 ollama-worker 直连(litellm 基座 DB 断连绕行) |
+| infra 正本 | ✅ k8s/base/infra-services.yaml |
+
+**阶段12 新根因(具普适性)**: 每服务目录独立 vendored `.mvn/platform-common.jar`(10-19 旧拷贝)是
+四服务镜像嵌包陈旧的真根因——根目录/本地 m2 同步均无效; buildx 层缓存与 alpine 容器缺 unzip/javap
+两度误导 BVV, 权威 BVV 必须**宿主侧 docker cp 解包 grep**。
+**新遗留**: ①kg33618 重灌 ②kp/resources 大表全量同步 ③litellm 基座 DB ④四服务 @PreAuthorize 403(JWT role 映射)

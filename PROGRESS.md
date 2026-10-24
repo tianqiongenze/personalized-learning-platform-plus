@@ -135,3 +135,20 @@ CoreDNS 余波→bookie DNS 失败→Pulsar 不可写 2d9h; platform/edu vs publ
 **多轮测试为何漏检(答案)**: ①功能测试全走同步 HTTP 链路, 异步事件路径无断言; ②verify 脚本有 topics list 但 || true 吞失败且不断言(配而未接); ③publisher 吞错 fire-and-forget; ④broker readiness 0/1 持续 2d9h 无告警路由; ⑤CoreDNS 间歇故障是底座级, 单点测试均正常通过。
 
 **遗留**: L-G litellm "No connected db"(基座, async 生成消费暂 404→DLQ); 事件消费侧联动(画像/索引)待建; 四服务 outbox 化; nebula storaged ADD HOSTS; infra kt/vector 正本; CRDB 免费层事务上限错峰。
+
+## 阶段12(2026-10-24): 遗留全清偿——事件消费侧联动+四服务outbox+infra正本+nebula/LLM修复
+
+**全链验证证据**:
+- 四服务 outbox 化: course/teaching/iam/tenant DomainEventPublisher 改 OutboxEventRelay(事件与业务同库原子), TiDB 四库 event_outbox 建表, 注入手工标准 UUID 行 → relay 投递 delivered=1 ×2 库, domain-events msgIn=6
+- learning-behavior→掌握度联动: agent behavior.py 生产(PULSAR fail-soft) → teaching LearningBehaviorListener(teaching-mastery-sub) → KT /kt/events → **KT l1EventCount=2 实证**
+- L-C: nebula-storaged ADD HOSTS → ONLINE, graphd 恢复(kg33618 数据随旧 host 失联, 需重灌遗留)
+- L-G: LLM 切 ollama-worker 直连(绕开 litellm "No connected db" 基座故障, live+repo 回写)
+- L-D: k8s/base/infra-services.yaml(kt/vector 从 live 导出清理, DGO 债清偿)
+
+**本阶段 3 个深挖根因(全部 BVV 抓获)**:
+1. buildx 层缓存吞新 jar → 一律 --no-cache + 宿主侧 docker cp 权威 BVV(alpine 无 unzip/javap, 容器内验证工具不可信)
+2. **每服务目录独立 vendored `.mvn/platform-common.jar`(10-19 旧版)是镜像嵌包陈旧的真根因**——根目录同步无效; 已全部同步至新版并写入 BVV 流程
+3. 手工测试行 hex UUID(无连字符)= 毒丸行阻塞 relay 批次(DLP 现实演示)——测试数据必须标准格式
+
+**镜像**: course 11.0.10 / teaching 11.0.9 / iam 11.0.8 / tenant 11.0.8 / agent 11.0.5 / ai 11.2.6
+**遗留**: kg33618 数据重灌; kp/resources 大表全量同步(小时级); litellm 基座 DB; 四服务 @PreAuthorize 403(JWT role 映射)待查

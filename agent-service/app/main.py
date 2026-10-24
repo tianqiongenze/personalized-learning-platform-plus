@@ -138,6 +138,16 @@ async def interaction_answer(data: dict) -> dict:
     except interaction.InteractionError as e:
         return {"ok": False, "error": str(e)}
     out = {"ok": True, "result": result}
+    # 数据中台联动: 作答行为 → learning-behavior 主题(→teaching 消费→KT 掌握度)
+    try:
+        from app.behavior import publish_learning_behavior
+        publish_learning_behavior(
+            data.get("studentId", sess.get("studentId", "guest")),
+            data.get("skillId", sess.get("skillId", "s0")),
+            bool(data.get("correct")),
+            course_id=data.get("courseId"))
+    except Exception:
+        pass
     if not result.get("finished"):
         out["question"] = interaction.next_turn(sess)
     return out
