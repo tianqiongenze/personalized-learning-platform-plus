@@ -66,4 +66,8 @@ public interface SpringDataCourseRepository extends JpaRepository<CourseEntity, 
 
 @Query(value="SELECT c.* FROM courses c WHERE c.id IN :ids", nativeQuery=true)
     List<CourseEntity> findByIds(@Param("ids") List<UUID> ids);
+
+    /** 重填充新课(BK 本科/ZK 专科/ZB 职业本科前缀) — KG/检索的业务域 */
+    @Query("SELECT c.id FROM CourseEntity c WHERE c.code LIKE 'BK%' OR c.code LIKE 'ZK%' OR c.code LIKE 'ZB%'")
+    List<UUID> findNewCourseIds();
 }

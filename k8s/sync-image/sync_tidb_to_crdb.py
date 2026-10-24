@@ -104,11 +104,38 @@ def ensure_schema(dst_admin, db: str, table: str, cols, dry: bool):
         print(ddl_db + ";")
         print(ddl_tbl + ";")
         return
-    ac = dst_admin.autocommit
+    dst_admin.commit()   # 同上: 切 autocommit 前清事务
     dst_admin.autocommit = True
     dst_admin.cursor().execute(ddl_db)
     dst_admin.cursor().execute(ddl_tbl)
-    dst_admin.autocommit = ac
+    dst_admin.autocommit = False
+
+
+# ---------- 水位增量(小表集每小时 CronJob 的正确姿势: 首次全量, 之后只传变更) ----------
+WM_DDL = """CREATE TABLE IF NOT EXISTS _sync_meta (
+    db_tbl VARCHAR(128) PRIMARY KEY, last_ts TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ DEFAULT now())"""
+
+
+def ensure_wm(dst_admin):
+    dst_admin.commit()   # 清未决事务, 否则 psycopg2 拒绝切 autocommit
+    dst_admin.autocommit = True
+    dst_admin.cursor().execute(WM_DDL)
+    dst_admin.autocommit = False
+
+
+def get_wm(dst, db, table) -> str | None:
+    cur = dst.cursor()
+    cur.execute("SELECT last_ts FROM _sync_meta WHERE db_tbl=%s", (f"{db}.{table}",))
+    row = cur.fetchone()
+    return row[0].isoformat() if row else None
+
+
+def set_wm(dst, db, table, ts: str):
+    cur = dst.cursor()
+    cur.execute("""INSERT INTO _sync_meta (db_tbl, last_ts) VALUES (%s, %s)
+                   ON CONFLICT (db_tbl) DO UPDATE SET last_ts=EXCLUDED.last_ts, updated_at=now()""",
+                (f"{db}.{table}", ts))
+    dst.commit()
 
 
 # ---------- 同步 ----------
@@ -148,11 +175,13 @@ def adapt_row(row: tuple, columns: list[str], pg_types: dict[str, str]) -> tuple
     return tuple(out)
 
 
-def sync_table(src, dst, db: str, table: str) -> tuple[int, float]:
+def sync_table(src, dst, db: str, table: str, incremental: bool = True,
+               wm_conn=None) -> tuple[int, float]:
+    """incremental=True: 按 updated_at 水位增量(无水位首次自动全量)。
+    水位表 _sync_meta 在 defaultdb(admin 连接), 不随目标库走。"""
     t0 = time.time()
     cols, pk = table_meta(src, db, table)
     names = [c[0] for c in cols]
-    # 目标表实际列(JPA 预建时列集/类型可能异于源); 只同步交集, 按目标类型适配
     pg_types = pg_column_types(dst, db, table)
     if pg_types:
         common = [c for c in names if c in pg_types]
@@ -165,32 +194,72 @@ def sync_table(src, dst, db: str, table: str) -> tuple[int, float]:
     upsert = (f'INSERT INTO {db}.{table} ({col_list}) VALUES ({",".join(["%s"]*len(names))}) '
               f'ON CONFLICT ("{pk}") DO UPDATE SET {updates}')
 
+    wm = get_wm(wm_conn or dst, db, table) if incremental else None
+    has_ts = "updated_at" in names
+    ts_idx = names.index("updated_at") if has_ts else None
+
     scur = src.cursor()
-    n = 0
-    last = None
+    dcur = dst.cursor()
+    n, last, max_ts = 0, None, None
     while True:
-        if last is None:
-            scur.execute(f"SELECT {sel} FROM {db}.`{table}` ORDER BY `{pk}` LIMIT {BATCH}")
+        if wm and has_ts:
+            if last is None:
+                scur.execute(f"SELECT {sel} FROM {db}.`{table}` WHERE updated_at > %s "
+                             f"ORDER BY `{pk}` LIMIT {BATCH}", (wm,))
+            else:
+                scur.execute(f"SELECT {sel} FROM {db}.`{table}` WHERE updated_at > %s AND `{pk}` > %s "
+                             f"ORDER BY `{pk}` LIMIT {BATCH}", (wm, last))
         else:
-            scur.execute(f"SELECT {sel} FROM {db}.`{table}` WHERE `{pk}` > %s "
-                         f"ORDER BY `{pk}` LIMIT {BATCH}", (last,))
+            if last is None:
+                scur.execute(f"SELECT {sel} FROM {db}.`{table}` ORDER BY `{pk}` LIMIT {BATCH}")
+            else:
+                scur.execute(f"SELECT {sel} FROM {db}.`{table}` WHERE `{pk}` > %s "
+                             f"ORDER BY `{pk}` LIMIT {BATCH}", (last,))
         rows = scur.fetchall()
         if not rows:
             break
-        dcur = dst.cursor()
         for r in rows:
             dcur.execute(upsert, adapt_row(r, names, pg_types))
         dst.commit()
         n += len(rows)
         last = rows[-1][names.index(pk)]
-        print(f"  {db}.{table} ... {n}", flush=True)
+        if ts_idx is not None:
+            import datetime as _dt
+            for r in rows:
+                v = r[ts_idx]
+                if isinstance(v, _dt.datetime):
+                    max_ts = v if max_ts is None or v > max_ts else max_ts
+        if n % (BATCH * 10) == 0:
+            print(f"  {db}.{table} ... {n}", flush=True)
+    if incremental and ts_idx is not None:
+        # 水位=本轮见过最大 updated_at; 无行时保持旧水位
+        if max_ts is not None:
+            set_wm(wm_conn or dst, db, table, max_ts.isoformat(sep=" "))
+    print(f"  {db}.{table} done: {n} rows ({'incr' if wm else 'full'})", flush=True)
     return n, time.time() - t0
+
+
+def prune_table(src, dst, db: str, table: str) -> int:
+    """对账清理: 删除目标中源已不存在的行(pk diff)。小表集适用。"""
+    cols, pk = table_meta(src, db, table)
+    scur, dcur = src.cursor(), dst.cursor()
+    scur.execute(f"SELECT `{pk}` FROM {db}.`{table}`")
+    src_ids = {r[0] for r in scur.fetchall()}
+    dcur.execute(f'SELECT "{pk}" FROM {db}.{table}')
+    dst_ids = {r[0] for r in dcur.fetchall()}
+    gone = dst_ids - src_ids
+    for g in gone:
+        dcur.execute(f'DELETE FROM {db}.{table} WHERE "{pk}"=%s', (g,))
+    dst.commit()
+    return len(gone)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tables", help="db.table 逗号分隔, 覆盖默认集")
     ap.add_argument("--full", action="store_true", help="含大表全量")
+    ap.add_argument("--prune", action="store_true", help="对账删除目标多余行(小表集)")
+    ap.add_argument("--no-incremental", action="store_true", help="忽略水位全量(重扫)")
     ap.add_argument("--dry-run", action="store_true", help="只打印 DDL 不执行")
     args = ap.parse_args()
 
@@ -199,6 +268,8 @@ def main():
 
     src = tidb_connect()
     admin = crdb_connect()          # defaultdb: 建 DATABASE 用
+    if not args.dry_run:
+        ensure_wm(admin)
     total = 0
     for db, table in targets:
         cols, pk = table_meta(src, db, table)
@@ -207,7 +278,12 @@ def main():
             print(f"-- dry-run skip data: {db}.{table} pk={pk}")
             continue
         dst = crdb_connect(db)      # information_schema 按库隔离, 数据连接须切到目标库
-        n, secs = sync_table(src, dst, db, table)
+        n, secs = sync_table(src, dst, db, table,
+                             incremental=not args.no_incremental, wm_conn=admin)
+        if args.prune:
+            gone = prune_table(src, dst, db, table)
+            if gone:
+                print(f"[sync] {db}.{table}: prune {gone} rows", flush=True)
         dst.close()
         total += n
         print(f"[sync] {db}.{table}: {n} rows in {secs:.1f}s", flush=True)

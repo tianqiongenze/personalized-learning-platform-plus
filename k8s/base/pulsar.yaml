@@ -304,17 +304,13 @@ spec:
             - |
               set -e
               A="bin/pulsar-admin --admin-url http://pulsar-broker.infra.svc.cluster.local:8080"
-              $A tenants create platform || true
-              $A namespaces create platform/edu || true
-              # 领域事件主题: 保留 7 天, 供审计与运维平台回查消息
-              $A topics create platform/edu/domain-events || true
-              $A namespaces set-retention platform/edu --size 10G --time 7d || true
-              $A topics create platform/edu/ai-generation-tasks || true
-              $A topics create platform/edu/ai-generation-results || true
-              $A topics create platform/edu/learning-behavior || true
-              $A topics create platform/edu/resource-index-upsert || true
-              # 死信/重试
-              $A topics create platform/edu/domain-events-DLQ || true
+              # 2026-10-24 修正: 主题统一 public/default —— EventTopics.java 与
+              # ai-service-sub 消费者均在 public/default(旧 platform/edu 命名从未生效,
+              # broker 元数据重建后 init Job 也未重跑, 双重漂移, 见 SPEC §1.1)
+              for T in domain-events ai-generation-tasks ai-generation-results learning-behavior resource-index-upsert domain-events-DLQ; do
+                $A topics create public/default/$T -p 3 || true
+              done
+              $A namespaces set-retention public/default --size 10G --time 7d || true
 ---
 # 服务发现: 客户端统一连 pulsar://pulsar.infra.svc:6650
 apiVersion: v1

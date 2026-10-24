@@ -28,9 +28,11 @@ public class AsyncGenerationService {
     private final ObjectMapper mapper;
     private final RestClient realtimeGateway;
     /** outbox 模式(推荐, 事件不丢); null=直发 Pulsar(旧行为) */
-    private final OutboxEventRelay outbox;
+    private final org.springframework.beans.factory.ObjectProvider<OutboxEventRelay> outboxProvider;
+    private final org.springframework.context.ApplicationContext ctx;
 
     public AsyncGenerationService(PulsarTemplate<String> pulsar, ObjectMapper mapper,
+                                  org.springframework.context.ApplicationContext applicationContext,
                                   @Value("${app.realtime.url:http://realtime-gateway.middleware:8095}") String realtimeUrl,
                                   org.springframework.beans.factory.ObjectProvider<OutboxEventRelay> outboxProvider) {
         this.pulsar = pulsar;
@@ -42,7 +44,24 @@ public class AsyncGenerationService {
                     setReadTimeout(3000);
                 }})
                 .build();
-        this.outbox = outboxProvider.getIfAvailable();
+        // 2026-10-24: 不在构造器里 getIfAvailable() — 与 relay 的初始化顺序未定,
+        // 早于 relay 注册会恒得 null(静默退化直发)。惰性到提交时解析。
+        this.outboxProvider = outboxProvider;
+        this.ctx = applicationContext;
+    }
+
+    private OutboxEventRelay outbox() {
+        OutboxEventRelay r = outboxProvider.getIfAvailable();
+        try {
+            var env = ctx.getEnvironment();
+            log.info("[outbox-diag] relay={} propOutbox={} propEnabled={} publisherBean={} jtBean={}",
+                    r != null, env.getProperty("app.events.outbox"), env.getProperty("app.events.enabled"),
+                    ctx.containsBean("pulsarDomainEventPublisher"),
+                    ctx.containsBean("jdbcTemplate"));
+        } catch (Exception e) {
+            log.warn("[outbox-diag] ctx probe failed: {}", e.toString());
+        }
+        return r;
     }
 
     /** 提交任务, 立即返回 taskId(前端可先渲染骨架屏) */
@@ -55,6 +74,7 @@ public class AsyncGenerationService {
                     "resourceType", resourceType, "knowledgePoint", knowledgePoint,
                     "industryTags", industryTags == null ? "" : industryTags,
                     "requirements", requirements == null ? "" : requirements));
+            OutboxEventRelay outbox = outbox();
             if (outbox != null) {
                 // 任务提交也走 outbox: 队列不可用不丢任务, relay 重投
                 outbox.save(EventTopics.AI_GENERATION_TASKS, "AI_GENERATION_TASK", tenantId, taskId, mapper.readTree(payload));
@@ -76,6 +96,7 @@ public class AsyncGenerationService {
             String payload = mapper.writeValueAsString(java.util.Map.of(
                     "taskId", taskId, "tenantId", tenantId, "studentId", studentId,
                     "resourceType", resourceType, "passed", passed, "content", content));
+            OutboxEventRelay outbox = outbox();
             if (outbox != null) {
                 // 生成结果不丢: 业务(索引/评分)事务同库原子写 outbox, relay 至少一次投递
                 outbox.save(EventTopics.AI_GENERATION_RESULTS, "AI_GENERATION_RESULT", tenantId, taskId,

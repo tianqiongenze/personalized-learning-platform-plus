@@ -131,9 +131,16 @@ verify() {
   for s in tenant iam course teaching ops ai; do
     kc -n $NS_PLATFORM get deploy "$s-service" -o jsonpath="{.status.readyReplicas}/{.spec.replicas} $s-service{$'\n'}" 2>/dev/null || true
   done
-  echo "-- Pulsar 主题 --"
-  kc -n $NS_MIDDLE run pulsar-verify --rm -i --restart=Never --image=apachepulsar/pulsar:3.2.2 -- \
-    bin/pulsar-admin --admin-url http://pulsar-broker:8080 topics list public/default || true
+  echo "-- Pulsar 主题(硬校验: 6 主题缺一即 FAIL, 不再 || true 吞错) --"
+  VERIFY_OUT=$(kc -n $NS_MIDDLE run pulsar-verify --rm -i --restart=Never --image=apachepulsar/pulsar:3.2.2 -- \
+    bin/pulsar-admin --admin-url http://pulsar-broker:8080 topics list public/default 2>&1) || warn "pulsar-verify pod 运行失败"
+  echo "$VERIFY_OUT" | grep -oE "persistent://public/default/[a-zA-Z-]+" | sed 's|.*/||' | sed 's/-partition.*//' | sort -u > /tmp/plp-topics.txt
+  MISSING=""
+  for T in domain-events ai-generation-tasks ai-generation-results learning-behavior resource-index-upsert domain-events-DLQ; do
+    grep -qx "$T" /tmp/plp-topics.txt || MISSING="$MISSING $T"
+  done
+  if [ -n "$MISSING" ]; then warn "Pulsar 缺主题:$MISSING (数据中台事件链断裂, 见 docs/AUDIT_DOC_VS_CODE_2026-10-24.md)"; else echo "  Pulsar 6/6 主题 OK"; fi
+  echo "$VERIFY_OUT" | grep -qE "ai-generation-tasks" || warn "无法列 Pulsar 主题 — broker 可能不可达(多轮功能测试漏检的根因之一, 本次起硬校验)"
   echo "-- Redis Cluster --"
   kc -n $NS_MIDDLE get pods -l app=redis-cluster 2>/dev/null || warn "redis-cluster(既有)探测失败, 请人工核对地址"
   echo "-- Ingress --"

@@ -19,7 +19,8 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: sync
-            image: 10.167.2.175:30500/platform/tidb-crdb-sync:1.0.0
+            image: 10.167.2.175:30500/platform/tidb-crdb-sync:1.1.1
+            args: ["--prune"]   # 增量水位+对账清理(镜像 ENTRYPOINT 传参)
             env:
             - name: TIDB_HOST
               value: tidb.infra.svc.cluster.local

@@ -9,3 +9,4 @@ redis>=5.1
 pulsar-client>=3.5
 prometheus-client>=0.21
 psycopg2-binary>=2.9
+pymysql>=1.1

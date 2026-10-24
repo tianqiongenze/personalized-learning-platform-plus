@@ -18,10 +18,11 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
   datasource:
-    url: jdbc:postgresql://${CRDB_JDBC_HOST_PORT:localhost:5432}/ai_db?sslmode=${CRDB_SSLMODE:disable}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    # 2026-10-24 统一数据层: 全服务默认 TiDB(MySQL 协议); CRDB 经 env 切换(DGO 双存储对等)
+    url: ${DATASOURCE_URL:jdbc:mysql://${TIDB_HOST:tidb.infra.svc.cluster.local}:${TIDB_PORT:4000}/ai_db?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
     hikari:
       maximum-pool-size: 15
       minimum-idle: 5
@@ -35,7 +36,7 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.CockroachDialect}
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.MySQLDialect}
         jdbc.batch_size: 30
         order_inserts: true
         order_updates: true
@@ -97,6 +98,8 @@ app:
   events:
     enabled: true
     default-topic: persistent://public/default/domain-events
+    # 显式声明(此前仅靠 env APP_EVENTS_OUTBOX, @ConditionalOnProperty 判定存疑)
+    outbox: true
   resilience:
     enabled: true
   cors:

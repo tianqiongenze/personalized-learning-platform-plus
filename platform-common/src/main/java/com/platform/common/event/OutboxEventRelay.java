@@ -40,8 +40,9 @@ import java.util.UUID;
  *
  * 启用条件: app.events.outbox=true 且存在 JdbcTemplate。
  */
-@Component
-@ConditionalOnBean(JdbcTemplate.class)
+// 2026-10-24 修复: @ConditionalOnBean(JdbcTemplate) 在普通 @Component 上不可靠 —
+// 组件扫描先于 AutoConfiguration 评估, JdbcTemplate 尚未注册 → 条件恒 false, relay 从未创建
+// (async 提交静默退化为直发)。改为 @ConditionalOnProperty + ObjectProvider 惰性解析。
 @ConditionalOnProperty(prefix = "app.events", name = "outbox", havingValue = "true", matchIfMissing = false)
 public class OutboxEventRelay {
 
@@ -53,11 +54,17 @@ public class OutboxEventRelay {
     private final JdbcTemplate jdbc;
     private final PulsarDomainEventPublisher publisher;
     private final ObjectMapper objectMapper;
+    /** MySQL(TiDB) 不支持 FOR UPDATE SKIP LOCKED — 方言感知选择锁策略 */
+    private final boolean mysqlProtocol;
 
-    public OutboxEventRelay(JdbcTemplate jdbc, PulsarDomainEventPublisher publisher, ObjectMapper objectMapper) {
-        this.jdbc = jdbc;
+    public OutboxEventRelay(org.springframework.beans.factory.ObjectProvider<JdbcTemplate> jdbcProvider,
+                            PulsarDomainEventPublisher publisher, ObjectMapper objectMapper,
+                            org.springframework.core.env.Environment env) {
+        this.jdbc = jdbcProvider.getIfAvailable();
         this.publisher = publisher;
         this.objectMapper = objectMapper;
+        String url = env.getProperty("spring.datasource.url", "");
+        this.mysqlProtocol = url.startsWith("jdbc:mysql:");
     }
 
     /** 业务事务内调用: 与业务写同事务原子落库, 失败不吞异常(否则业务事务应回滚)。 */
@@ -67,9 +74,11 @@ public class OutboxEventRelay {
                     DomainEventEnvelope.of(eventType, System.getProperty("spring.application.name", "unknown"),
                             tenantId, aggregateId, payload);
             String json = objectMapper.writeValueAsString(envelope);
+            // 2026-10-24 数据层统一 TiDB: PG 的 ?::jsonb 在 MySQL 协议非法;
+            // TiDB 的 JSON 列可直接收字符串, PG 侧由 JSONB 列隐式转换 —— 统一直接传串
             jdbc.update("INSERT INTO event_outbox (id, topic, event_type, tenant_id, aggregate_id, payload, message_id) "
-                            + "VALUES (?, ?, ?, ?, ?, ?::jsonb, ?)",
-                    UUID.randomUUID(), topic, eventType, tenantId, aggregateId, json, envelope.eventId());
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    UUID.randomUUID().toString(), topic, eventType, tenantId, aggregateId, json, envelope.eventId());
             return envelope.eventId();
         } catch (Exception e) {
             // 事件写入失败必须让业务事务回滚, 不能静默丢事件
@@ -84,9 +93,10 @@ public class OutboxEventRelay {
         List<OutboxRow> rows = jdbc.query(
                 "SELECT id, topic, event_type, tenant_id, aggregate_id, payload, message_id, attempts "
                         + "FROM event_outbox WHERE delivered_at IS NULL AND attempts < ? "
-                        + "ORDER BY created_at LIMIT " + BATCH + " FOR UPDATE SKIP LOCKED",
+                        + "ORDER BY created_at LIMIT " + BATCH
+                        + (mysqlProtocol ? "" : " FOR UPDATE SKIP LOCKED"),
                 (rs, i) -> new OutboxRow(
-                        rs.getObject("id", UUID.class), rs.getString("topic"), rs.getString("event_type"),
+                        java.util.UUID.fromString(rs.getString("id")), rs.getString("topic"), rs.getString("event_type"),
                         rs.getString("tenant_id"), rs.getString("aggregate_id"), rs.getString("payload"),
                         rs.getString("message_id"), rs.getInt("attempts")),
                 MAX_ATTEMPTS);
@@ -98,10 +108,10 @@ public class OutboxEventRelay {
             try {
                 publisher.publish(row.topic(), row.eventType(), row.tenantId(), row.aggregateId(),
                         objectMapper.readTree(row.payload()));
-                jdbc.update("UPDATE event_outbox SET delivered_at = ? WHERE id = ?", Timestamp.from(Instant.now()), row.id());
+                jdbc.update("UPDATE event_outbox SET delivered_at = ? WHERE id = ?", Timestamp.from(Instant.now()), row.id().toString());
             } catch (Exception e) {
                 int attempts = row.attempts() + 1;
-                jdbc.update("UPDATE event_outbox SET attempts = ? WHERE id = ?", attempts, row.id());
+                jdbc.update("UPDATE event_outbox SET attempts = ? WHERE id = ?", attempts, row.id().toString());
                 log.warn("[outbox] 投递失败 attempts={} messageId={} err={}", attempts, row.messageId(), e.getMessage());
                 if (attempts >= MAX_ATTEMPTS) {
                     log.error("[outbox] 死信: messageId={} topic={} 超过最大重试, 需人工介入", row.messageId(), row.topic());

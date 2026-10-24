@@ -138,7 +138,7 @@ spec:
               - sh
               - -c
               - sleep 5
-        image: 10.167.2.175:30500/platform/ai-service:11.0.8
+        image: 10.167.2.175:30500/platform/ai-service:11.2.6
         envFrom:
         - configMapRef:
             name: platform-plus-config
@@ -200,14 +200,26 @@ spec:
               - sh
               - -c
               - sleep 5
-        image: 10.167.2.175:30500/platform/agent-service:11.0.3
+        image: 10.167.2.175:30500/platform/agent-service:11.0.4
         env:
         - name: LLM_BASE_URL
           value: http://llm-service.infra.svc.cluster.local:8000/v1
         - name: LLM_FALLBACK_MODELS
           value: qwen2.5-7b-instruct,qwen2.5-32b-instruct
-        - name: DURABLE_SESSION_DSN
-          value: postgresql://root@cockroachdb.infra.svc.cluster.local:26257/agent_db?sslmode=disable
+        # 2026-10-24 数据层统一 TiDB(durable.py 已改 pymysql)
+        - name: DURABLE_DB_HOST
+          value: tidb.infra.svc.cluster.local
+        - name: DURABLE_DB_PORT
+          value: "4000"
+        - name: DURABLE_DB_USER
+          value: root
+        - name: DURABLE_DB_NAME
+          value: agent_db
+        - name: DURABLE_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: platform-plus-secrets
+              key: DB_PASSWORD
         - name: RERANKER_URL
           value: http://vector-reranker.infra:8090
         - name: COURSE_SERVICE_URL

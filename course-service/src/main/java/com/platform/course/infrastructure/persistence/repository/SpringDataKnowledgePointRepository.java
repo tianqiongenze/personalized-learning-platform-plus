@@ -64,9 +64,23 @@ public interface SpringDataKnowledgePointRepository extends JpaRepository<Knowle
     /**
      * 知识点名称/编码模糊检索(供知识图谱与 RAG 检索按实体名定位, 跨课程租户内)。
      */
-    @Query(value="SELECT kp FROM knowledge_points kp WHERE " +
+    // JPQL(勿加 nativeQuery=true — 否则别名 kp 会被当列名, 报 Unknown column 'kp')
+    @Query("SELECT kp FROM KnowledgePointEntity kp WHERE " +
            "LOWER(kp.code) LIKE LOWER(CONCAT('%', :entity, '%')) " +
            "OR LOWER(kp.name) LIKE LOWER(CONCAT('%', :entity, '%')) " +
-           "ORDER BY kp.code ASC", nativeQuery=true)
+           "ORDER BY kp.code ASC")
     List<KnowledgePointEntity> searchByEntity(@Param("entity") String entity, Pageable pageable);
+
+    /**
+     * 限定课程域的实体检索(knowledge_points 4500 万压测行, 双通配 LIKE 全表扫 50s+;
+     * course_id IN(新课 45 门) 走 idx_kp_course_code 前导列, 毫秒级)。
+     * KG 语义域=新课产业图谱, 压测 K12 数据天然不在域内。
+     */
+    @Query("SELECT kp FROM KnowledgePointEntity kp WHERE kp.courseId IN :cids AND " +
+           "(LOWER(kp.code) LIKE LOWER(CONCAT('%', :entity, '%')) " +
+           "OR LOWER(kp.name) LIKE LOWER(CONCAT('%', :entity, '%'))) " +
+           "ORDER BY kp.code ASC")
+    List<KnowledgePointEntity> searchByEntityInCourses(@Param("entity") String entity,
+                                                       @Param("cids") List<UUID> courseIds,
+                                                       Pageable pageable);
 }

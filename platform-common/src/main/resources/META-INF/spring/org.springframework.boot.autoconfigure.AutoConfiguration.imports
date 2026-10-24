@@ -4,3 +4,4 @@ com.platform.common.db.CrdbMigrationAutoConfiguration
 com.platform.common.web.WebErrorAutoConfiguration
 com.platform.common.rw.ReadWriteDataSourceAutoConfiguration
 com.platform.common.storage.StorageDataSourceAutoConfiguration
+com.platform.common.event.EventAutoConfiguration

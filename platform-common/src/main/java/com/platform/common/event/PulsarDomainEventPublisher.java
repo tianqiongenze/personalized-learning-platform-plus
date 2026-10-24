@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
  * 原则: 消息失败绝不阻断业务事务 —— 记录 error 日志并由告警兜底,
  * 后续可升级为 Outbox 表 + 投递补偿(见 docs/REFACTOR_ARCHITECTURE.md ADR-006)。
  */
-@Component
 @ConditionalOnBean(PulsarTemplate.class)
 @ConditionalOnProperty(prefix = "app.events", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class PulsarDomainEventPublisher {

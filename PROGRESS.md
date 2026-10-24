@@ -120,3 +120,18 @@ errored run dwfrun-23d096e4 → dwfrun-cd56364a(仍因落盘员未写文件 erro
 **深挖修复(链路真实故障)**: ai-service 11.0.0 镜像无 InternalSearchController(重建至 11.0.8); api-key EMPTY 默认; Spring AI dimensions 探测风暴打爆 ollama(直连版规避); reranker delegate URL context-path 缺失; nDCG 首项 log2(1)=0 除零; new-services.yaml 历史 19-doc 分隔符损坏修复。
 
 **遗留**: infra ns 的 kt-service/vector-reranker 部署 yaml 无仓库正本(DGO 债, 已在 tidb-crdb-sync.yaml 注释记录); Spring AI↔Dify embed-proxy 的 Java 客户端空响应根因未深挖(已用直连规避)。
+
+## 阶段11(2026-10-24): 事件总线全链修复闭环+数据层统一TiDB+文档vs代码审计(commit d325c23)
+
+**数据层统一(用户新指令)**: 全服务默认 TiDB——ai-service yml/pom/driver/方言全套切 TiDB(jdbc:mysql://tidb:4000/ai_db);agent durable.py 改 pymysql(agent_db);四服务本就 TiDB。CRDB 转纯备份侧(同步脚本方向不变)。
+
+**事件总线(数据中台①)全链修复闭环, 根因 8 层**:
+CoreDNS 余波→bookie DNS 失败→Pulsar 不可写 2d9h; platform/edu vs public/default 双漂移; init Job 一次性未重跑; publisher 吞错; relay @ConditionalOnBean 扫描顺序陷阱; com.platform.common 不在服务扫描范围(auto-config 缺失); starter-jdbc/mysql-connector 锁死 dependencyManagement; UUID 二进制 vs VARCHAR + SKIP LOCKED TiDB 不支持。
+终验: 6 主题→async 提交→TiDB event_outbox→relay delivered 4/4→消费者收→DLQ 兜底。
+修复件: EventAutoConfiguration(afterName)+AutoConfiguration.imports 注册; OutboxEventRelay 方言感知; verify 主题硬校验; LLM 模型名对齐。
+
+**审计(docs/AUDIT_DOC_VS_CODE_2026-10-24.md)**: 数据中台 80%→55%(outbox 半接/adapter 纯概念/无事件消费方); 学分 40%→75%(规则引擎已实现+288 万记录); KT 已训 AUC 0.47/0.51 未达 0.75; 生成 92% 达标; 测试漏检 5 盲区。
+
+**多轮测试为何漏检(答案)**: ①功能测试全走同步 HTTP 链路, 异步事件路径无断言; ②verify 脚本有 topics list 但 || true 吞失败且不断言(配而未接); ③publisher 吞错 fire-and-forget; ④broker readiness 0/1 持续 2d9h 无告警路由; ⑤CoreDNS 间歇故障是底座级, 单点测试均正常通过。
+
+**遗留**: L-G litellm "No connected db"(基座, async 生成消费暂 404→DLQ); 事件消费侧联动(画像/索引)待建; 四服务 outbox 化; nebula storaged ADD HOSTS; infra kt/vector 正本; CRDB 免费层事务上限错峰。

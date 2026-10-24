@@ -39,7 +39,14 @@ class OutboxEventRelayTest {
         ObjectMapper om = new ObjectMapper();
         om.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
         om.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        relay = new OutboxEventRelay(jdbc, publisher, om);
+        relay = new OutboxEventRelay(
+                new org.springframework.beans.factory.ObjectProvider<>() {
+                    @Override public JdbcTemplate getIfAvailable() { return jdbc; }
+                    @Override public JdbcTemplate getObject(Object... args) { return jdbc; }
+                    @Override public JdbcTemplate getObject() { return jdbc; }
+                    @Override public JdbcTemplate getIfUnique() { return jdbc; }
+                }, publisher, om,
+                new org.springframework.mock.env.MockEnvironment());
     }
 
     @Test

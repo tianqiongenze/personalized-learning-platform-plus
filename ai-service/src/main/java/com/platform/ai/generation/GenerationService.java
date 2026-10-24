@@ -48,15 +48,46 @@ public class GenerationService {
                 .baseUrl(rerankerUrl)
                 .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
                     setConnectTimeout(1000);
-                    setReadTimeout(5000);
+                    // ollama bge-m3 CPU 推理慢, 检索链路放宽(reranker 内部已带 3 次重试)
+                    setReadTimeout(120000);
                 }})
                 .build();
     }
 
-    /** 向量语义检索(RAG 前置) */
+    /**
+     * 向量语义检索(RAG 前置)。走 vector-reranker /internal/search(其自闭环
+     * embed-proxy+Milvus REST 直连, 已实测稳定)——Spring AI MilvusVectorStore 因
+     * OpenAiEmbeddingModel.dimensions() 对 Dify embed-proxy 解析为空而不可用
+     * (每次 search 抛 NoSuchElementException 且探测打爆 ollama), 详见
+     * InternalSearchController 注释。vectorStore 字段保留(未来 Spring AI 修复后可切回)。
+     */
+    @SuppressWarnings("unchecked")
     public List<Document> search(String query, int topK) {
-        return vectorStore.similaritySearch(SearchRequest.builder()
-                .query(query).topK(topK).build());
+        try {
+            Map<String, Object> resp = reranker.post()
+                    .uri("/internal/search")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(Map.of("query", query, "topK", topK))
+                    .retrieve()
+                    .body(Map.class);
+            Object results = resp == null ? null : resp.get("results");
+            if (!(results instanceof List<?> rows)) {
+                return List.of();
+            }
+            List<Document> out = new java.util.ArrayList<>(rows.size());
+            for (Object o : rows) {
+                if (o instanceof Map<?, ?> m) {
+                    Map<String, Object> meta = new java.util.HashMap<>();
+                    if (m.get("score") != null) meta.put("score", m.get("score"));
+                    out.add(new Document(m.get("text") == null ? "" : String.valueOf(m.get("text")),
+                            (Map<String, Object>) meta));
+                }
+            }
+            return out;
+        } catch (Exception e) {
+            // 降级: 检索不可用时返回空上下文, 生成仍可走模板(不带参考资料)
+            return List.of();
+        }
     }
 
     /** 单轮生成: 简单模板资源。返回内容 + cache_hit 标记(观测缓存命中率) */

@@ -1,13 +1,14 @@
-"""Durable Session(持久会话) — P3 构建, OpenMAIC Durable Session 语义
+"""Durable Session(持久会话) — OpenMAIC Durable Session 语义
 
 解决: agent 多副本/重启后内存会话(session/interaction/world)丢失问题。
 机制(与 OpenMAIC 一致):
   租约(lease): 会话归属某副本, 到期自动释放(默认 30s, 心跳续约)
   心跳(heartbeat): 归属副本定期续租; 副本死亡 → 租约过期 → 其他副本可接管
-  续跑(resume): 会话状态经 CRDB 持久化, 接管副本从 checkpoint 恢复
+  续跑(resume): 会话状态经数据层持久化, 接管副本从 checkpoint 恢复
   追加指令: 运行中会话可注入新指令(排队到 inbox, 下轮消费)
-存储: CRDB(PG wire) durable_sessions 表, 带版本号乐观锁; 无 DB 时降级内存
+存储: TiDB(MySQL 协议) durable_sessions 表, 带版本号乐观锁; 无 DB 时降级内存
 (fail-soft, 与既有行为兼容)。
+2026-10-24 数据层统一 TiDB: psycopg2/CRDB → pymysql/TiDB(全平台单一默认数据层)。
 """
 from __future__ import annotations
 
@@ -16,43 +17,43 @@ import time
 import uuid
 
 LEASE_SECONDS = 30
-_pg_pool = None
+_db = None
 
 DDL = """
 CREATE TABLE IF NOT EXISTS durable_sessions (
     session_id   VARCHAR(32) PRIMARY KEY,
-    kind         VARCHAR(32) NOT NULL,        -- interaction | generation | a2a
+    kind         VARCHAR(32) NOT NULL,
     owner_pod    VARCHAR(128) NOT NULL,
-    lease_until  TIMESTAMPTZ NOT NULL,
+    lease_until  DATETIME(6) NOT NULL,
     version      INT NOT NULL DEFAULT 1,
-    state        JSONB NOT NULL,
-    inbox        JSONB NOT NULL DEFAULT '[]'::jsonb,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+    state        JSON NOT NULL,
+    inbox        JSON NOT NULL,
+    created_at   DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at   DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+)
 """
 
 
-def _dsn() -> str:
-    return os.getenv("DURABLE_SESSION_DSN", "")
-
-
-def _pool():
-    global _pg_pool
-    if _pg_pool is not None:
-        return _pg_pool
-    dsn = _dsn()
-    if not dsn:
+def _conn():
+    global _db
+    if _db is not None:
+        return _db
+    host = os.getenv("DURABLE_DB_HOST", "")
+    if not host:
         return None
     try:
-        import psycopg2
-        _pg_pool = psycopg2.connect(dsn, connect_timeout=5)
-        _pg_pool.autocommit = True
-        with _pg_pool.cursor() as c:
+        import pymysql
+        _db = pymysql.connect(
+            host=host, port=int(os.getenv("DURABLE_DB_PORT", "4000")),
+            user=os.getenv("DURABLE_DB_USER", "root"),
+            password=os.getenv("DURABLE_DB_PASSWORD", ""),
+            database=os.getenv("DURABLE_DB_NAME", "agent_db"),
+            charset="utf8mb4", autocommit=True, connect_timeout=5)
+        with _db.cursor() as c:
             c.execute(DDL)
-        return _pg_pool
+        return _db
     except Exception:
-        _pg_pool = None
+        _db = None
         return None
 
 
@@ -64,7 +65,7 @@ class LeaseLost(Exception):
     """租约已失(被其他副本接管或过期)"""
 
 
-# 内存降级存储(同进程可 resume; 跨副本不可用 → 配 DURABLE_SESSION_DSN 启用 CRDB)
+# 内存降级存储(同进程可 resume; 跨副本不可用 → 配 DURABLE_DB_* 启用 TiDB)
 _MEM: dict[str, dict] = {}
 
 
@@ -76,35 +77,33 @@ class DurableSession:
         self.session_id = session_id or uuid.uuid4().hex[:16]
         self.state = state
         self.inbox: list[dict] = []
-        self._db = _pool()
+        self._db = _conn()
         self._loaded = False
 
     # ---- 持久化 ----
     def save(self) -> int:
-        """写 CRDB(乐观锁 version++); 无 DB 时内存模式"""
+        """写 TiDB(乐观锁 version++); 无 DB 时内存模式"""
         if not self._db:
             import copy
             _MEM[f"{self.kind}:{self.session_id}"] = {
                 "state": copy.deepcopy(self.state), "inbox": copy.deepcopy(self.inbox)}
             return 0
         import json
-        # 注意: interval 用 f-string 内插(常量), %s 全部留给 execute 参数 —
-        # 旧版 % 格式化会与 psycopg2 的 %s 占位冲突(7 个 %s 只配 2 个值必炸)
-        sql = f"""INSERT INTO durable_sessions
+        sql = """INSERT INTO durable_sessions
                    (session_id, kind, owner_pod, lease_until, version, state, inbox)
-                   VALUES (%s,%s,%s,now()+interval '{LEASE_SECONDS} seconds',1,%s,%s)
-                   ON CONFLICT (session_id) DO UPDATE SET
-                     owner_pod=EXCLUDED.owner_pod,
-                     lease_until=now()+interval '{LEASE_SECONDS} seconds',
+                   VALUES (%s,%s,%s,NOW(6)+INTERVAL %s SECOND,1,%s,%s)
+                   ON DUPLICATE KEY UPDATE
+                     owner_pod=VALUES(owner_pod),
+                     lease_until=NOW(6)+INTERVAL %s SECOND,
                      version=durable_sessions.version+1,
-                     state=EXCLUDED.state,
-                     inbox=EXCLUDED.inbox,
-                     updated_at=now()"""
+                     state=VALUES(state),
+                     inbox=VALUES(inbox),
+                     updated_at=CURRENT_TIMESTAMP(6)"""
         with self._db.cursor() as c:
             c.execute(sql,
-                      (self.session_id, self.kind, _pod(),
+                      (self.session_id, self.kind, _pod(), LEASE_SECONDS,
                        json.dumps(self.state, ensure_ascii=False),
-                       json.dumps(self.inbox, ensure_ascii=False)))
+                       json.dumps(self.inbox, ensure_ascii=False), LEASE_SECONDS))
             c.execute("SELECT version FROM durable_sessions WHERE session_id=%s",
                       (self.session_id,))
             return c.fetchone()[0]
@@ -124,21 +123,20 @@ class DurableSession:
             return s
         with s._db.cursor() as c:
             if takeover:
-                # 仅当租约已过期才允许接管(乐观: UPDATE 影响 0 行 = 未过期或不存在)
+                # 仅当租约已过期才允许接管(乐观: 影响行数 0 = 未过期或不存在)
                 c.execute(
-                    f"""UPDATE durable_sessions SET owner_pod=%s,
-                       lease_until=now()+interval '{LEASE_SECONDS} seconds', version=version+1
-                       WHERE session_id=%s AND kind=%s AND lease_until < now()""",
-                    (_pod(), session_id, kind))
+                    """UPDATE durable_sessions SET owner_pod=%s,
+                       lease_until=NOW(6)+INTERVAL %s SECOND, version=version+1
+                       WHERE session_id=%s AND kind=%s AND lease_until < NOW(6)""",
+                    (_pod(), LEASE_SECONDS, session_id, kind))
                 if c.rowcount == 0:
-                    # psycopg2 cursor.execute() 返回 None, 不可链式 .fetchone()
                     c.execute("SELECT 1 FROM durable_sessions WHERE session_id=%s",
                               (session_id,))
                     row = c.fetchone()
                     raise LeaseLost("lease active on another replica" if row
                                     else "session not found")
             else:
-                c.execute("""SELECT lease_until < now() FROM durable_sessions
+                c.execute("""SELECT lease_until < NOW(6) FROM durable_sessions
                              WHERE session_id=%s AND kind=%s""",
                           (session_id, kind))
                 row = c.fetchone()
@@ -161,10 +159,10 @@ class DurableSession:
             return
         with self._db.cursor() as c:
             c.execute(
-                f"""UPDATE durable_sessions SET lease_until=now()+interval '{LEASE_SECONDS} seconds',
-                   owner_pod=%s, updated_at=now()
+                """UPDATE durable_sessions SET lease_until=NOW(6)+INTERVAL %s SECOND,
+                   owner_pod=%s, updated_at=CURRENT_TIMESTAMP(6)
                    WHERE session_id=%s AND owner_pod=%s""",
-                (_pod(), self.session_id, _pod()))
+                (LEASE_SECONDS, _pod(), self.session_id, _pod()))
             if c.rowcount == 0:
                 raise LeaseLost("lease held by another replica")
 
@@ -177,6 +175,6 @@ class DurableSession:
         out, self.inbox = self.inbox, []
         if self._db:
             with self._db.cursor() as c:
-                c.execute("UPDATE durable_sessions SET inbox='[]'::jsonb WHERE session_id=%s",
+                c.execute("UPDATE durable_sessions SET inbox='[]' WHERE session_id=%s",
                           (self.session_id,))
         return out

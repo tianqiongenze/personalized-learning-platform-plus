@@ -3,6 +3,7 @@ package com.platform.course.infrastructure.persistence.query;
 import com.platform.course.application.query.KnowledgeGraphQueryService;
 import com.platform.course.infrastructure.persistence.entity.KnowledgePointEntity;
 import com.platform.course.infrastructure.persistence.repository.SpringDataKnowledgePointRepository;
+import com.platform.course.infrastructure.persistence.repository.SpringDataCourseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -33,9 +34,12 @@ public class KnowledgeGraphQueryServiceImpl implements KnowledgeGraphQueryServic
     private static final int MAX_FANOUT = 50;
 
     private final SpringDataKnowledgePointRepository kpRepository;
+    private final SpringDataCourseRepository courseRepository;
 
-    public KnowledgeGraphQueryServiceImpl(SpringDataKnowledgePointRepository kpRepository) {
+    public KnowledgeGraphQueryServiceImpl(SpringDataKnowledgePointRepository kpRepository,
+                                           SpringDataCourseRepository courseRepository) {
         this.kpRepository = kpRepository;
+        this.courseRepository = courseRepository;
     }
 
     @Override
@@ -106,7 +110,13 @@ public class KnowledgeGraphQueryServiceImpl implements KnowledgeGraphQueryServic
             UUID id = UUID.fromString(entity);
             return kpRepository.findById(id).map(List::of).orElse(List.of());
         } catch (IllegalArgumentException notUuid) {
-            return kpRepository.searchByEntity(entity, PageRequest.of(0, MAX_SEEDS));
+            // 限定新课域(45 门): kp 表 4500 万压测行上双通配 LIKE 全扫 50s+,
+            // course_id IN 走复合索引前导列, 360 行域内检索毫秒级
+            List<UUID> cids = courseRepository.findNewCourseIds();
+            if (cids.isEmpty()) {
+                return List.of();
+            }
+            return kpRepository.searchByEntityInCourses(entity, cids, PageRequest.of(0, MAX_SEEDS));
         }
     }
 
