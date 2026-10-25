@@ -32,7 +32,7 @@ spec:
         image: 10.167.2.175:30500/base/postgres:16-alpine
         env:
         - {name: POSTGRES_USER, value: litellm}
-        - {name: POSTGRES_PASSWORD, value: "litellm-db-2026"}
+        - {name: POSTGRES_PASSWORD, value: "litellm-db-2026"}  # dev-only 占位, 生产改 Secret
         - {name: POSTGRES_DB, value: litellm}
         ports: [{containerPort: 5432}]
         volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
