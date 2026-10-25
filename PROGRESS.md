@@ -152,3 +152,12 @@ CoreDNS 余波→bookie DNS 失败→Pulsar 不可写 2d9h; platform/edu vs publ
 
 **镜像**: course 11.0.10 / teaching 11.0.9 / iam 11.0.8 / tenant 11.0.8 / agent 11.0.5 / ai 11.2.6
 **遗留**: kg33618 数据重灌; kp/resources 大表全量同步(小时级); litellm 基座 DB; 四服务 @PreAuthorize 403(JWT role 映射)待查
+
+## 阶段13(2026-10-24): 四长尾清偿——KG重灌+大表同步+403定位+litellm诚实搁置
+
+- **kg33618**: DROP HOSTS 清失联 host(仅留 192.168.194.153)→ schema fail=0 + seed fail=0; STATS 实证 顶点335/边590; MATCH 验证通过
+- **大表同步**: sync 脚本三修(execute_values 批量 / SerializationFailure 重试 / _sync_meta defaultdb 跨库限定); credit_transfer_records 288万 + discussions 1200万 落地 CRDB(count 实证); CronJob 暂停→恢复(3 连败 Job 清理)
+- **@PreAuthorize 403**: 安全设计非 bug(HeaderAuthFilter 仅信 X-Gateway-Verified); 带头成功; 附带发现 tenant 规则创建无 DomainEvent 发布点(可后续补)
+- **litellm DB**: postgres 已建但 Prisma 迁移 600s 超时→回滚 DATABASE_URL, 诚实搁置(主链直连 ollama 不受影响)
+- **事故**: k8s-master 磁盘 99%→DiskPressure→CRDB-a Pending→NodePort 拒连; builder prune 34GB+kubelet 重启恢复(69% 仍需关注)
+- 详见 docs/AUDIT_DOC_VS_CODE_2026-10-24.md §六

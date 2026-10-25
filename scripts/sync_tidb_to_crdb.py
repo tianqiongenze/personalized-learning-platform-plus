@@ -25,6 +25,8 @@ import os
 import time
 
 import pymysql
+import psycopg2
+import psycopg2.extras
 
 SMALL_TABLES = [
     ("course_db", "courses"),
@@ -70,7 +72,9 @@ def crdb_connect(db: str = "defaultdb"):
         port=int(os.getenv("CRDB_PORT", "32257")),
         user=os.getenv("CRDB_USER", "root"),
         password=os.getenv("CRDB_PASSWORD", ""),
-        dbname=db, sslmode=os.getenv("CRDB_SSLMODE", "disable"), connect_timeout=10)
+        dbname=db, sslmode=os.getenv("CRDB_SSLMODE", "disable"),
+        connect_timeout=10,
+        options="-c max_retries_for_serializable_conflicts=100")
 
 
 # ---------- 元数据(TiDB 侧) ----------
@@ -125,17 +129,29 @@ def ensure_wm(dst_admin):
 
 def get_wm(dst, db, table) -> str | None:
     cur = dst.cursor()
-    cur.execute("SELECT last_ts FROM _sync_meta WHERE db_tbl=%s", (f"{db}.{table}",))
+    # _sync_meta 固定在 defaultdb(admin 库); 传数据连接时跨库限定
+    cur.execute('SELECT last_ts FROM defaultdb._sync_meta WHERE db_tbl=%s', (f"{db}.{table}",))
     row = cur.fetchone()
     return row[0].isoformat() if row else None
 
 
 def set_wm(dst, db, table, ts: str):
-    cur = dst.cursor()
-    cur.execute("""INSERT INTO _sync_meta (db_tbl, last_ts) VALUES (%s, %s)
-                   ON CONFLICT (db_tbl) DO UPDATE SET last_ts=EXCLUDED.last_ts, updated_at=now()""",
-                (f"{db}.{table}", ts))
-    dst.commit()
+    # 水位写失败不致命(下次最多重传一批), 不能让整个同步因重试冲突崩掉
+    for attempt in range(8):
+        try:
+            cur = dst.cursor()
+            cur.execute("""INSERT INTO defaultdb._sync_meta (db_tbl, last_ts) VALUES (%s, %s)
+                           ON CONFLICT (db_tbl) DO UPDATE SET last_ts=EXCLUDED.last_ts, updated_at=now()""",
+                        (f"{db}.{table}", ts))
+            dst.commit()
+            return
+        except (psycopg2.errors.SerializationFailure,
+                psycopg2.errors.DeadlockDetected):
+            dst.rollback()
+            if attempt == 7:
+                print(f"  [warn] set_wm {db}.{table} 失败(重试耗尽), 保留旧水位", flush=True)
+                return
+            time.sleep(min(0.3 * (2 ** attempt), 5.0))
 
 
 # ---------- 同步 ----------
@@ -191,7 +207,9 @@ def sync_table(src, dst, db: str, table: str, incremental: bool = True,
     sel = ",".join(f"`{c}`" for c in names)
     col_list = ",".join(f'"{c}"' for c in names)
     updates = ",".join(f'"{c}"=EXCLUDED."{c}"' for c in names if c != pk) or f'"{pk}"=EXCLUDED."{pk}"'
-    upsert = (f'INSERT INTO {db}.{table} ({col_list}) VALUES ({",".join(["%s"]*len(names))}) '
+    # execute_values 单语句多 VALUES 批量(默认 page 100), 比逐行快 10-50x
+    template = "(" + ",".join(["%s"] * len(names)) + ")"
+    upsert = (f'INSERT INTO {db}.{table} ({col_list}) VALUES %s '
               f'ON CONFLICT ("{pk}") DO UPDATE SET {updates}')
 
     wm = get_wm(wm_conn or dst, db, table) if incremental else None
@@ -218,9 +236,21 @@ def sync_table(src, dst, db: str, table: str, incremental: bool = True,
         rows = scur.fetchall()
         if not rows:
             break
-        for r in rows:
-            dcur.execute(upsert, adapt_row(r, names, pg_types))
-        dst.commit()
+        if pg_types:
+            rows = [adapt_row(r, names, pg_types) for r in rows]
+        # CRDB 可串行化冲突重试(大批量 upsert 高概率 SerializationFailure)
+        for attempt in range(8):
+            try:
+                psycopg2.extras.execute_values(dcur, upsert, rows,
+                                               template=template, page_size=500)
+                dst.commit()
+                break
+            except (psycopg2.errors.SerializationFailure,
+                    psycopg2.errors.DeadlockDetected):
+                dst.rollback()
+                if attempt == 7:
+                    raise
+                time.sleep(min(0.3 * (2 ** attempt), 5.0))
         n += len(rows)
         last = rows[-1][names.index(pk)]
         if ts_idx is not None:

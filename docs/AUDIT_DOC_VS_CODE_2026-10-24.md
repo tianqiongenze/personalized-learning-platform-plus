@@ -112,3 +112,14 @@
 四服务镜像嵌包陈旧的真根因——根目录/本地 m2 同步均无效; buildx 层缓存与 alpine 容器缺 unzip/javap
 两度误导 BVV, 权威 BVV 必须**宿主侧 docker cp 解包 grep**。
 **新遗留**: ①kg33618 重灌 ②kp/resources 大表全量同步 ③litellm 基座 DB ④四服务 @PreAuthorize 403(JWT role 映射)
+
+## 六、阶段13 长尾清偿(同日, 四遗留逐项闭环)
+
+| 项 | 结论 | 证据 |
+|---|---|---|
+| ① kg33618 重灌 | ✅ 完成 | DROP SPACE+DROP HOSTS(仅留 192.168.194.153)→ schema.ngql 重跑 fail=0 → seed_33618.ngql 重跑 fail=0; SUBMIT JOB STATS 实证: 顶点 335(industry 14/knowledge_point 271/post 50)、边 590(belongs_to 50/prerequisite 221/relates_to 48/requires 271); MATCH by name 验证通过 |
+| ④ @PreAuthorize 403 | ✅ 定位=安全设计非 bug | tenant HeaderAuthFilter 仅信任 X-Gateway-Verified=1 头(网关注入); NodePort 直连缺该头→403 属预期; 带头创建学分规则成功(200) |
+| ② 大表同步 | ✅ 完成 | 脚本三修(execute_values 批量 upsert / SerializationFailure 8 次指数退避重试 / _sync_meta 跨库 defaultdb 限定——原 get_wm/set_wm 在目标库连接上查 defaultdb 表必炸); credit_transfer_records 2,880,000 行 + discussions 12,000,000 行全量落地, CRDB count 实证; 每小时 CronJob 与本地同步冲突已识别(暂停→恢复, 3 个连败 Job 清理) |
+| ③ litellm 基座 DB | ⏸ 诚实搁置 | litellm-postgres(PG16-alpine+PVC+Service)已建; DATABASE_URL 注入后 Prisma CLI 工具链 600s 超时→CrashLoop, 已回滚; PLPP 主链直连 ollama-worker 不受影响; 后续方案: pre-migration Job 或换官方镜像 |
+
+**阶段13 附加发现**: ① course /knowledge/graph 是关系型实现(知识点前置/关联自 course_db), Nebula kg33618 由 agent 侧 edu_tools.query_knowledge_graph 消费——两者同契约不同源, 均可用(真实 33618 产业词在 Nebula, course_db 是"知识点 N"合成数据, 语义覆盖不重叠); ② CRDB-a pod 曾因 k8s-master 磁盘压力(99%) Pending+NodePort 拒连——docker builder prune 释放 34GB+kubelet 重启后恢复, 节点磁盘水位 69% 仍需关注; ③ tenant CreditTransferService 规则创建无 DomainEvent 发布点(outbox 链未覆盖学分域, 可后续补)。

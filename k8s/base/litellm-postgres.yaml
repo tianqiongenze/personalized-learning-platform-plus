@@ -1,0 +1,57 @@
+# litellm 基座修复(2026-10-24): "No connected db" —— litellm proxy 在 DB 模式下
+# 需要 postgres(prisma)。单副本 PG16 + DATABASE_URL 注入。
+# 修复后 litellm 恢复 chat/key 管理; PLPP 主链已直连 ollama-worker, 此为 dify 生态基座修复。
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: litellm-postgres-data
+  namespace: ai-platform
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-postgres
+  namespace: ai-platform
+  labels: {app: litellm-postgres}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: litellm-postgres}}
+  template:
+    metadata:
+      labels: {app: litellm-postgres}
+    spec:
+      containers:
+      - name: postgres
+        image: 10.167.2.175:30500/base/postgres:16-alpine
+        env:
+        - {name: POSTGRES_USER, value: litellm}
+        - {name: POSTGRES_PASSWORD, value: "litellm-db-2026"}
+        - {name: POSTGRES_DB, value: litellm}
+        ports: [{containerPort: 5432}]
+        volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {cpu: "1", memory: 1Gi}
+        readinessProbe:
+          exec: {command: ["pg_isready", "-U", "litellm"]}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: data
+        persistentVolumeClaim: {claimName: litellm-postgres-data}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm-postgres
+  namespace: ai-platform
+spec:
+  selector: {app: litellm-postgres}
+  ports: [{port: 5432, targetPort: 5432}]
